@@ -636,11 +636,11 @@
               // Kullanıcı giriş yapmışsa, tipine göre ilgili dashboard'u göster
               switch (userType) {
                 case 'user':
-                  return <UserDashboard setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                  return <UserDashboardPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
                 case 'seller':
-                  return <SellerDashboard setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                  return <SellerDashboardPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
                 case 'admin':
-                  return <AdminDashboard setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                  return <AdminDashboardPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
                 default:
                   // Bilinmeyen bir kullanıcı tipi veya hata durumunda ana sayfaya yönlendir
                   return <HomePage setCurrentPath={setCurrentPath} t={t} />;
@@ -1100,9 +1100,9 @@
         };
 
 
-        // Satıcı Paneli Bileşeni (Atelier Paneli)
-        const SellerDashboard = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
-          const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
+        // Satıcı Paneli Sayfası Bileşeni (Yeni Sayfa)
+        const SellerDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+          const [activeTab, setActiveTab] = React.useState('overview');
 
           const renderContent = () => {
             switch (activeTab) {
@@ -1226,8 +1226,8 @@
           );
         };
 
-        // Koleksiyoner Paneli Bileşeni (Kullanıcı Paneli)
-        const UserDashboard = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Koleksiyoner Paneli Sayfası Bileşeni (Yeni Sayfa)
+        const UserDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
           const renderContent = () => {
@@ -1372,8 +1372,8 @@
           );
         };
 
-        // Yönetici Paneli Bileşeni (Galeri Yöneticisi Paneli)
-        const AdminDashboard = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Yönetici Paneli Sayfası Bileşeni (Yeni Sayfa)
+        const AdminDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
           const renderContent = () => {
