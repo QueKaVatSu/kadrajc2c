@@ -1112,7 +1112,10 @@
           return (
             <div className="flex flex-col md:flex-row gap-8">
               <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm h-fit border border-gray-100">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('atelierPanel')}</h2>
+                <div className="flex items-center space-x-2 mb-6"> {/* Logo ve başlık için flex container */}
+                  <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" class="h-8" /> {/* Yatay logo */}
+                  <h2 className="text-2xl font-bold text-gray-900">{t('atelierPanel')}</h2> {/* Yönetici yazısı */}
+                </div>
                 <ul className="space-y-3">
                   <li>
                     <button
@@ -1415,7 +1418,10 @@
           return (
             <div className="flex flex-col md:flex-row gap-8">
               <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm h-fit border border-gray-100">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('galleryManagerPanel')}</h2>
+                <div className="flex items-center space-x-2 mb-6"> {/* Logo ve başlık için flex container */}
+                  <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" class="h-8" /> {/* Yatay logo */}
+                  <h2 className="text-2xl font-bold text-gray-900">{t('adminPanel')}</h2> {/* Yönetici yazısı */}
+                </div>
                 <ul className="space-y-3">
                   <li>
                     <button
