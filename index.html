@@ -84,6 +84,7 @@
         const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
 
 
+        // ÇEVİRİLER
         const translations = {
           'Türkçe': {
             allCategories: 'TÜM KATEGORİLER',
@@ -286,7 +287,7 @@
             lighting: 'Lighting',
             decoration: 'Decoration',
             furnitureDesc: 'Special design furniture that forms the heart of your home.',
-            genelHata: 'An error occurred. Please try again.',
+            genelHata: 'An error occurred. Please try again.', // General error message
             lightingDesc: 'Designs that add light and aesthetics to your spaces.',
             decorationDesc: 'Unique decorative objects that make a difference with details.',
             collectorLogin: 'Collector Login',
@@ -458,7 +459,7 @@
             lighting: 'Beleuchtung',
             decoration: 'Dekoration',
             furnitureDesc: 'Spezielle Designermöbel, die das Herzstück Ihres Zuhauses bilden.',
-            genelHata: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+            genelHata: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', // General error message
             lightingDesc: 'Designs, die Ihren Räumen Licht und Ästhetik verleihen.',
             decorationDesc: 'Einzigartige Dekorationsgegenstände, die mit Details den Unterschied machen.',
             collectorLogin: 'Sammler-Login',
@@ -748,12 +749,12 @@
                         <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
                             {Object.keys(translatedMenuItems).map((key) => (
                                 <li key={key}>
-                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-xs">
+                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-[11pt]">
                                         {t(key)}
                                     </a>
                                 </li>
                             ))}
-                            <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-xs">KADRAJ SOCIETY</a></li>
+                            <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[11pt]">KADRAJ SOCIETY</a></li>
                         </ul>
                     </nav>
                 </div>
