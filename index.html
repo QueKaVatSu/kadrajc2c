@@ -75,6 +75,7 @@
         const PlusIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>;
         const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
 
+
         // ÇEVİRİLER
         const translations = {
           'Türkçe': {
@@ -368,11 +369,11 @@
             blogPosts: 'Blog Posts',
             manageBlogPosts: 'Manage Blog Posts',
             orderId: 'Order ID:',
-            product: 'Product:',
-            date: 'Date:',
-            categoryManagement: 'Category Management',
-            mainCategories: 'Main Categories',
-            subCategories: 'Sub Categories',
+            product: 'Ürün:',
+            date: 'Tarih:',
+            categoryManagement: 'Kategori Yönetimi',
+            mainCategories: 'Ana Kategoriler',
+            subCategories: 'Alt Kategoriler',
             addCategory: 'Add Category',
             editCategory: 'Edit Category',
             deleteCategory: 'Delete Category',
@@ -521,7 +522,7 @@
             currentCommissionRate: 'Aktueller Provisionssatz:',
             setCommissionRate: 'Provisionssatz festlegen',
             designerPayments: 'Designer-Zahlungen',
-            managePayments: 'Ödemeleri Yönet',
+            managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
             contentManagement: 'İçerik Yönetimi',
@@ -601,11 +602,10 @@
                 </div>
             );
         };
-        const ScrollingBanner = () => { /* Bu bileşen admin sayfasında kullanılmadığı için içeriği boş bırakılabilir */ return null; };
+        const ScrollingBanner = () => { return null; };
         const AdminDashboard = ({ isLoggedIn, userType, t, currentUser }) => {
             const [activeTab, setActiveTab] = React.useState('overview');
             const renderContent = () => {
-                // ... renderContent() fonksiyonu buraya gelecek
                 switch (activeTab) {
                     case 'overview':
                         return (
