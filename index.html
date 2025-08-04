@@ -604,16 +604,29 @@
                 const userDocSnap = await window.getDoc(userDocRef);
                 if (userDocSnap.exists()) {
                   setUserType(userDocSnap.data().role);
+                  // Kullanıcı tipine göre yönlendirme yap
+                  if (userDocSnap.data().role === 'seller') {
+                    window.location.href = 'seller-dashboard.html'; // Tam sayfa yönlendirme
+                  } else if (userDocSnap.data().role === 'admin') {
+                    window.location.href = 'admin-dashboard.html'; // Tam sayfa yönlendirme
+                  } else {
+                    setCurrentPath('/user-dashboard'); // Müşteri ana sayfada kalır
+                  }
                 } else {
                   // Eğer kullanıcı dokümanı yoksa (yeni kayıt), varsayılan olarak 'user' ata
                   setUserType('user');
                   await window.setDoc(userDocRef, { role: 'user', email: user.email });
+                  setCurrentPath('/user-dashboard');
                 }
               } else {
                 setCurrentUser(null);
                 setIsLoggedIn(false);
                 setUserType(null);
-                setCurrentPath('/'); // Kullanıcı çıkış yapınca ana sayfaya dön
+                // Çıkış yapıldığında veya oturum yoksa ana sayfaya yönlendir
+                if (window.location.pathname !== '/' && window.location.pathname !== '/index.html' && window.location.pathname !== '/seller-register.html' && window.location.pathname !== '/login.html') {
+                   window.location.href = '/'; // Sadece ilgili olmayan sayfalardan ana sayfaya yönlendir
+                }
+                setCurrentPath('/');
               }
             });
             return () => unsubscribe(); // Cleanup function
@@ -624,36 +637,30 @@
 
           // Sayfa içeriğini render eden fonksiyon
           const renderPage = () => {
-            if (isLoggedIn && (userType === 'seller' || userType === 'admin')) {
-              // Render dashboard pages without the main site's header/footer
-              if (userType === 'seller') {
-                return <SellerDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
-              } else if (userType === 'admin') {
-                return <AdminDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
-              }
-            } else {
-              // Render main site pages (HomePage, LoginPage, SellerRegisterPage) with the shared header
+            // Sadece index.html'de gösterilecek sayfalar
+            if (currentPath === '/login') {
+              return <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />;
+            } else if (currentPath === '/seller-register') {
+              return <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />;
+            } else { // Ana sayfa ve müşteri dashboard'u
               return (
-                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+                <>
                   <ScrollingBanner />
                   <StaticInfoBanner selectedLanguage={language} setSelectedLanguage={setLanguage} t={t} />
                   <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
                   <main className="container mx-auto p-6 md:p-10">
-                    {currentPath === '/login' && <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />}
-                    {currentPath === '/seller-register' && <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />}
                     {currentPath === '/' && <HomePage setCurrentPath={setCurrentPath} t={t} />}
-                    {/* If user is logged in as 'user' and navigated to their dashboard */}
                     {isLoggedIn && userType === 'user' && currentPath === '/user-dashboard' && <UserDashboardContent setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />}
                   </main>
-                </div>
+                </>
               );
             }
           };
 
           return (
-            <>
+            <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
                 {renderPage()}
-            </>
+            </div>
           );
         }
 
@@ -927,9 +934,9 @@
                 setIsLoggedIn(true);
                 setUserType(userData.role);
                 // Başarılı giriş sonrası ilgili dashboard'a yönlendir
-                if (userData.role === 'user') setCurrentPath('/user-dashboard');
-                else if (userData.role === 'seller') setCurrentPath('/seller-dashboard');
-                else if (userData.role === 'admin') setCurrentPath('/admin-dashboard');
+                if (userData.role === 'user') setCurrentPath('/user-dashboard'); // Müşteri ana sayfada kalır
+                else if (userData.role === 'seller') window.location.href = 'seller-dashboard.html'; // Satıcı ayrı sayfaya yönlendirilir
+                else if (userData.role === 'admin') window.location.href = 'admin-dashboard.html'; // Yönetici ayrı sayfaya yönlendirilir
               } else {
                 // Eğer kullanıcı dokümanı yoksa (Firebase Auth'ta var ama Firestore'da yok), varsayılan olarak 'user' ata
                 await window.setDoc(userDocRef, { role: 'user', email: user.email });
@@ -1633,3 +1640,4 @@
     </script>
 </body>
 </html>
+```
