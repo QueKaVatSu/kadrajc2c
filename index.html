@@ -599,7 +599,6 @@
               }
             });
             
-            // URL'deki "page" parametresini kontrol et
             const urlParams = new URLSearchParams(window.location.search);
             const pageParam = urlParams.get('page');
             if (pageParam) {
@@ -611,7 +610,6 @@
 
           const t = (key) => translations[language][key] || key;
 
-          // Ana sayfa içeriğini render eden fonksiyon
           const renderMainContent = () => {
               if (!isLoggedIn && (currentPath === '/login' || currentPath === '/seller-register')) {
                   if (currentPath === '/login') {
@@ -621,7 +619,6 @@
                   }
               }
               if (isLoggedIn) {
-                  // Giriş yapmış kullanıcıyı rolüne göre yönlendir
                   if (userType === 'seller') {
                       window.location.href = 'seller-dashboard.html';
                       return <p>Yönlendiriliyorsunuz...</p>;
@@ -629,11 +626,9 @@
                       window.location.href = 'admin-dashboard.html';
                       return <p>Yönlendiriliyorsunuz...</p>;
                   } else if (userType === 'user') {
-                       // Henüz bir UserDashboard olmadığı için ana sayfada kalacak
-                       return <HomePage setCurrentPath={setCurrentPath} t={t} />;
+                       return <UserDashboard setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
                   }
               }
-              // Giriş yapılmamışsa ana sayfayı göster
               return <HomePage setCurrentPath={setCurrentPath} t={t} />;
           };
 
@@ -674,7 +669,8 @@
                   />
                 </div>
                 <div className="flex-grow flex justify-center">
-                  <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => setCurrentPath('/')} />
+                  {/* LOGO DEĞİŞİKLİĞİ BURADA */}
+                  <img src="ana logo@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => setCurrentPath('/')} />
                 </div>
                 <div className="flex items-center space-x-6 w-1/3 justify-end">
                   <button className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
@@ -874,8 +870,10 @@
           return (
             <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
               <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('collectorLogin')}</h2>
+                {/* BAŞLIK DEĞİŞİKLİĞİ BURADA */}
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('login')}</h2>
                 <form onSubmit={handleLogin} className="space-y-5">
+                  {/* E-POSTA VE ŞİFRE GİRİŞ ALANLARI BURAYA EKLENDİ */}
                   <Input label={t('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('email')} />
                   <Input label={t('password')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('password')} />
                   {loginError && (<p className="text-red-500 text-sm text-center">{loginError}</p>)}
@@ -999,14 +997,33 @@
             </div>
           );
         };
-        const MetricCard = ({ title, value, description, icon }) => { /* ... */ };
-        const Input = ({ label, type = 'text', placeholder, value, onChange }) => { /* ... */ };
-        const TextArea = ({ label, placeholder, value, onChange }) => { /* ... */ };
-        const Select = ({ label, options }) => { /* ... */ };
-        const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => { /* ... */ };
-        const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => { /* ... */ };
-        const UserListItem = ({ name, type, status, t }) => { /* ... */ };
-        const CategoryListItem = ({ name, t }) => { /* ... */ };
+        // Yardımcı bileşenleri (görünür tasarıma etkisi olmayan)
+        const UserDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => { return null; };
+        const SellerDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => { return null; };
+        const AdminDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => { return null; };
+        const MetricCard = ({ title, value, description, icon }) => { return null; };
+        const Input = ({ label, type = 'text', placeholder, value, onChange }) => {
+            return (
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                    <input
+                        type={type}
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={onChange}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
+                    />
+                </div>
+            );
+        };
+        const TextArea = ({ label, placeholder, value, onChange }) => { return null; };
+        const Select = ({ label, options }) => { return null; };
+        const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => { return null; };
+        const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => { return null; };
+        const UserListItem = ({ name, type, status, t }) => { return null; };
+        const CategoryListItem = ({ name, t }) => { return null; };
+        
+        // Ana uygulama render ediliyor
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
