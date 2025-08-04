@@ -162,7 +162,6 @@
             allTime: 'Tüm zamanlar',
             withdrawBalance: 'Bakiye Çek',
             myOrders: 'Siparişlerim',
-            messageDesigner: 'Tasarımcıya Mesaj Gönder',
             favorites: 'Favorilerim',
             favoriteDesigns: 'Favori Tasarımlar',
             favoriteAteliers: 'Favori Atelierler',
@@ -369,11 +368,11 @@
             blogPosts: 'Blog Posts',
             manageBlogPosts: 'Manage Blog Posts',
             orderId: 'Order ID:',
-            product: 'Product:',
-            date: 'Date:',
-            categoryManagement: 'Category Management',
-            mainCategories: 'Main Categories',
-            subCategories: 'Sub Categories',
+            product: 'Ürün:',
+            date: 'Tarih:',
+            categoryManagement: 'Kategori Yönetimi',
+            mainCategories: 'Ana Kategoriler',
+            subCategories: 'Alt Kategoriler',
             addCategory: 'Add Category',
             editCategory: 'Edit Category',
             deleteCategory: 'Delete Category',
@@ -530,11 +529,11 @@
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
             manageCollections: 'Kollektionen verwalten',
-            blogPosts: 'Blogbeiträge',
-            manageBlogPosts: 'Blogbeiträge verwalten',
-            orderId: 'Bestell-ID:',
+            blogPosts: 'Blog Yazıları',
+            manageBlogPosts: 'Blog Yazılarını Yönet',
+            orderId: 'Sipariş ID:',
             product: 'Ürün:',
-            date: 'Datum:',
+            date: 'Tarih:',
             categoryManagement: 'Kategori Yönetimi',
             mainCategories: 'Ana Kategoriler',
             subCategories: 'Alt Kategoriler',
@@ -569,6 +568,78 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
+
+        const App = () => {
+          const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
+          const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+          const [userType, setUserType] = React.useState(null);
+          const [language, setLanguage] = React.useState('Türkçe');
+          const [currentUser, setCurrentUser] = React.useState(null);
+
+          React.useEffect(() => {
+            const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+              if (user) {
+                const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
+                const userDocSnap = await window.getDoc(userDocRef);
+                const role = userDocSnap.exists() ? userDocSnap.data().role : 'user';
+
+                if (userDocSnap.exists() && role === 'seller' && window.location.pathname !== '/seller-dashboard.html') {
+                    window.location.href = 'seller-dashboard.html';
+                } else if (userDocSnap.exists() && role === 'admin' && window.location.pathname !== '/admin-dashboard.html') {
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    setCurrentUser(user);
+                    setIsLoggedIn(true);
+                    setUserType(role);
+                }
+              } else {
+                setCurrentUser(null);
+                setIsLoggedIn(false);
+                setUserType(null);
+              }
+            });
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageParam = urlParams.get('page');
+            if (pageParam) {
+              setCurrentPath(`/${pageParam}`);
+            }
+
+            return () => unsubscribe();
+          }, []);
+
+          const t = (key) => translations[language][key] || key;
+          
+          const renderMainContent = () => {
+              if (!isLoggedIn && (currentPath === '/login' || currentPath === '/seller-register')) {
+                  if (currentPath === '/login') {
+                      return <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />;
+                  } else if (currentPath === '/seller-register') {
+                      return <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />;
+                  }
+              }
+              if (isLoggedIn) {
+                  // Kullanıcı rolü 'user' ise UserDashboard'ı göster
+                  if (userType === 'user') {
+                       return <UserDashboard setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                  }
+              }
+              // Giriş yapılmamışsa veya diğer rollerden biriyse (ancak dashboard sayfalarında değilse) ana sayfayı göster
+              return <HomePage setCurrentPath={setCurrentPath} t={t} />;
+          };
+
+          return (
+              <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+                  <ScrollingBanner />
+                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
+                  <main className="container mx-auto p-6 md:p-10">
+                      {renderMainContent()}
+                  </main>
+              </div>
+          );
+        };
+
+        // BİLEŞENLER
         const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
             const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
             const handleLogout = async () => {
@@ -671,7 +742,6 @@
               </div>
             </div>
           );
-        );
         };
         const HomePage = ({ setCurrentPath, t }) => {
           return (
@@ -759,9 +829,9 @@
                 const userData = userDocSnap.data();
                 setIsLoggedIn(true);
                 setUserType(userData.role);
-                if (userData.role === 'seller' && window.location.pathname !== '/seller-dashboard.html') {
+                if (userData.role === 'seller') {
                   window.location.href = 'seller-dashboard.html';
-                } else if (userData.role === 'admin' && window.location.pathname !== '/admin-dashboard.html') {
+                } else if (userData.role === 'admin') {
                   window.location.href = 'admin-dashboard.html';
                 } else {
                   setCurrentPath('/user-dashboard');
