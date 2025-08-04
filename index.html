@@ -496,7 +496,7 @@
             saveProduct: 'Produkt speichern',
             currentProducts: 'Aktuelle Produkte',
             active: 'Aktiv',
-            passive: 'Passiv',
+            passive: 'Pasiv',
             orders: 'Bestellungen',
             lastOrders: 'Letzte Bestellungen',
             completed: 'Abgeschlossen',
@@ -642,6 +642,8 @@
                     {currentPath === '/login' && <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />}
                     {currentPath === '/seller-register' && <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />}
                     {currentPath === '/' && <HomePage setCurrentPath={setCurrentPath} t={t} />}
+                    {/* If user is logged in as 'user' and navigated to their dashboard */}
+                    {isLoggedIn && userType === 'user' && currentPath === '/user-dashboard' && <UserDashboardContent setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />}
                   </main>
                 </div>
               );
