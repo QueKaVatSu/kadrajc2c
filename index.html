@@ -48,6 +48,18 @@
         .md\:aspect-w-1 { padding-bottom: 100%; }
         .md\:aspect-h-1 { padding-bottom: 100%; }
         .aspect-w-16 > *, .aspect-h-9 > *, .md\:aspect-w-1 > *, .md\:aspect-h-1 > * { position: absolute; height: 100%; width: 100%; top: 0; left: 0; }
+        @keyframes slide {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(0); }
+            25% { transform: translateX(-100%); }
+            45% { transform: translateX(-100%); }
+            50% { transform: translateX(-200%); }
+            70% { transform: translateX(-200%); }
+            75% { transform: translateX(-300%); }
+            95% { transform: translateX(-300%); }
+            100% { transform: translateX(0); }
+        }
+        .image-slider { animation: slide 20s infinite; }
     </style>
 </head>
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
@@ -368,11 +380,11 @@
             blogPosts: 'Blog Posts',
             manageBlogPosts: 'Manage Blog Posts',
             orderId: 'Order ID:',
-            product: 'Ürün:',
-            date: 'Tarih:',
-            categoryManagement: 'Kategori Yönetimi',
-            mainCategories: 'Ana Kategoriler',
-            subCategories: 'Alt Kategoriler',
+            product: 'Product:',
+            date: 'Date:',
+            categoryManagement: 'Category Management',
+            mainCategories: 'Main Categories',
+            subCategories: 'Sub Categories',
             addCategory: 'Add Category',
             editCategory: 'Edit Category',
             deleteCategory: 'Delete Category',
@@ -529,11 +541,11 @@
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
             manageCollections: 'Kollektionen verwalten',
-            blogPosts: 'Blog Yazıları',
-            manageBlogPosts: 'Blog Yazılarını Yönet',
-            orderId: 'Sipariş ID:',
+            blogPosts: 'Blogbeiträge',
+            manageBlogPosts: 'Blogbeiträge verwalten',
+            orderId: 'Bestell-ID:',
             product: 'Ürün:',
-            date: 'Tarih:',
+            date: 'Datum:',
             categoryManagement: 'Kategori Yönetimi',
             mainCategories: 'Ana Kategoriler',
             subCategories: 'Alt Kategoriler',
@@ -583,16 +595,19 @@
                 const userDocSnap = await window.getDoc(userDocRef);
                 const role = userDocSnap.exists() ? userDocSnap.data().role : 'user';
 
-                if (userDocSnap.exists() && role === 'seller' && window.location.pathname !== '/seller-dashboard.html') {
+                // Giriş yapmış kullanıcının rolüne göre yönlendirme yap
+                if (role === 'seller' && window.location.pathname !== '/seller-dashboard.html') {
                     window.location.href = 'seller-dashboard.html';
-                } else if (userDocSnap.exists() && role === 'admin' && window.location.pathname !== '/admin-dashboard.html') {
+                } else if (role === 'admin' && window.location.pathname !== '/admin-dashboard.html') {
                     window.location.href = 'admin-dashboard.html';
                 } else {
+                    // Kullanıcı doğru sayfadaysa veya bir user ise state'leri ayarla
                     setCurrentUser(user);
                     setIsLoggedIn(true);
                     setUserType(role);
                 }
               } else {
+                // Kullanıcı çıkış yaptıysa veya giriş yapmamışsa state'leri sıfırla
                 setCurrentUser(null);
                 setIsLoggedIn(false);
                 setUserType(null);
@@ -619,12 +634,11 @@
                   }
               }
               if (isLoggedIn) {
-                  // Kullanıcı rolü 'user' ise UserDashboard'ı göster
                   if (userType === 'user') {
                        return <UserDashboard setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
                   }
+                  // Seller ve adminler dashboard sayfalarına yönlendirileceği için burada bir şey render etmiyoruz.
               }
-              // Giriş yapılmamışsa veya diğer rollerden biriyse (ancak dashboard sayfalarında değilse) ana sayfayı göster
               return <HomePage setCurrentPath={setCurrentPath} t={t} />;
           };
 
@@ -638,8 +652,6 @@
               </div>
           );
         };
-
-        // BİLEŞENLER
         const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
             const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
             const handleLogout = async () => {
@@ -829,9 +841,9 @@
                 const userData = userDocSnap.data();
                 setIsLoggedIn(true);
                 setUserType(userData.role);
-                if (userData.role === 'seller') {
+                if (userData.role === 'seller' && window.location.pathname !== '/seller-dashboard.html') {
                   window.location.href = 'seller-dashboard.html';
-                } else if (userData.role === 'admin') {
+                } else if (userData.role === 'admin' && window.location.pathname !== '/admin-dashboard.html') {
                   window.location.href = 'admin-dashboard.html';
                 } else {
                   setCurrentPath('/user-dashboard');
