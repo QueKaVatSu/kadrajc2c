@@ -36,7 +36,6 @@
         window.getDoc = getDoc;
     </script>
     <style>
-        /* CSS stilleri tüm sayfalarda aynı olmalı */
         @keyframes scroll-left {
             0% { transform: translateX(0%); }
             100% { transform: translateX(-100%); }
@@ -53,7 +52,7 @@
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
     <div id="root"></div>
     <script type="text/babel">
-        // İkonlar ve çeviriler (tüm dosyalarda aynı olmalı)
+        // İKONLAR
         const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
         const StoreIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
@@ -75,6 +74,7 @@
         const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
 
 
+        // ÇEVİRİLER
         const translations = {
           'Türkçe': {
             home: 'Anasayfa',
@@ -567,7 +567,61 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
+
+        // ANA UYGULAMA BİLEŞENİ
+        const App = () => {
+          const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+          const [userType, setUserType] = React.useState(null);
+          const [language, setLanguage] = React.useState('Türkçe');
+          const [currentUser, setCurrentUser] = React.useState(null);
+          
+          React.useEffect(() => {
+            const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+              if (user) {
+                setCurrentUser(user);
+                setIsLoggedIn(true);
+                const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
+                const userDocSnap = await window.getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                  const role = userDocSnap.data().role;
+                  setUserType(role);
+                  // Satıcı paneline zaten giriş yapılmışsa yönlendirme yap
+                  if (role !== 'seller') {
+                    window.location.href = 'index.html'; // Farklı bir rolse anasayfaya dön
+                  }
+                } else {
+                  window.location.href = 'index.html';
+                }
+              } else {
+                setCurrentUser(null);
+                setIsLoggedIn(false);
+                setUserType(null);
+                window.location.href = 'index.html';
+              }
+            });
+            return () => unsubscribe();
+          }, []);
+          
+          const t = (key) => translations[language][key] || key;
+          
+          if (!isLoggedIn || userType !== 'seller') {
+              return <p>Yükleniyor veya yetkiniz yok...</p>;
+          }
+          
+          return (
+            <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+              <ScrollingBanner />
+              <StaticInfoBanner selectedLanguage={language} setSelectedLanguage={setLanguage} t={t} />
+              <Navbar isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
+              <main className="container mx-auto p-6 md:p-10">
+                <SellerDashboard isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />
+              </main>
+            </div>
+          );
+        };
+        
+        // DİĞER BİLEŞEN TANIMLARI
+        const Navbar = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
           const handleLogout = async () => {
             try { await window.signOut(window.firebaseAuth); } catch (error) { console.error("Çıkış yaparken hata oluştu:", error); }
           };
@@ -576,11 +630,7 @@
               <div className="container mx-auto px-6 md:px-10 flex items-center justify-between">
                 <div className="flex items-center w-1/3 max-w-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
                   <SearchIcon size={20} className="text-gray-500 mr-2" />
-                  <input
-                    type="text"
-                    placeholder={t('searchProduct')}
-                    className="flex-grow outline-none text-sm text-gray-700 placeholder-gray-400"
-                  />
+                  <input type="text" placeholder={t('searchProduct')} className="flex-grow outline-none text-sm text-gray-700 placeholder-gray-400" />
                 </div>
                 <div className="flex-grow flex justify-center">
                   <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} />
@@ -614,9 +664,64 @@
             </nav>
           );
         };
-        const ScrollingBanner = () => { /* ... */ };
-        const StaticInfoBanner = ({ selectedLanguage, setSelectedLanguage, t }) => { /* ... */ };
-        const SellerDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
+        const ScrollingBanner = () => {
+          const bannerContent = [
+            "Summer Sale! %50'ye Varan İndirim",
+            "Stoklarımızda En Yenileri!",
+            "RAYS Tüm Ürünlerde %30'a Varan İndirim",
+            "Haftanın Öne Çıkanları Keşfet!",
+            "Ücretsiz Kargo Fırsatını Kaçırma!"
+          ];
+          return (
+            <div className="w-full bg-gray-800 text-white text-sm py-2 overflow-hidden relative">
+              <style>{`
+                @keyframes scroll-left {
+                  0% { transform: translateX(0%); }
+                  100% { transform: translateX(-100%); }
+                }
+                .animate-scroll { animation: scroll-left 40s linear infinite; }
+                .animate-scroll:hover { animation-play-state: paused; }
+              `}</style>
+              <div className="flex whitespace-nowrap animate-scroll">
+                {bannerContent.map((text, index) => (
+                  <span key={index} className="px-8 flex-shrink-0">{text}</span>
+                ))}
+                {bannerContent.map((text, index) => (
+                  <span key={`duplicate-${index}`} className="px-8 flex-shrink-0">{text}</span>
+                ))}
+              </div>
+            </div>
+          );
+        };
+        const StaticInfoBanner = ({ selectedLanguage, setSelectedLanguage, t }) => {
+          const handleLanguageChange = (event) => {
+            setSelectedLanguage(event.target.value);
+            console.log(`Dil değiştirildi: ${event.target.value}`);
+          };
+          return (
+            <div className="w-full bg-gray-200 text-gray-700 text-sm py-2 px-6">
+              <div className="container mx-auto flex justify-end items-center space-x-6">
+                <a href="#" className="hover:underline">{t('contact')}</a>
+                <a href="#" className="hover:underline">{t('faq')}</a>
+                <div className="relative flex items-center space-x-1">
+                  <select
+                    className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 focus:outline-none"
+                    value={selectedLanguage}
+                    onChange={handleLanguageChange}
+                  >
+                    <option value="Türkçe">{t('turkce')}</option>
+                    <option value="English">{t('english')}</option>
+                    <option value="Deutsch">{t('deutsch')}</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <ChevronDownIcon size={16} className="lucide lucide-chevron-down" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+        const SellerDashboard = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
             const [activeTab, setActiveTab] = React.useState('overview');
             const renderContent = () => {
                 switch (activeTab) {
@@ -738,13 +843,95 @@
                 </div>
             );
         };
-        const MetricCard = ({ title, value, description, icon }) => { /* ... */ };
-        const Input = ({ label, type = 'text', placeholder, value, onChange }) => { /* ... */ };
-        const TextArea = ({ label, placeholder, value, onChange }) => { /* ... */ };
-        const Select = ({ label, options }) => { /* ... */ };
-        const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => { /* ... */ };
-        const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => { /* ... */ };
-        ReactDOM.createRoot(document.getElementById('root')).render(<SellerDashboard />);
+        const MetricCard = ({ title, value, description, icon }) => {
+          return (
+            <div className="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-100">
+              <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
+              <div>
+                <h4 className="text-lg font-medium text-gray-700">{title}</h4>
+                <p className="text-2xl font-bold text-gray-900">{value}</p>
+                <p className="text-sm text-gray-500">{description}</p>
+              </div>
+            </div>
+          );
+        };
+        const Input = ({ label, type = 'text', placeholder, value, onChange }) => {
+          return (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+              <input
+                type={type}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
+              />
+            </div>
+          );
+        };
+        const TextArea = ({ label, placeholder, value, onChange }) => {
+          return (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+              <textarea
+                placeholder={placeholder}
+                rows="4"
+                value={value}
+                onChange={onChange}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
+              ></textarea>
+            </div>
+          );
+        };
+        const Select = ({ label, options }) => {
+          return (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out">
+                {options.map((option, index) => (
+                  <option key={index} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+          );
+        };
+        const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => {
+          const statusColor = status === t('active') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+          return (
+            <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+              <div>
+                <p className="text-lg font-medium text-gray-800">{name}</p>
+                <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{status}</p>
+                {price && <p className="text-gray-600 mt-1">{price}</p>}
+              </div>
+              {showAdminActions && (
+                <div className="flex space-x-2 mt-3 md:mt-0">
+                  <button className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('edit')}</button>
+                  <button className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition duration-200">{t('delete')}</button>
+                </div>
+              )}
+            </li>
+          );
+        };
+        const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => {
+          const statusColor = status === t('completed') ? 'bg-green-100 text-green-700' : status === t('inTransit') ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
+          return (
+            <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+              <div>
+                <p className="text-lg font-medium text-gray-800">{t('orderId')} {orderId}</p>
+                <p className="text-gray-600">{t('product')}: {productName}</p>
+                <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{status}</p>
+                <p className="text-gray-500 text-sm mt-1">{t('date')}: {date}</p>
+              </div>
+              {showMessageButton && (
+                <button className="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800 transition duration-200 mt-3 md:mt-0">
+                  {t('messageDesigner')}
+                </button>
+              )}
+            </li>
+          );
+        };
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
