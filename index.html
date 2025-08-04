@@ -267,24 +267,6 @@
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
           'English': {
-            discover: 'DISCOVER',
-            newIn: 'NEW IN',
-            newInDesc: 'Discover our latest pieces, arriving every week.',
-            shopNewIn: 'SHOP NEW IN',
-            decor: 'Décor',
-            lighting: 'Lighting',
-            rugs: 'Rugs',
-            armchairs: 'Armchairs',
-            allCategories: 'ALL CATEGORIES',
-            designers: 'DESIGNERS',
-            seating: 'SEATING',
-            tables: 'TABLES',
-            lighting: 'LIGHTING',
-            rugs: 'RUGS',
-            decor: 'DÉCOR',
-            masters: 'MASTERS',
-            shopByRoom: 'SHOP BY ROOM',
-            ourGalleries: 'OUR GALLERIES',
             home: 'Homepage',
             collectorPanel: 'Collector Panel',
             atelierPanel: 'Atelier Panel',
@@ -566,7 +548,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'Inhaltsverwaltung',
+            contentManagement: 'İçerik Yönetimi',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -611,7 +593,6 @@
           },
         };
 
-        // ANA UYGULAMA BİLEŞENİ
         const App = () => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -798,7 +779,7 @@
             <>
               <div className="flex mt-8 gap-0 border-0">
                   <div className="relative w-1/3 aspect-[9/10] overflow-hidden">
-                      <img src="kadraj5.png" alt="Shop Now" className="w-full h-full object-cover" />
+                      <video src="loop1.mp4" autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
                       <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-start justify-end p-8 text-white">
                           <p className="text-xs font-normal tracking-widest mb-2">Editörün <span className="italic font-bold">Yaz</span> Seçkisi</p>
                           <h3 className="text-4xl font-bold mb-4">Laclaud</h3>
@@ -818,7 +799,9 @@
                       </div>
                   </div>
               </div>
+
               <NewInSection t={t} />
+
               <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100 mt-8">
                 <h2 className="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
                   {t('tagline1')}
@@ -1056,7 +1039,7 @@
         
         const ProductCard = ({ imageSrc, category, title }) => {
             return (
-                <div className="bg-white rounded-lg flex flex-col items-center p-4">
+                <div className="bg-white rounded-lg overflow-hidden flex flex-col items-center p-4">
                     <div className="w-full aspect-[3/4] mb-4">
                         <img src={imageSrc} alt={title} className="w-full h-full object-cover" />
                     </div>
@@ -1066,13 +1049,12 @@
             );
         };
         
-        // Yeni eklenen NewInSection bileşeni
         const NewInSection = ({ t }) => {
             const productCategories = [
-                { id: 'decor', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Decor', title: 'Product 1' },
-                { id: 'lighting', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Lighting', title: 'Product 2' },
-                { id: 'rugs', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Rugs', title: 'Product 3' },
-                { id: 'armchairs', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Armchairs', title: 'Product 4' },
+                { id: 'decor', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Decor', title: 'Ürün Adı 1' },
+                { id: 'lighting', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Lighting', title: 'Ürün Adı 2' },
+                { id: 'rugs', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Rugs', title: 'Ürün Adı 3' },
+                { id: 'armchairs', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Armchairs', title: 'Ürün Adı 4' },
             ];
             
             return (
