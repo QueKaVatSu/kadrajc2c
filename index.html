@@ -75,7 +75,6 @@
         const PlusIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>;
         const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
 
-
         // ÇEVİRİLER
         const translations = {
           'Türkçe': {
@@ -525,7 +524,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'Inhaltsverwaltung',
+            contentManagement: 'İçerik Yönetimi',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -569,7 +568,6 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-        // ANA UYGULAMA BİLEŞENİ
         const App = () => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -651,6 +649,19 @@
                     console.error("Çıkış yaparken hata oluştu:", error);
                 }
             };
+
+            const handleUserIconClick = () => {
+                if (isLoggedIn && userType === 'user') {
+                    setCurrentPath('/user-dashboard');
+                } else if (isLoggedIn && userType === 'seller') {
+                    window.location.href = 'seller-dashboard.html';
+                } else if (isLoggedIn && userType === 'admin') {
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    setCurrentPath('/login');
+                }
+            };
+
             return (
                 <div className="bg-white">
                     <nav className="border-b border-gray-200">
@@ -672,9 +683,14 @@
                             </div>
                             <div className="flex items-center space-x-6">
                                 <button className="text-gray-700 hover:text-gray-900 transition duration-300"><SearchIcon size={24} /></button>
-                                <button className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
+                                <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
                                 <button className="text-gray-700 hover:text-gray-900 transition duration-300"><HeartIcon size={24} /></button>
                                 <button className="text-gray-700 hover:text-gray-900 transition duration-300"><ShoppingBagIcon size={24} /></button>
+                                {isLoggedIn ? (
+                                    <button onClick={handleLogout} className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50"><LogOutIcon size={20} /><span>{t('logout')}</span></button>
+                                ) : (
+                                    <button onClick={() => setCurrentPath('/login')} className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-gray-50"><LogInIcon size={20} /><span>{t('login')}</span></button>
+                                )}
                             </div>
                         </div>
                     </nav>
