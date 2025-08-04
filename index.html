@@ -624,34 +624,40 @@
 
           // Sayfa içeriğini render eden fonksiyon
           const renderPage = () => {
-            if (isLoggedIn && (userType === 'seller' || userType === 'admin')) {
-              // Render dashboard pages without the main site's header/footer
-              if (userType === 'seller') {
-                return <SellerDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
-              } else if (userType === 'admin') {
-                return <AdminDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+            if (!isLoggedIn) {
+              // Eğer kullanıcı giriş yapmamışsa, giriş sayfasını veya ana sayfayı göster
+              if (currentPath === '/login') {
+                return <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />;
+              } else if (currentPath === '/seller-register') {
+                return <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />;
               }
+              return <HomePage setCurrentPath={setCurrentPath} t={t} />; // Ana sayfadan da giriş sayfasına gidebilir
             } else {
-              // Render main site pages (HomePage, LoginPage, SellerRegisterPage) with the shared header
-              return (
-                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                  <ScrollingBanner />
-                  <StaticInfoBanner selectedLanguage={language} setSelectedLanguage={setLanguage} t={t} />
-                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
-                  <main className="container mx-auto p-6 md:p-10">
-                    {currentPath === '/login' && <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />}
-                    {currentPath === '/seller-register' && <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />}
-                    {currentPath === '/' && <HomePage setCurrentPath={setCurrentPath} t={t} />}
-                  </main>
-                </div>
-              );
+              // Kullanıcı giriş yapmışsa, tipine göre ilgili dashboard'u göster
+              switch (userType) {
+                case 'user':
+                  return <UserDashboard setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                case 'seller':
+                  return <SellerDashboard setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                case 'admin':
+                  return <AdminDashboard setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                default:
+                  // Bilinmeyen bir kullanıcı tipi veya hata durumunda ana sayfaya yönlendir
+                  return <HomePage setCurrentPath={setCurrentPath} t={t} />;
+              }
             }
           };
 
           return (
-            <>
+            // Genel site arka planı ve font ayarları Vitruta'nın temiz estetiğine uygun
+            <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+              <ScrollingBanner /> {/* Banner'ı en üste taşıdık */}
+              <StaticInfoBanner selectedLanguage={language} setSelectedLanguage={setLanguage} t={t} /> {/* Yeni statik bilgi banner'ı */}
+              <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
+              <main className="container mx-auto p-6 md:p-10"> {/* Önceki ortalanmış ve paddingli düzen */}
                 {renderPage()}
-            </>
+              </main>
+            </div>
           );
         }
 
@@ -673,7 +679,7 @@
             <nav className="bg-white py-4 border-b border-gray-100">
               <div className="container mx-auto px-6 md:px-10 flex items-center justify-between">
                 {/* Sol kısım: Arama Çubuğu */}
-                <div className="flex items-center w-1/3 max-w-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                <div className="flex items-center w-1/3 max-w-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm"> {/* Çerçeve ve gölge eklendi */}
                   <SearchIcon size={20} className="text-gray-500 mr-2" />
                   <input
                     type="text"
@@ -1094,8 +1100,8 @@
         };
 
 
-        // Satıcı Paneli İçerik Bileşeni (Sidebar ve ana içerik)
-        const SellerDashboardContent = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Satıcı Paneli Bileşeni (Atelier Paneli)
+        const SellerDashboard = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
           const renderContent = () => {
@@ -1220,8 +1226,8 @@
           );
         };
 
-        // Koleksiyoner Paneli Sayfası Bileşeni (Yeni Sayfa)
-        const UserDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Koleksiyoner Paneli Bileşeni (Kullanıcı Paneli)
+        const UserDashboard = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
           const renderContent = () => {
@@ -1366,8 +1372,8 @@
           );
         };
 
-        // Yönetici Paneli Sayfası Bileşeni (Yeni Sayfa)
-        const AdminDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Yönetici Paneli Bileşeni (Galeri Yöneticisi Paneli)
+        const AdminDashboard = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
           const renderContent = () => {
