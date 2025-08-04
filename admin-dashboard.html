@@ -52,6 +52,7 @@
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
     <div id="root"></div>
     <script type="text/babel">
+        // İKONLAR
         const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
         const StoreIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
@@ -72,7 +73,7 @@
         const PlusIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>;
         const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
 
-
+        // ÇEVİRİLER
         const translations = {
           'Türkçe': {
             home: 'Anasayfa',
@@ -565,269 +566,366 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-
-        const App = () => {
-          const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-          const [userType, setUserType] = React.useState(null);
-          const [language, setLanguage] = React.useState('Türkçe');
-          const [currentUser, setCurrentUser] = React.useState(null);
-          
-          React.useEffect(() => {
-            const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-              if (user) {
-                setCurrentUser(user);
-                setIsLoggedIn(true);
-                const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                const userDocSnap = await window.getDoc(userDocRef);
-                if (userDocSnap.exists()) {
-                  const role = userDocSnap.data().role;
-                  setUserType(role);
-                  if (role !== 'admin') {
-                    window.location.href = 'index.html';
-                  }
-                } else {
-                  window.location.href = 'index.html';
-                }
-              } else {
-                setCurrentUser(null);
-                setIsLoggedIn(false);
-                setUserType(null);
-                window.location.href = 'index.html';
-              }
-            });
-            return () => unsubscribe();
-          }, []);
-
-          const t = (key) => translations[language][key] || key;
-          
-          if (!isLoggedIn || userType !== 'admin') {
-              return <p>Yükleniyor veya yetkiniz yok...</p>;
-          }
-          
+        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
+          const handleLogout = async () => {
+            try {
+              await window.signOut(window.firebaseAuth);
+              setIsLoggedIn(false);
+              setUserType(null);
+              setCurrentPath('/');
+            } catch (error) {
+              console.error("Çıkış yaparken hata oluştu:", error);
+            }
+          };
           return (
-            <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                <SadeNavbar t={t} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} />
-                <main className="container mx-auto p-6 md:p-10">
-                    <AdminDashboard isLoggedIn={isLoggedIn} userType={userType} t={t} currentUser={currentUser} />
-                </main>
+            <div className="bg-white">
+              <nav className="border-b border-gray-200">
+                <div className="container mx-auto px-6 md:px-10 flex items-center justify-between py-4">
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center space-x-1 text-sm font-semibold">
+                      <span>TR</span>
+                      <ChevronDownIcon size={16} />
+                    </span>
+                    <span className="text-sm font-semibold">
+                      EN
+                    </span>
+                    <button className="bg-black text-white px-4 py-2 text-sm font-bold tracking-wider">TRADE PROGRAM</button>
+                  </div>
+                  <div className="flex-grow flex justify-center">
+                    <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => setCurrentPath('/')} />
+                  </div>
+                  <div className="flex items-center space-x-6">
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><SearchIcon size={24} /></button>
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><HeartIcon size={24} /></button>
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><ShoppingBagIcon size={24} /></button>
+                    {isLoggedIn ? (
+                        <button onClick={handleLogout} className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50"><LogOutIcon size={20} /><span>{t('logout')}</span></button>
+                    ) : (
+                        <button onClick={() => setCurrentPath('/login')} className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-gray-50"><LogInIcon size={20} /><span>{t('login')}</span></button>
+                    )}
+                  </div>
+                </div>
+              </nav>
+              <nav className="py-2">
+                <ul className="flex justify-center space-x-8 text-gray-700 text-sm font-semibold">
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">ALL CATEGORIES</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">DESIGNERS</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">SEATING</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">TABLES</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">LIGHTING</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">RUGS</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">DÉCOR</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">MASTERS</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">SHOP BY ROOM</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">OUR GALLERIES</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition duration-300">CLUBROOM</a></li>
+                </ul>
+              </nav>
             </div>
           );
         };
-        const SadeNavbar = ({ t, isLoggedIn, userType, setIsLoggedIn }) => {
-            const handleLogout = async () => {
-                try {
-                    await window.signOut(window.firebaseAuth);
-                    setIsLoggedIn(false);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Çıkış yaparken hata oluştu:", error);
+        const ScrollingBanner = () => {
+          const bannerContent = [
+            "Summer Sale! %50'ye Varan İndirim",
+            "Stoklarımızda En Yenileri!",
+            "RAYS Tüm Ürünlerde %30'a Varan İndirim",
+            "Haftanın Öne Çıkanları Keşfet!",
+            "Ücretsiz Kargo Fırsatını Kaçırma!"
+          ];
+          return (
+            <div className="w-full bg-gray-800 text-white text-sm py-2 overflow-hidden relative">
+              <style>{`
+                @keyframes scroll-left {
+                  0% { transform: translateX(0%); }
+                  100% { transform: translateX(-100%); }
                 }
-            };
-            return (
-                <nav className="bg-white py-4 border-b border-gray-100">
-                    <div className="container mx-auto px-6 md:px-10 flex items-center justify-between">
-                        <div className="flex items-center w-1/3 max-w-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
-                            <SearchIcon size={20} className="text-gray-500 mr-2" />
-                            <input
-                                type="text"
-                                placeholder={t('searchProduct')}
-                                className="flex-grow outline-none text-sm text-gray-700 placeholder-gray-400"
-                            />
-                        </div>
-                        <div className="flex-grow flex justify-center">
-                            <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} />
-                        </div>
-                        <div className="flex items-center space-x-6 w-1/3 justify-end">
-                            <button className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
-                            {isLoggedIn && (
-                                <button onClick={handleLogout} className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50">
-                                    <LogOutIcon size={20} />
-                                    <span>{t('logout')}</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </nav>
-            );
+                .animate-scroll { animation: scroll-left 40s linear infinite; }
+                .animate-scroll:hover { animation-play-state: paused; }
+              `}</style>
+              <div className="flex whitespace-nowrap animate-scroll">
+                {bannerContent.map((text, index) => (
+                  <span key={index} className="px-8 flex-shrink-0">{text}</span>
+                ))}
+                {bannerContent.map((text, index) => (
+                  <span key={`duplicate-${index}`} className="px-8 flex-shrink-0">{text}</span>
+                ))}
+              </div>
+            </div>
+          );
         };
-        const AdminDashboard = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
-            const [activeTab, setActiveTab] = React.useState('overview');
-            const renderContent = () => {
-                switch (activeTab) {
-                    case 'overview':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3>
-                                {currentUser && <p className="text-gray-600">Kullanıcı ID: {currentUser.uid}</p>}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <MetricCard title={t('totalEarnings')} value="₺250,000" description={t('last30Days')} icon={<DollarSignIcon size={24} className="text-green-600" />} />
-                                    <MetricCard title={t('mostPopularProduct')} value="Ayşe Yılmaz Tasarım" description={`₺50,000 ${t('sales')}`} icon={<StoreIcon size={24} className="text-purple-500" />} />
-                                    <MetricCard title={t('mostPopularCategory')} value={t('furniture')} description={`80 ${t('unitsSold')}`} icon={<BoxIcon size={24} className="text-blue-500" />} />
-                                    <MetricCard title={t('totalInventory')} value={`1,200 ${t('product')}`} description={t('platformWide')} icon={<PackageIcon size={24} className="text-orange-500" />} />
-                                </div>
-                            </div>
-                        );
-                    case 'userManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('userManager')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
-                                    <ul className="space-y-4">
-                                        <UserListItem name="Mehmet Demir" type={t('atelier')} status={t('pending')} t={t} />
-                                        <UserListItem name="Zeynep Kaya" type={t('atelier')} status={t('approved')} t={t} />
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
-                                    <ul className="space-y-4">
-                                        <UserListItem name="Elif Can" type={t('collector')} status={t('active')} t={t} />
-                                        <UserListItem name="Ali Veli" type={t('atelier')} status={t('active')} t={t} />
-                                    </ul>
-                                </div>
-                            </div>
-                        );
-                    case 'productManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('productManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allListedProducts')}</h4>
-                                    <ul className="space-y-4">
-                                        <ProductListItem name="Modern Ahşap Sandalye" status={t('active')} price="₺1,200" showAdminActions t={t} />
-                                        <ProductListItem name="Soyut Yağlıboya Tablo" status={t('active')} price="₺3,500" showAdminActions t={t} />
-                                        <ProductListItem name="Endüstriyel Tarz Lamba" status={t('passive')} price="₺850" showAdminActions t={t} />
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('featuredProducts')}</h4>
-                                    <p className="text-gray-600">{t('manageFeaturedProducts')}</p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageFeaturedProducts')}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    case 'financeManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('financeManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('commissionRates')}</h4>
-                                    <p className="text-gray-600">{t('currentCommissionRate')} <span className="font-semibold"> %15</span></p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('setCommissionRate')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerPayments')}</h4>
-                                    <p className="text-gray-600">{t('managePayments')}</p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('managePayments')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('incomeExpenseReports')}</h4>
-                                    <p className="text-gray-600">{t('viewReports')}</p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('viewReports')}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    case 'contentManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('contentManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('homePageBanners')}</h4>
-                                    <p className="text-gray-600">{t('manageBanners')}</p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageBanners')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('specialCollectionPages')}</h4>
-                                    <p className="text-gray-600">{t('manageCollections')}</p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageCollections')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('blogPosts')}</h4>
-                                    <p className="text-gray-600">{t('manageBlogPosts')}</p>
-                                    <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageBlogPosts')}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    default:
-                        return null;
+        const HomePage = ({ setCurrentPath, t }) => {
+          return (
+            <>
+              <div className="w-full flex flex-col md:flex-row gap-2 mt-8">
+                <div className="relative flex-1 group aspect-w-16 aspect-h-9 md:aspect-w-1 md:aspect-h-1 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1589136114136-21b8c19a9a0f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8fHxfGVufDB8fHx8fA%3D%3D"
+                    alt={t('woman')}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                    <span className="text-white text-3xl font-bold tracking-wide">{t('woman')}</span>
+                  </div>
+                </div>
+                <div className="relative flex-1 group aspect-w-16 aspect-h-9 md:aspect-w-1 md:aspect-h-1 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1523268759734-b2585292419c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt={t('man')}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                    <span className="text-white text-3xl font-bold tracking-wide">{t('man')}</span>
+                  </div>
+                </div>
+                <div className="relative flex-1 group aspect-w-16 aspect-h-9 md:aspect-w-1 md:aspect-h-1 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1556911220-bff31a196191?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt={t('life')}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                    <span className="text-white text-3xl font-bold tracking-wide">{t('life')}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100 mt-8">
+                <h2 className="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+                  {t('tagline1')}
+                </h2>
+                <p className="text-xl text-gray-700 mb-10 max-w-2xl mx-auto">
+                  {t('tagline2')}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                  <div className="p-6 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+                    <img src="https://placehold.co/300x200/F5F5DC/6B7280?text=Mobilya" alt={t('furniture')} className="rounded-lg mb-4 w-full h-48 object-cover shadow-sm" />
+                    <h3 className="text-2xl font-semibold text-gray-800 mb-2">{t('furniture')}</h3>
+                    <p className="text-gray-600">{t('furnitureDesc')}</p>
+                  </div>
+                  <div className="p-6 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+                    <img src="https://placehold.co/300x200/F5F5DC/6B7280?text=Aydınlatma" alt={t('lighting')} className="rounded-lg mb-4 w-full h-48 object-cover shadow-sm" />
+                    <h3 className="text-2xl font-semibold text-gray-800 mb-2">{t('lighting')}</h3>
+                    <p className="text-gray-600">{t('lightingDesc')}</p>
+                  </div>
+                  <div className="p-6 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+                    <img src="https://placehold.co/300x200/F5F5DC/6B7280?text=Dekorasyon" alt={t('decoration')} className="rounded-lg mb-4 w-full h-48 object-cover shadow-sm" />
+                    <h3 className="text-2xl font-semibold text-gray-800 mb-2">{t('decoration')}</h3>
+                    <p className="text-gray-600">{t('decorationDesc')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCurrentPath('/login')}
+                  className="mt-12 bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg"
+                >
+                  {t('exploreLogin')}
+                </button>
+              </div>
+            </>
+          );
+        };
+        const LoginPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t }) => {
+          const [email, setEmail] = React.useState('');
+          const [password, setPassword] = React.useState('');
+          const [loginError, setLoginError] = React.useState('');
+          const handleLogin = async (e) => {
+            e.preventDefault();
+            setLoginError('');
+            try {
+              const userCredential = await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+              const user = userCredential.user;
+              const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
+              const userDocSnap = await window.getDoc(userDocRef);
+              if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                setIsLoggedIn(true);
+                setUserType(userData.role);
+                if (userData.role === 'seller') {
+                  window.location.href = 'seller-dashboard.html';
+                } else if (userData.role === 'admin') {
+                  window.location.href = 'admin-dashboard.html';
+                } else {
+                  setCurrentPath('/user-dashboard');
                 }
-            };
+              } else {
+                await window.setDoc(userDocRef, { role: 'user', email: user.email });
+                setIsLoggedIn(true);
+                setUserType('user');
+                setCurrentPath('/user-dashboard');
+              }
+            } catch (error) {
+              console.error("Giriş hatası:", error);
+              if (error.code === 'auth/invalid-email' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                setLoginError(t('invalidCredentials'));
+              } else {
+                setLoginError("Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.");
+              }
+            }
+          };
+
+          return (
+            <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
+              <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('login')}</h2>
+                <form onSubmit={handleLogin} className="space-y-5">
+                  <Input label={t('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('email')} />
+                  <Input label={t('password')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('password')} />
+                  {loginError && (<p className="text-red-500 text-sm text-center">{loginError}</p>)}
+                  <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg">
+                    {t('login')}
+                  </button>
+                </form>
+                <div className="mt-6 text-center text-sm text-gray-600">
+                  <p className="mb-2">
+                    **{t('sampleAccounts')}**
+                  </p>
+                  <p>
+                    **{t('collector')}:** {t('email')}: `kullanici@kadraj.com` | {t('password')}: `kullanici123`
+                  </p>
+                  <p>
+                    **{t('atelier')}:** {t('email')}: `satici@kadraj.com` | {t('password')}: `satici123`
+                  </p>
+                  <p>
+                    **{t('admin')}:** {t('email')}: `admin@kadraj.com` | {t('password')}: `admin123`
+                  </p>
+                </div>
+                <div className="mt-8 text-center">
+                  <p className="text-gray-700 text-lg">
+                    <button
+                      onClick={() => setCurrentPath('/seller-register')}
+                      className="text-gray-700 hover:underline font-semibold"
+                    >
+                      {t('wantToBeDesigner')}
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        };
+        const SellerRegisterPage = ({ setCurrentPath, t }) => {
+          const [atelierName, setAtelierName] = React.useState('');
+          const [fullName, setFullName] = React.useState('');
+          const [email, setEmail] = React.useState('');
+          const [password, setPassword] = React.useState('');
+          const [confirmPassword, setConfirmPassword] = React.useState('');
+          const [portfolioLink, setPortfolioLink] = React.useState('');
+          const [shortDescription, setShortDescription] = React.useState('');
+          const [registerError, setRegisterError] = React.useState('');
+          const [registerSuccess, setRegisterSuccess] = React.useState(false);
+          const handleRegister = async (e) => {
+            e.preventDefault();
+            setRegisterError('');
+            setRegisterSuccess(false);
+            if (password !== confirmPassword) {
+              setRegisterError(t('passwordsMismatch'));
+              return;
+            }
+            try {
+              const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+              const user = userCredential.user;
+              await window.setDoc(window.doc(window.firebaseFirestore, 'users', user.uid), {
+                role: 'seller',
+                email: email,
+                atelierName: atelierName,
+                fullName: fullName,
+                portfolioLink: portfolioLink,
+                shortDescription: shortDescription,
+                status: 'pending'
+              });
+              setRegisterSuccess(true);
+            } catch (error) {
+              console.error("Kayıt hatası:", error);
+              if (error.code === 'auth/email-already-in-use') {
+                setRegisterError("Bu e-posta adresi zaten kullanımda.");
+              } else if (error.code === 'auth/weak-password') {
+                setRegisterError("Şifre en az 6 karakter olmalıdır.");
+              } else {
+                setRegisterError("Kayıt yapılırken bir hata oluştu. Lütfen tekrar deneyin.");
+              }
+            }
+          };
+
+          return (
+            <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
+              <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-lg">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('atelierPartnershipApplication')}</h2>
+                {registerSuccess ? (
+                  <div className="text-center text-green-600 font-semibold text-xl py-8">
+                    <p>{t('applicationReceived')}</p>
+                    <p>{t('contactSoon')}</p>
+                    <button
+                      onClick={() => setCurrentPath('/login')}
+                      className="mt-6 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md"
+                    >
+                      {t('backToLogin')}
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleRegister} className="space-y-5">
+                    <Input label={t('atelierName')} value={atelierName} onChange={(e) => setAtelierName(e.target.value)} placeholder={t('atelierName')} />
+                    <Input label={t('fullName')} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('fullName')} />
+                    <Input label={t('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('email')} />
+                    <Input label={t('password')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('password')} />
+                    <Input label={t('confirmPassword')} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t('confirmPassword')} />
+                    <Input label={t('portfolioLink')} value={portfolioLink} onChange={(e) => setPortfolioLink(e.target.value)} placeholder={t('portfolioLink')} />
+                    <TextArea label={t('shortDescription')} value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} placeholder={t('shortDescription')} />
+                    {registerError && (<p className="text-red-500 text-sm text-center">{registerError}</p>)}
+                    <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg">
+                      {t('submitApplication')}
+                    </button>
+                  </form>
+                )}
+                <div className="mt-6 text-center">
+                  <p className="text-gray-700">
+                    {t('alreadyHaveAccount')}{' '}
+                    <button
+                      onClick={() => setCurrentPath('/login')}
+                      className="text-gray-700 hover:underline font-semibold"
+                    >
+                      {t('login')}
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        };
+        const UserDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => { 
             return (
-                <div className="flex flex-col md:flex-row gap-8">
-                    <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('galleryManagerPanel')}</h2>
-                        <ul className="space-y-3">
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('overview')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'overview' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <LayoutDashboardIcon size={20} />
-                                    <span>{t('overview')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('userManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'userManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <UsersIcon size={20} />
-                                    <span>{t('userManager')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('productManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'productManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <BoxIcon size={20} />
-                                    <span>{t('productManagement')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('financeManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'financeManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <DollarSignIcon size={20} />
-                                    <span>{t('financeManagement')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('contentManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'contentManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <FileTextIcon size={20} />
-                                    <span>{t('contentManagement')}</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="md:w-3/4 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                        {renderContent()}
+                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+                    <div className="container mx-auto p-6 md:p-10">
+                        <h2 className="text-2xl font-bold">{t('collectorPanel')}</h2>
+                        <p>Henüz içerik yok.</p>
                     </div>
                 </div>
             );
         };
+        const SellerDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => { return null; };
+        const AdminDashboard = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => { return null; };
         const MetricCard = ({ title, value, description, icon }) => { return null; };
-        const UserListItem = ({ name, type, status, t }) => { return null; };
+        const Input = ({ label, type = 'text', placeholder, value, onChange }) => {
+            return (
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                    <input
+                        type={type}
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={onChange}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
+                    />
+                </div>
+            );
+        };
+        const TextArea = ({ label, placeholder, value, onChange }) => { return null; };
+        const Select = ({ label, options }) => { return null; };
         const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => { return null; };
         const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => { return null; };
+        const UserListItem = ({ name, type, status, t }) => { return null; };
+        const CategoryListItem = ({ name, t }) => { return null; };
+        
+        // Ana uygulama render ediliyor
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
