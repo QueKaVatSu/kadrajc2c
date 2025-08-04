@@ -377,8 +377,7 @@
             view: 'View',
             approve: 'Approve',
             allListedProducts: 'All Listed Products',
-            featuredProducts: 'Featured Products',
-            manageFeaturedProducts: 'Manage Featured Products',
+            featuredProducts: 'Manage Featured Products',
             financeManagement: 'Finance Management',
             commissionRates: 'Commission Rates',
             currentCommissionRate: 'Current Commission Rate:',
@@ -580,28 +579,28 @@
             parentCategory: 'Üst Kategori',
             saveCategory: 'Kategoriyi Kaydet',
             // New translations
-            searchProduct: 'Search product, brand, content',
-            new: 'New',
-            woman: 'Woman',
-            man: 'Man',
-            child: 'Child',
-            life: 'Life',
-            brands: 'Brands',
-            discount: 'Discount',
+            searchProduct: 'Produkt, Marke, Inhalt suchen',
+            new: 'Neu',
+            woman: 'Frau',
+            man: 'Mann',
+            child: 'Kind',
+            life: 'Leben',
+            brands: 'Marken',
+            discount: 'Rabatt',
             mag: 'MAG',
             rewards: 'Rewards',
-            stores: 'Stores',
+            stores: 'Geschäfte',
             forGood: 'for good',
-            edit: 'Edit',
-            delete: 'Delete',
-            sales: 'sales',
-            unitsSold: 'units sold',
-            platformWide: 'Platform wide',
-            artPiece: 'Art Piece',
-            lastViewedProduct: 'Last Viewed Product',
-            today: 'Today',
-            modernScandinavianDesigns: 'Modern Scandinavian Designs',
-            naturalWoodCollection: 'Natural Wood Collection',
+            edit: 'Bearbeiten',
+            delete: 'Löschen',
+            sales: 'Verkäufe',
+            unitsSold: 'verkaufte Einheiten',
+            platformWide: 'Plattformweit',
+            artPiece: 'Kunstwerk',
+            lastViewedProduct: 'Zuletzt angesehenes Produkt',
+            today: 'Heute',
+            modernScandinavianDesigns: 'Moderne skandinavische Designs',
+            naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
         const App = () => {
@@ -699,7 +698,6 @@
                     setCurrentPath('/login');
                 }
             };
-
             const translatedMenuItems = {
                 allCategories: t('allCategories'),
                 designers: t('designers'),
@@ -750,12 +748,12 @@
                         <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
                             {Object.keys(translatedMenuItems).map((key) => (
                                 <li key={key}>
-                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300">
+                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-xs">
                                         {t(key)}
                                     </a>
                                 </li>
                             ))}
-                            <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300">KADRAJ SOCIETY</a></li>
+                            <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-xs">KADRAJ SOCIETY</a></li>
                         </ul>
                     </nav>
                 </div>
