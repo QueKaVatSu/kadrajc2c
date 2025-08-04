@@ -130,7 +130,6 @@
             fullName: 'Ad Soyad',
             confirmPassword: 'Şifre Tekrar',
             portfolioLink: 'Portfolyo Linki (Opsiyonel)',
-            shortDescription: 'Kısa Tanıtım (Opsiyonel)',
             passwordsMismatch: 'Şifreler uyuşmuyor. Lütfen kontrol edin.',
             submitApplication: 'Başvuruyu Gönder',
             alreadyHaveAccount: 'Zaten hesabın var mı?',
@@ -174,6 +173,7 @@
             allTime: 'Tüm zamanlar',
             withdrawBalance: 'Bakiye Çek',
             myOrders: 'Siparişlerim',
+            messageDesigner: 'Tasarımcıya Mesaj Gönder',
             favorites: 'Favorilerim',
             favoriteDesigns: 'Favori Tasarımlar',
             favoriteAteliers: 'Favori Atelierler',
@@ -455,7 +455,6 @@
             fullName: 'Vollständiger Name',
             confirmPassword: 'Passwort bestätigen',
             portfolioLink: 'Portfolio-Link (Optional)',
-            safetyWarning: 'Sicherheitshinweis: Diese Seite ist nur für Entwicklungs- und Testzwecke gedacht. Verwenden Sie keine echten Passwörter.',
             shortDescription: 'Kurze Beschreibung (Optional)',
             passwordsMismatch: 'Passwörter stimmen nicht überein. Bitte überprüfen Sie.',
             submitApplication: 'Antrag absenden',
@@ -579,78 +578,6 @@
             modernScandinavianDesigns: 'Moderne skandinavische Designs',
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
-        };
-
-        const App = () => {
-          const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
-          const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-          const [userType, setUserType] = React.useState(null);
-          const [language, setLanguage] = React.useState('Türkçe');
-          const [currentUser, setCurrentUser] = React.useState(null);
-
-          React.useEffect(() => {
-            const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-              if (user) {
-                const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                const userDocSnap = await window.getDoc(userDocRef);
-                const role = userDocSnap.exists() ? userDocSnap.data().role : 'user';
-
-                // Giriş yapmış kullanıcının rolüne göre yönlendirme yap
-                if (role === 'seller' && window.location.pathname !== '/seller-dashboard.html') {
-                    window.location.href = 'seller-dashboard.html';
-                } else if (role === 'admin' && window.location.pathname !== '/admin-dashboard.html') {
-                    window.location.href = 'admin-dashboard.html';
-                } else {
-                    // Kullanıcı doğru sayfadaysa veya bir user ise state'leri ayarla
-                    setCurrentUser(user);
-                    setIsLoggedIn(true);
-                    setUserType(role);
-                }
-              } else {
-                // Kullanıcı çıkış yaptıysa veya giriş yapmamışsa state'leri sıfırla
-                setCurrentUser(null);
-                setIsLoggedIn(false);
-                setUserType(null);
-              }
-            });
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const pageParam = urlParams.get('page');
-            if (pageParam) {
-              setCurrentPath(`/${pageParam}`);
-            }
-
-            return () => unsubscribe();
-          }, []);
-
-          const t = (key) => translations[language][key] || key;
-          
-          const renderMainContent = () => {
-              if (!isLoggedIn && (currentPath === '/login' || currentPath === '/seller-register')) {
-                  if (currentPath === '/login') {
-                      return <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />;
-                  } else if (currentPath === '/seller-register') {
-                      return <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />;
-                  }
-              }
-              if (isLoggedIn) {
-                  if (userType === 'user') {
-                       return <UserDashboard setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
-                  }
-                  // Seller ve adminler dashboard sayfalarına yönlendirileceği için burada bir şey render etmiyoruz.
-              }
-              return <HomePage setCurrentPath={setCurrentPath} t={t} />;
-          };
-
-          return (
-              <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                  <ScrollingBanner />
-                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
-                  <main className="container mx-auto p-6 md:p-10">
-                      {renderMainContent()}
-                  </main>
-              </div>
-          );
         };
         const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
             const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
