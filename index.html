@@ -89,6 +89,16 @@
         // ÇEVİRİLER
         const translations = {
           'Türkçe': {
+            allCategories: 'TÜM KATEGORİLER',
+            designers: 'TASARIMCILAR',
+            seating: 'OTURMA GRUPLARI',
+            tables: 'MASALAR',
+            lighting: 'AYDINLATMA',
+            rugs: 'HALILAR',
+            decor: 'DEKOR',
+            masters: 'USTALAR',
+            shopByRoom: 'ODAYA GÖRE ALIŞVERİŞ',
+            ourGalleries: 'GALERİLERİMİZ',
             home: 'Anasayfa',
             collectorPanel: 'Koleksiyoner Paneli',
             atelierPanel: 'Atelier Paneli',
@@ -250,6 +260,16 @@
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
           'English': {
+            allCategories: 'ALL CATEGORIES',
+            designers: 'DESIGNERS',
+            seating: 'SEATING',
+            tables: 'TABLES',
+            lighting: 'LIGHTING',
+            rugs: 'RUGS',
+            decor: 'DÉCOR',
+            masters: 'MASTERS',
+            shopByRoom: 'SHOP BY ROOM',
+            ourGalleries: 'OUR GALLERIES',
             home: 'Homepage',
             collectorPanel: 'Collector Panel',
             atelierPanel: 'Atelier Panel',
@@ -413,6 +433,16 @@
             naturalWoodCollection: 'Natural Wood Collection',
           },
           'Deutsch': {
+            allCategories: 'ALLE KATEGORIEN',
+            designers: 'DESIGNER',
+            seating: 'SITZMÖBEL',
+            tables: 'TISCHE',
+            lighting: 'BELEUCHTUNG',
+            rugs: 'TEPPICHE',
+            decor: 'DEKOR',
+            masters: 'MEISTER',
+            shopByRoom: 'SHOPPEN NACH RAUM',
+            ourGalleries: 'UNSERE GALERIEN',
             home: 'Startseite',
             collectorPanel: 'Sammler-Panel',
             atelierPanel: 'Atelier-Panel',
@@ -532,7 +562,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'İçerik Yönetimi',
+            contentManagement: 'Inhaltsverwaltung',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -671,6 +701,19 @@
                     setCurrentPath('/login');
                 }
             };
+            const translatedMenuItems = {
+                allCategories: t('allCategories'),
+                designers: t('designers'),
+                seating: t('seating'),
+                tables: t('tables'),
+                lighting: t('lighting'),
+                rugs: t('rugs'),
+                decor: t('decor'),
+                masters: t('masters'),
+                shopByRoom: t('shopByRoom'),
+                ourGalleries: t('ourGalleries'),
+            };
+
             return (
                 <div className="bg-white">
                     <nav className="border-b border-gray-200">
@@ -706,16 +749,13 @@
                     </nav>
                     <nav className="py-2">
                         <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">ALL CATEGORIES</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">DESIGNERS</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">SEATING</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">TABLES</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">LIGHTING</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">RUGS</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">DÉCOR</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">MASTERS</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">SHOP BY ROOM</a></li>
-                            <li><a href="#" className="font-normal hover:text-gray-900 transition duration-300">OUR GALLERIES</a></li>
+                            {Object.keys(translatedMenuItems).map((key) => (
+                                <li key={key}>
+                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300">
+                                        {translatedMenuItems[key]}
+                                    </a>
+                                </li>
+                            ))}
                             <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300">KADRAJ SOCIETY</a></li>
                         </ul>
                     </nav>
@@ -755,8 +795,8 @@
           const images = [
               "kadraj-slide1.png",
               "kadraj-slide2.png",
-              "https://images.unsplash.com/photo-1556911220-bff31a196191", // Örnek 3. resim
-              "https://images.unsplash.com/photo-1616486029423-ce7858c306d1" // Örnek 4. resim
+              "https://images.unsplash.com/photo-1556911220-bff31a196191",
+              "https://images.unsplash.com/photo-1616486029423-ce7858c306d1"
           ];
           return (
             <>
