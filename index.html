@@ -69,6 +69,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        // İKONLAR
         const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
         const StoreIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
@@ -187,7 +188,6 @@
             allTime: 'Tüm zamanlar',
             withdrawBalance: 'Bakiye Çek',
             myOrders: 'Siparişlerim',
-            messageDesigner: 'Tasarımcıya Mesaj Gönder',
             favorites: 'Favorilerim',
             favoriteDesigns: 'Favori Tasarımlar',
             favoriteAteliers: 'Favori Atelierler',
@@ -268,6 +268,13 @@
           },
           'English': {
             discover: 'DISCOVER',
+            newIn: 'NEW IN',
+            newInDesc: 'Discover our latest pieces, arriving every week.',
+            shopNewIn: 'SHOP NEW IN',
+            decor: 'Décor',
+            lighting: 'Lighting',
+            rugs: 'Rugs',
+            armchairs: 'Armchairs',
             allCategories: 'ALL CATEGORIES',
             designers: 'DESIGNERS',
             seating: 'SEATING',
@@ -559,7 +566,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'İçerik Yönetimi',
+            contentManagement: 'Inhaltsverwaltung',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -811,40 +818,7 @@
                       </div>
                   </div>
               </div>
-
-              {/* Yeni eklenen "Yeni Gelenler" kısmı */}
-              <div className="mt-12 p-6 bg-white">
-                  <div className="flex justify-between items-end mb-8">
-                      <div className="flex flex-col items-start">
-                          <h2 className="text-4xl font-normal tracking-widest mb-2 text-gray-900">
-                              {t('newIn')}
-                          </h2>
-                          <p className="text-sm font-light text-gray-600">
-                              {t('newInDesc')}
-                          </p>
-                      </div>
-                      <button className="bg-black text-white px-8 py-3 text-sm font-bold tracking-wider hover:bg-gray-800 transition-colors duration-300">
-                          {t('shopNewIn')}
-                      </button>
-                  </div>
-                  <div className="relative">
-                      <div className="flex overflow-x-scroll no-scrollbar">
-                          <div className="flex space-x-4">
-                              <ProductCard imageSrc="https://placehold.co/300x400/F5F5F5/6B7280?text=Decor" category={t('decor')} title="Ürün Adı 1" />
-                              <ProductCard imageSrc="https://placehold.co/300x400/F5F5F5/6B7280?text=Lighting" category={t('lighting')} title="Ürün Adı 2" />
-                              <ProductCard imageSrc="https://placehold.co/300x400/F5F5F5/6B7280?text=Rugs" category={t('rugs')} title="Ürün Adı 3" />
-                              <ProductCard imageSrc="https://placehold.co/300x400/F5F5F5/6B7280?text=Armchairs" category={t('armchairs')} title="Ürün Adı 4" />
-                          </div>
-                      </div>
-                      <button className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors duration-300">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                      </button>
-                      <button className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors duration-300">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                      </button>
-                  </div>
-              </div>
-
+              <NewInSection t={t} />
               <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100 mt-8">
                 <h2 className="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
                   {t('tagline1')}
@@ -1080,15 +1054,53 @@
         const UserListItem = ({ name, type, status, t }) => { return null; };
         const CategoryListItem = ({ name, t }) => { return null; };
         
-        // Yeni eklenen ProductCard bileşeni
         const ProductCard = ({ imageSrc, category, title }) => {
             return (
-                <div className="bg-white rounded-lg overflow-hidden flex flex-col items-center p-4">
-                    <div className="aspect-h-9 aspect-w-16 w-full mb-4">
+                <div className="bg-white rounded-lg flex flex-col items-center p-4">
+                    <div className="w-full aspect-[3/4] mb-4">
                         <img src={imageSrc} alt={title} className="w-full h-full object-cover" />
                     </div>
                     <p className="text-xs font-normal text-gray-500 uppercase tracking-widest">{category}</p>
                     <h4 className="text-lg font-normal text-gray-800 mt-1">{title}</h4>
+                </div>
+            );
+        };
+        
+        // Yeni eklenen NewInSection bileşeni
+        const NewInSection = ({ t }) => {
+            const productCategories = [
+                { id: 'decor', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Decor', title: 'Product 1' },
+                { id: 'lighting', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Lighting', title: 'Product 2' },
+                { id: 'rugs', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Rugs', title: 'Product 3' },
+                { id: 'armchairs', image: 'https://placehold.co/300x400/F5F5F5/6B7280?text=Armchairs', title: 'Product 4' },
+            ];
+            
+            return (
+                <div className="flex justify-between items-center bg-white p-8 my-8">
+                    <div className="w-1/4 pr-8">
+                        <h2 className="text-4xl font-normal tracking-widest mb-4">
+                            {t('newIn')}
+                        </h2>
+                        <p className="text-sm font-light text-gray-600 mb-6">
+                            {t('newInDesc')}
+                        </p>
+                        <button className="bg-black text-white px-8 py-3 text-sm font-bold tracking-wider hover:bg-gray-800 transition-colors duration-300">
+                            {t('shopNewIn')}
+                        </button>
+                    </div>
+                    <div className="w-3/4 relative flex items-center">
+                        <button className="absolute left-0 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div className="flex overflow-x-scroll no-scrollbar space-x-6 px-2">
+                            {productCategories.map((product, index) => (
+                                <ProductCard key={index} imageSrc={product.image} category={t(product.id)} title={product.title} />
+                            ))}
+                        </div>
+                        <button className="absolute right-0 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
                 </div>
             );
         };
