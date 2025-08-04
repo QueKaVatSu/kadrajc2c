@@ -49,14 +49,12 @@
         .md\:aspect-h-1 { padding-bottom: 100%; }
         .aspect-w-16 > *, .aspect-h-9 > *, .md\:aspect-w-1 > *, .md\:aspect-h-1 > * { position: absolute; height: 100%; width: 100%; top: 0; left: 0; }
         @keyframes slide {
-            0%, 20% { transform: translateX(0%); }
-            25%, 45% { transform: translateX(-100%); }
-            50%, 70% { transform: translateX(-200%); }
-            75%, 95% { transform: translateX(-300%); }
+            0%, 46.67% { transform: translateX(0%); } /* 7s */
+            50%, 96.67% { transform: translateX(-100%); } /* 7s */
             100% { transform: translateX(0%); }
         }
         .image-slider {
-            animation: slide 20s infinite;
+            animation: slide 15s infinite; /* Toplam 15 saniyede bir döngü */
         }
     </style>
 </head>
@@ -289,7 +287,7 @@
             lighting: 'Lighting',
             decoration: 'Decoration',
             furnitureDesc: 'Special design furniture that forms the heart of your home.',
-            genelHata: 'An error occurred. Please try again.',
+            genelHata: 'An error occurred. Please try again.', // General error message
             lightingDesc: 'Designs that add light and aesthetics to your spaces.',
             decorationDesc: 'Unique decorative objects that make a difference with details.',
             collectorLogin: 'Collector Login',
@@ -401,7 +399,7 @@
             date: 'Date:',
             categoryManagement: 'Category Management',
             mainCategories: 'Main Categories',
-            subCategories: 'Alt Kategoriler',
+            subCategories: 'Sub Categories',
             addCategory: 'Add Category',
             editCategory: 'Edit Category',
             deleteCategory: 'Delete Category',
@@ -462,7 +460,7 @@
             lighting: 'Beleuchtung',
             decoration: 'Dekoration',
             furnitureDesc: 'Spezielle Designermöbel, die das Herzstück Ihres Zuhauses bilden.',
-            genelHata: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+            genelHata: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', // General error message
             lightingDesc: 'Designs, die Ihren Räumen Licht und Ästhetik verleihen.',
             decorationDesc: 'Einzigartige Dekorationsgegenstände, die mit Details den Unterschied machen.',
             collectorLogin: 'Sammler-Login',
@@ -582,28 +580,28 @@
             parentCategory: 'Üst Kategori',
             saveCategory: 'Kategoriyi Kaydet',
             // New translations
-            searchProduct: 'Produkt, Marke, Inhalt suchen',
-            new: 'Neu',
-            woman: 'Frau',
-            man: 'Mann',
-            child: 'Kind',
-            life: 'Leben',
-            brands: 'Marken',
-            discount: 'Rabatt',
+            searchProduct: 'Search product, brand, content',
+            new: 'New',
+            woman: 'Woman',
+            man: 'Man',
+            child: 'Child',
+            life: 'Life',
+            brands: 'Brands',
+            discount: 'Discount',
             mag: 'MAG',
             rewards: 'Rewards',
-            stores: 'Geschäfte',
+            stores: 'Stores',
             forGood: 'for good',
-            edit: 'Bearbeiten',
-            delete: 'Löschen',
-            sales: 'Verkäufe',
-            unitsSold: 'verkaufte Einheiten',
-            platformWide: 'Plattformweit',
-            artPiece: 'Kunstwerk',
-            lastViewedProduct: 'Zuletzt angesehenes Produkt',
-            today: 'Heute',
-            modernScandinavianDesigns: 'Moderne skandinavische Designs',
-            naturalWoodCollection: 'Naturholz-Kollektion',
+            edit: 'Edit',
+            delete: 'Delete',
+            sales: 'sales',
+            unitsSold: 'units sold',
+            platformWide: 'Platform wide',
+            artPiece: 'Art Piece',
+            lastViewedProduct: 'Last Viewed Product',
+            today: 'Today',
+            modernScandinavianDesigns: 'Modern Scandinavian Designs',
+            naturalWoodCollection: 'Natural Wood Collection',
           },
         };
         const App = () => {
@@ -701,6 +699,7 @@
                     setCurrentPath('/login');
                 }
             };
+
             const translatedMenuItems = {
                 allCategories: t('allCategories'),
                 designers: t('designers'),
@@ -752,7 +751,7 @@
                             {Object.keys(translatedMenuItems).map((key) => (
                                 <li key={key}>
                                     <a href="#" className="font-normal hover:text-gray-900 transition duration-300">
-                                        {translatedMenuItems[key]}
+                                        {t(key)}
                                     </a>
                                 </li>
                             ))}
@@ -794,9 +793,7 @@
         const HomePage = ({ setCurrentPath, t }) => {
           const images = [
               "kadraj-slide1.png",
-              "kadraj-slide2.png",
-              "https://images.unsplash.com/photo-1556911220-bff31a196191",
-              "https://images.unsplash.com/photo-1616486029423-ce7858c306d1"
+              "kadraj-slide2.png"
           ];
           return (
             <>
@@ -813,9 +810,9 @@
                       </div>
                   </div>
                   <div className="relative w-2/3 aspect-[16/9] overflow-hidden">
-                      <div className="absolute top-0 left-0 w-[400%] h-full flex image-slider">
+                      <div className="absolute top-0 left-0 w-[200%] h-full flex image-slider">
                           {images.map((image, index) => (
-                              <div key={index} className="w-1/4 h-full flex-shrink-0">
+                              <div key={index} className="w-1/2 h-full flex-shrink-0">
                                   <img src={image} alt={`Slide ${index}`} className="w-full h-full object-cover" />
                               </div>
                           ))}
