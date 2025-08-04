@@ -1098,14 +1098,84 @@
         const SellerDashboardContent = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
-          const handleLogout = async () => {
-            try {
-              await window.signOut(window.firebaseAuth);
-              setIsLoggedIn(false);
-              setUserType(null);
-              setCurrentPath('/'); // Çıkış yapınca ana sayfaya dön
-            } catch (error) {
-              console.error("Çıkış yaparken hata oluştu:", error);
+          const renderContent = () => {
+            switch (activeTab) {
+              case 'overview':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3>
+                    {currentUser && <p className="text-gray-600">Kullanıcı ID: {currentUser.uid}</p>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <MetricCard title={t('atelierReview')} value="4.8 / 5" description={t('last30Days')} icon={<HeartIcon size={24} className="text-rose-500" />} />
+                      <MetricCard title={t('mostPopularProduct')} value="Minimalist Sehpa" description={`120 ${t('views')}`} icon={<PackageIcon size={24} className="text-blue-500" />} />
+                      <MetricCard title={t('productViews')} value="1.540" description={t('totalViews')} icon={<EyeIcon size={24} className="text-green-500" />} />
+                      <MetricCard title={t('addToFavoritesRate')} value="18%" description={t('averageRate')} icon={<HeartIcon size={24} className="text-purple-500" />} />
+                    </div>
+                  </div>
+                );
+              case 'productManagement':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('addProductManage')}</h3>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('addNewProduct')}</h4>
+                      <form className="space-y-4">
+                        <Input label={t('productName')} placeholder="Örn: El Yapımı Seramik Vazo" />
+                        <TextArea label={t('productDescription')} placeholder={t('productDescription')} />
+                        <TextArea label={t('productStory')} placeholder={t('productStory')} />
+                        <Input label={t('price')} type="number" placeholder="Örn: 500" />
+                        <Select label={t('category')} options={[t('furniture'), t('lighting'), t('decoration'), t('artPiece')]} />
+                        <Input label={t('materialInfo')} placeholder="Örn: Seramik, Ahşap, Metal" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input label={t('dimensionsCm')} placeholder="Örn: 20x15x10" />
+                          <Input label={t('weightKg')} type="number" placeholder="Örn: 2.5" />
+                        </div>
+                        <TextArea label={t('shippingInfo')} placeholder={t('shippingInfo')} />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('professionalPhotoGallery')}</label>
+                          <input type="file" multiple className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />
+                          <p className="mt-1 text-sm text-gray-500">{t('uploadPhotos')}</p>
+                        </div>
+                        <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                          {t('saveProduct')}
+                        </button>
+                      </form>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('currentProducts')}</h4>
+                      <ul className="space-y-4">
+                        <ProductListItem name="Modern Ahşap Sandalye" status={t('active')} price="₺1,200" />
+                        <ProductListItem name="Soyut Yağlıboya Tablo" status={t('active')} price="₺3,500" />
+                        <ProductListItem name="Endüstriyel Tarz Lamba" status={t('passive')} price="₺850" />
+                      </ul>
+                    </div>
+                  </div>
+                );
+              case 'ordersFinance':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('ordersFinance')}</h3>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('lastOrders')}</h4>
+                      <ul className="space-y-4">
+                        <OrderItem orderId="KDA-001" productName="Minimalist Sehpa" status={t('completed')} date="2024-07-28" />
+                        <OrderItem orderId="KDA-002" productName="El Yapımı Seramik Vazo" status={t('inTransit')} date="2024-07-29" />
+                      </ul>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('financialStatus')}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <MetricCard title={t('withdrawableBalance')} value="₺5,800" description={t('currentBalance')} icon={<DollarSignIcon size={24} className="text-green-600" />} />
+                        <MetricCard title={t('totalEarnings')} value="₺12,500" description={t('allTime')} icon={<DollarSignIcon size={24} className="text-green-600" />} />
+                      </div>
+                      <button className="mt-6 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                        {t('withdrawBalance')}
+                      </button>
+                    </div>
+                  </div>
+                );
+              default:
+                return null;
             }
           };
 
@@ -1141,15 +1211,6 @@
                       <span>{t('ordersFinance')}</span>
                     </button>
                   </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out text-red-600 hover:bg-red-50"
-                    >
-                      <LogOutIcon size={20} />
-                      <span>{t('logout')}</span>
-                    </button>
-                  </li>
                 </ul>
               </div>
               <div className="md:w-3/4 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -1159,33 +1220,105 @@
           );
         };
 
-        // Satıcı Paneli Sayfası Bileşeni (Yeni Sayfa)
-        const SellerDashboardPage = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
-            return (
-                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                    <SellerDashboardContent setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />
-                </div>
-            );
-        };
-
-        // Koleksiyoner Paneli İçerik Bileşeni (Sidebar ve ana içerik)
-        const UserDashboardContent = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Koleksiyoner Paneli Sayfası Bileşeni (Yeni Sayfa)
+        const UserDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
 
-          const handleLogout = async () => {
-            try {
-              await window.signOut(window.firebaseAuth);
-              setIsLoggedIn(false);
-              setUserType(null);
-              setCurrentPath('/'); // Çıkış yapınca ana sayfaya dön
-            } catch (error) {
-              console.error("Çıkış yaparken hata oluştu:", error);
+          const renderContent = () => {
+            switch (activeTab) {
+              case 'overview':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3>
+                    {currentUser && <p className="text-gray-600">Kullanıcı ID: {currentUser.uid}</p>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <MetricCard title={t('lastOrders')} value="Minimalist Sehpa" description="28 Temmuz 2024" icon={<PackageIcon size={24} className="text-blue-500" />} />
+                      <MetricCard title={t('favoriteAtelier')} value="Gizem Sanat Atölyesi" description={`3 ${t('product')} ${t('favorites')}`} icon={<StoreIcon size={24} className="text-purple-500" />} />
+                      <MetricCard title={t('lastViewedProduct')} value="El Yapımı Seramik Vazo" description={t('today')} icon={<EyeIcon size={24} className="text-green-500" />} />
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('specialCollectionPages')}</h4>
+                      <ul className="space-y-3">
+                        <li><span className="font-medium text-gray-800">{t('modernScandinavianDesigns')}:</span> Minimalist ve fonksiyonel parçalar.</li>
+                        <li><span className="font-medium text-gray-800">{t('naturalWoodCollection')}:</span> Organik formlar ve sıcak dokunuşlar.</li>
+                      </ul>
+                    </div>
+                  </div>
+                );
+              case 'profileManagement':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('profileManagement')}</h3>
+                    {currentUser && <p className="text-gray-600">Kullanıcı ID: {currentUser.uid}</p>}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('deliveryAddresses')}</h4>
+                      <form className="space-y-4">
+                        <Input label={t('addressTitle')} placeholder={t('addressTitle')} />
+                        <Input label={t('addressLine1')} placeholder={t('addressLine1')} />
+                        <Input label={t('addressLine2')} placeholder={t('addressLine2')} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input label={t('city')} placeholder={t('city')} />
+                          <Input label={t('district')} placeholder={t('district')} />
+                        </div>
+                        <Input label={t('zipCode')} placeholder={t('zipCode')} />
+                        <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                          {t('saveAddress')}
+                        </button>
+                      </form>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('billingInformation')}</h4>
+                      <form className="space-y-4">
+                        <Input label={t('nameSurnameCompanyName')} placeholder={t('nameSurnameCompanyName')} />
+                        <Input label={t('tcIdTaxNo')} placeholder={t('tcIdTaxNo')} />
+                        <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                          {t('saveBillingInfo')}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                );
+              case 'myOrders':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('myOrders')}</h3>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <ul className="space-y-4">
+                        <OrderItem orderId="KDA-001" productName="Minimalist Sehpa" status={t('completed')} date="2024-07-28" showMessageButton t={t} />
+                        <OrderItem orderId="KDA-002" productName="El Yapımı Seramik Vazo" status={t('inTransit')} date="2024-07-29" showMessageButton t={t} />
+                        <OrderItem orderId="KDA-003" productName="Soyut Yağlıboya Tablo" status={t('cancelled')} date="2024-07-25" showMessageButton t={t} />
+                      </ul>
+                    </div>
+                  </div>
+                );
+              case 'favorites':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">{t('favorites')}</h3>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('favoriteDesigns')}</h4>
+                      <ul className="space-y-3">
+                        <li><span className="font-medium text-gray-800">Modern Koltuk Takımı</span> - <span className="text-gray-600">₺15,000</span></li>
+                        <li><span className="font-medium text-gray-800">El Yapımı Ahşap Masa</span> - <span className="text-gray-600">₺4,500</span></li>
+                      </ul>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('favoriteAteliers')}</h4>
+                      <ul className="space-y-3">
+                        <li><span className="font-medium text-gray-800">Gizem Sanat Atölyesi</span></li>
+                        <li><span className="font-medium text-gray-800">Doğa Mobilya Tasarım</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                );
+              default:
+                return null;
             }
           };
 
           return (
             <div className="flex flex-col md:flex-row gap-8">
-              <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm h-fit border border-gray-100">
+              <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('collectorPanel')}</h2>
                 <ul className="space-y-3">
                   <li>
@@ -1224,15 +1357,6 @@
                       <span>{t('favorites')}</span>
                     </button>
                   </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out text-red-600 hover:bg-red-50"
-                    >
-                      <LogOutIcon size={20} />
-                      <span>{t('logout')}</span>
-                    </button>
-                  </li>
                 </ul>
               </div>
               <div className="md:w-3/4 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -1242,29 +1366,9 @@
           );
         };
 
-        // Koleksiyoner Paneli Sayfası Bileşeni (Yeni Sayfa)
-        const UserDashboardPage = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
-            return (
-                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                    <UserDashboardContent setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />
-                </div>
-            );
-        };
-
-        // Yönetici Paneli İçerik Bileşeni (Sidebar ve ana içerik)
-        const AdminDashboardContent = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
+        // Yönetici Paneli Sayfası Bileşeni (Yeni Sayfa)
+        const AdminDashboardPage = ({ setCurrentPath, setIsLoggedIn, setUserType, t, currentUser }) => {
           const [activeTab, setActiveTab] = React.useState('overview'); // Aktif sekme durumu
-
-          const handleLogout = async () => {
-            try {
-              await window.signOut(window.firebaseAuth);
-              setIsLoggedIn(false);
-              setUserType(null);
-              setCurrentPath('/'); // Çıkış yapınca ana sayfaya dön
-            } catch (error) {
-              console.error("Çıkış yaparken hata oluştu:", error);
-            }
-          };
 
           const renderContent = () => {
             switch (activeTab) {
@@ -1376,37 +1480,6 @@
                     </div>
                   </div>
                 );
-              case 'categoryManagement': // Yeni kategori yönetimi içeriği
-                return (
-                  <div className="space-y-6">
-                    <h3 className="text-2xl font-semibold text-gray-800">{t('categoryManagement')}</h3>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('addCategory')}</h4>
-                      <form className="space-y-4">
-                        <Input label={t('categoryName')} placeholder={t('categoryName')} />
-                        <Select label={t('parentCategory')} options={['Yok', 'Mobilya', 'Aydınlatma', 'Dekorasyon']} /> {/* Örnek üst kategoriler */}
-                        <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                          {t('saveCategory')}
-                        </button>
-                      </form>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('mainCategories')}</h4>
-                      <ul className="space-y-3">
-                        <CategoryListItem name="Mobilya" t={t} />
-                        <CategoryListItem name="Aydınlatma" t={t} />
-                        <CategoryListItem name="Dekorasyon" t={t} />
-                      </ul>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                      <h4 className="text-xl font-medium text-gray-700 mb-4">{t('subCategories')}</h4>
-                      <ul className="space-y-3">
-                        <CategoryListItem name="Sehpalar (Mobilya)" t={t} />
-                        <CategoryListItem name="Lambaderler (Aydınlatma)" t={t} />
-                      </ul>
-                    </div>
-                  </div>
-                );
               default:
                 return null;
             }
@@ -1414,7 +1487,7 @@
 
           return (
             <div className="flex flex-col md:flex-row gap-8">
-              <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm h-fit border border-gray-100">
+              <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('galleryManagerPanel')}</h2>
                 <ul className="space-y-3">
                   <li>
@@ -1460,24 +1533,6 @@
                     >
                       <FileTextIcon size={20} />
                       <span>{t('contentManagement')}</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => setActiveTab('categoryManagement')}
-                      className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'categoryManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                    >
-                      <BoxIcon size={20} /> {/* Kategori ikonu olarak BoxIcon kullanıldı */}
-                      <span>{t('categoryManagement')}</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out text-red-600 hover:bg-red-50"
-                    >
-                      <LogOutIcon size={20} />
-                      <span>{t('logout')}</span>
                     </button>
                   </li>
                 </ul>
@@ -1602,19 +1657,6 @@
                 {status === t('pending') && (
                   <button className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition duration-200">{t('approve')}</button>
                 )}
-              </div>
-            </li>
-          );
-        };
-
-        // Kategori Listesi Öğesi Bileşeni
-        const CategoryListItem = ({ name, t }) => {
-          return (
-            <li className="flex justify-between items-center p-3 bg-gray-100 rounded-lg shadow-sm">
-              <span className="text-gray-800 font-medium">{name}</span>
-              <div className="flex space-x-2">
-                <button className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('edit')}</button>
-                <button className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition duration-200">{t('delete')}</button>
               </div>
             </li>
           );
