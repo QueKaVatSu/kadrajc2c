@@ -270,24 +270,6 @@
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
           'English': {
-            discover: 'DISCOVER',
-            newIn: 'NEW IN',
-            newInDesc: 'Discover our latest pieces, arriving every week.',
-            shopNewIn: 'SHOP NEW IN',
-            decor: 'Décor',
-            lighting: 'Lighting',
-            rugs: 'Rugs',
-            armchairs: 'Armchairs',
-            allCategories: 'ALL CATEGORIES',
-            designers: 'DESIGNERS',
-            seating: 'SEATING',
-            tables: 'TABLES',
-            lighting: 'LIGHTING',
-            rugs: 'RUGS',
-            decor: 'DÉCOR',
-            masters: 'MASTERS',
-            shopByRoom: 'SHOP BY ROOM',
-            ourGalleries: 'OUR GALLERIES',
             home: 'Homepage',
             collectorPanel: 'Collector Panel',
             atelierPanel: 'Atelier Panel',
@@ -515,7 +497,7 @@
             dimensionsCm: 'Abmessungen (cm)',
             weightKg: 'Gewicht (kg)',
             shippingInfo: 'Versandinformationen',
-            professionalPhotoGallery: 'Profesyonelle Fotogalerie',
+            professionalPhotoGallery: 'Professionelle Fotogalerie',
             uploadPhotos: 'Laden Sie mindestens 3, maximal 10 Fotos hoch.',
             saveProduct: 'Produkt speichern',
             currentProducts: 'Aktuelle Produkte',
@@ -569,7 +551,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'İçerik Yönetimi',
+            contentManagement: 'Inhaltsverwaltung',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -613,7 +595,6 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-
         const App = () => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -1104,7 +1085,7 @@
         const NewInSection = ({ t }) => {
             const productCategories = [
                 { id: 'decor', image: 'dekor.png', category: t('decor') },
-                { id: 'lighting', image: 'lighting.png', category: t('lighting') },
+                { id: 'lighting', image: 'lightning.png', category: t('lighting') },
                 { id: 'rugs', image: 'rugs.png', category: t('rugs') },
                 { id: 'armchairs', image: 'armchair.png', category: t('armchairs') },
             ];
