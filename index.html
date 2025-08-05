@@ -270,6 +270,24 @@
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
           'English': {
+            discover: 'DISCOVER',
+            newIn: 'NEW IN',
+            newInDesc: 'Discover our latest pieces, arriving every week.',
+            shopNewIn: 'SHOP NEW IN',
+            decor: 'Décor',
+            lighting: 'Lighting',
+            rugs: 'Rugs',
+            armchairs: 'Armchairs',
+            allCategories: 'ALL CATEGORIES',
+            designers: 'DESIGNERS',
+            seating: 'SEATING',
+            tables: 'TABLES',
+            lighting: 'LIGHTING',
+            rugs: 'RUGS',
+            decor: 'DÉCOR',
+            masters: 'MASTERS',
+            shopByRoom: 'SHOP BY ROOM',
+            ourGalleries: 'OUR GALLERIES',
             home: 'Homepage',
             collectorPanel: 'Collector Panel',
             atelierPanel: 'Atelier Panel',
@@ -548,10 +566,10 @@
             currentCommissionRate: 'Aktueller Provisionssatz:',
             setCommissionRate: 'Provisionssatz festlegen',
             designerPayments: 'Designer-Zahlungen',
-            managePayments: 'Ödemeleri Yönet',
+            managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'İçerik Yönetimi',
+            contentManagement: 'Inhaltsverwaltung',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -595,7 +613,8 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-        const App = () => {
+
+        const RootComponent = ({ page }) => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
           const [userType, setUserType] = React.useState(null);
@@ -605,143 +624,128 @@
           React.useEffect(() => {
             const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
               if (user) {
+                setCurrentUser(user);
+                setIsLoggedIn(true);
                 const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
                 const userDocSnap = await window.getDoc(userDocRef);
                 const role = userDocSnap.exists() ? userDocSnap.data().role : 'user';
+                setUserType(role);
 
                 if (role === 'seller' && !window.location.pathname.includes('seller-dashboard.html')) {
                     window.location.href = 'seller-dashboard.html';
                 } else if (role === 'admin' && !window.location.pathname.includes('admin-dashboard.html')) {
                     window.location.href = 'admin-dashboard.html';
-                } else {
-                    setCurrentUser(user);
-                    setIsLoggedIn(true);
-                    setUserType(role);
                 }
               } else {
                 if (window.location.pathname.includes('-dashboard.html')) {
-                    window.location.href = 'index.html';
+                   window.location.href = 'index.html';
                 }
                 setCurrentUser(null);
                 setIsLoggedIn(false);
                 setUserType(null);
               }
             });
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const pageParam = urlParams.get('page');
-            if (pageParam) {
-              setCurrentPath(`/${pageParam}`);
-            } else {
-              setCurrentPath(window.location.pathname);
-            }
-
             return () => unsubscribe();
           }, []);
-
-          const t = (key) => translations[language][key] || key;
           
-          const renderMainContent = () => {
-              if (!isLoggedIn && (currentPath.includes('/login') || currentPath.includes('/seller-register'))) {
-                  if (currentPath.includes('/login')) {
-                      return <LoginPage setCurrentPath={setCurrentPath} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />;
-                  } else if (currentPath.includes('/seller-register')) {
-                      return <SellerRegisterPage setCurrentPath={setCurrentPath} t={t} />;
-                  }
-              }
-              if (isLoggedIn) {
-                  if (userType === 'user') {
-                       return <UserDashboard setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
-                  }
-              }
-              return <HomePage setCurrentPath={setCurrentPath} t={t} />;
+          const t = (key) => translations[language][key] || key;
+
+          if (page === 'index') {
+            return (
+              <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+                <ScrollingBanner />
+                <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} setLanguage={setLanguage} />
+                <main className="container mx-auto p-6 md:p-10">
+                  <HomePage setCurrentPath={setCurrentPath} t={t} />
+                </main>
+              </div>
+            );
+          } else if (page === 'seller-dashboard') {
+            return <SellerDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+          } else if (page === 'admin-dashboard') {
+            return <AdminDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+          }
+          return null;
+        }
+
+        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, setLanguage }) => {
+          const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
+          const handleLogout = async () => {
+            try {
+              await window.signOut(window.firebaseAuth);
+              setIsLoggedIn(false);
+              setUserType(null);
+              setCurrentPath('/');
+            } catch (error) {
+              console.error("Çıkış yaparken hata oluştu:", error);
+            }
           };
+          const handleUserIconClick = () => {
+            if (isLoggedIn && userType === 'user') {
+              setCurrentPath('/user-dashboard');
+            } else if (isLoggedIn && userType === 'seller') {
+              window.location.href = 'seller-dashboard.html';
+            } else if (isLoggedIn && userType === 'admin') {
+              window.location.href = 'admin-dashboard.html';
+            } else {
+              setCurrentPath('/login');
+            }
+          };
+          const menuItems = [
+              'allCategories', 'designers', 'seating', 'tables', 'lighting',
+              'rugs', 'decor', 'masters', 'shopByRoom', 'ourGalleries'
+          ];
+          React.useEffect(() => {
+            setLanguage(selectedLanguage);
+          }, [selectedLanguage]);
 
           return (
-              <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                  <ScrollingBanner />
-                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
-                  <main className="container mx-auto p-6 md:p-10">
-                      {renderMainContent()}
-                  </main>
-              </div>
-          );
-        };
-        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
-            const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
-            const handleLogout = async () => {
-                try {
-                    await window.signOut(window.firebaseAuth);
-                    setIsLoggedIn(false);
-                    setUserType(null);
-                    setCurrentPath('/');
-                } catch (error) {
-                    console.error("Çıkış yaparken hata oluştu:", error);
-                }
-            };
-            const handleUserIconClick = () => {
-                if (isLoggedIn && userType === 'user') {
-                    setCurrentPath('/user-dashboard');
-                } else if (isLoggedIn && userType === 'seller') {
-                    window.location.href = 'seller-dashboard.html';
-                } else if (isLoggedIn && userType === 'admin') {
-                    window.location.href = 'admin-dashboard.html';
-                } else {
-                    setCurrentPath('/login');
-                }
-            };
-            const menuItems = [
-                'allCategories', 'designers', 'seating', 'tables', 'lighting',
-                'rugs', 'decor', 'masters', 'shopByRoom', 'ourGalleries'
-            ];
-
-            return (
-                <div className="bg-white">
-                    <nav className="border-b border-gray-200">
-                        <div className="container mx-auto px-6 md:px-10 flex items-center justify-between py-4">
-                            <div className="flex items-center space-x-4">
-                                <div className="relative">
-                                    <select
-                                        className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 font-medium focus:outline-none"
-                                        value={selectedLanguage}
-                                        onChange={(e) => setLanguage(e.target.value)}
-                                    >
-                                        <option value="Türkçe">TR</option>
-                                        <option value="English">EN</option>
-                                        <option value="Deutsch">DE</option>
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                        <ChevronDownIcon size={16} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-grow flex justify-center">
-                                <span className="text-3xl font-light tracking-widest uppercase cursor-pointer" onClick={() => setCurrentPath('/')}>
-                                    KADRAJ L'ATELIER
-                                </span>
-                            </div>
-                            <div className="flex items-center space-x-6">
-                                <button className="text-gray-700 hover:text-gray-900 transition duration-300"><SearchIcon size={24} /></button>
-                                <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
-                                <button className="text-gray-700 hover:text-gray-900 transition duration-300"><HeartIcon size={24} /></button>
-                                <button className="text-gray-700 hover:text-gray-900 transition duration-300"><ShoppingBagIcon size={24} /></button>
-                            </div>
-                        </div>
-                    </nav>
-                    <nav className="py-2">
-                        <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
-                            {menuItems.map((item, index) => (
-                                <li key={index}>
-                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-[11px]">
-                                        {t(item)}
-                                    </a>
-                                </li>
-                            ))}
-                            <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[11px]">KADRAJ SOCIETY</a></li>
-                        </ul>
-                    </nav>
+            <div className="bg-white">
+              <nav className="border-b border-gray-200">
+                <div className="container mx-auto px-6 md:px-10 flex items-center justify-between py-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <select
+                        className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 font-medium focus:outline-none"
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                      >
+                        <option value="Türkçe">TR</option>
+                        <option value="English">EN</option>
+                        <option value="Deutsch">DE</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <ChevronDownIcon size={16} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-grow flex justify-center">
+                    <span className="text-3xl font-light tracking-widest uppercase cursor-pointer" onClick={() => setCurrentPath('/')}>
+                      KADRAJ L'ATELIER
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-6">
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><SearchIcon size={24} /></button>
+                    <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><HeartIcon size={24} /></button>
+                    <button className="text-gray-700 hover:text-gray-900 transition duration-300"><ShoppingBagIcon size={24} /></button>
+                  </div>
                 </div>
-            );
+              </nav>
+              <nav className="py-2">
+                <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
+                    {Object.keys(translations[language]).filter(key => menuItems.includes(key)).map((key) => (
+                        <li key={key}>
+                            <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-[11px]">
+                                {t(key)}
+                            </a>
+                        </li>
+                    ))}
+                  <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[11px]">KADRAJ SOCIETY</a></li>
+                </ul>
+              </nav>
+            </div>
+          );
         };
         const ScrollingBanner = () => {
           const bannerContent = [
@@ -1141,14 +1145,14 @@
                 {
                     title: "ÖNE ÇIKARILAN KOLEKSİYON",
                     subtitle: "Charlotte Bilgen",
-                    image: "markalar.png",
+                    image: "image_ac40bb.jpg",
                     discoverText: "KEŞFET",
                     position: "0% 0%"
                 },
                 {
                     title: "MÜKEMMEL YAŞAM",
                     subtitle: "İkonik Masalar",
-                    image: "tables.png",
+                    image: "image_ac40bb.jpg",
                     discoverText: "KEŞFET",
                     position: "right 0"
                 }
