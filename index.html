@@ -96,6 +96,21 @@
 
         const translations = {
           'Türkçe': {
+            discover: 'KEŞFET',
+            newIn: 'Yeni Gelenler',
+            newInDesc: 'Her hafta gelen en yeni parçalarımızı keşfedin.',
+            shopNewIn: 'YENİ GELENLERİ KEŞFET',
+            decor: 'Dekor',
+            lighting: 'Aydınlatma',
+            rugs: 'Halılar',
+            armchairs: 'Koltuklar',
+            allCategories: 'TÜM KATEGORİLER',
+            designers: 'TASARIMCILAR',
+            seating: 'OTURMA GRUPLARI',
+            tables: 'MASALAR',
+            masters: 'USTALAR',
+            shopByRoom: 'ODAYA GÖRE ALIŞVERİŞ',
+            ourGalleries: 'GALERİLERİMİZ',
             home: 'Anasayfa',
             collectorPanel: 'Koleksiyoner Paneli',
             atelierPanel: 'Atelier Paneli',
@@ -112,8 +127,6 @@
             tagline2: 'Yaşam alanlarınıza değer katın. Özenle seçilmiş mobilya, aydınlatma ve dekorasyon ürünleriyle tanışın.',
             exploreLogin: 'Hemen Keşfet / Giriş Yap',
             furniture: 'Mobilya',
-            lighting: 'Aydınlatma',
-            decoration: 'Dekorasyon',
             furnitureDesc: 'Evinizin kalbini oluşturan özel tasarım mobilyalar.',
             genelHata: 'Bir hata oluştu. Lütfen tekrar deneyin.',
             lightingDesc: 'Mekanlarınıza ışık ve estetik katan tasarımlar.',
@@ -535,10 +548,10 @@
             currentCommissionRate: 'Aktueller Provisionssatz:',
             setCommissionRate: 'Provisionssatz festlegen',
             designerPayments: 'Designer-Zahlungen',
-            managePayments: 'Zahlungen verwalten',
+            managePayments: 'Ödemeleri Yönet',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'Inhaltsverwaltung',
+            contentManagement: 'İçerik Yönetimi',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -1073,7 +1086,7 @@
         const NewInSection = ({ t }) => {
             const productCategories = [
                 { id: 'decor', image: 'dekor.png', category: t('decor') },
-                { id: 'lighting', image: 'lightning.png', category: t('lighting') },
+                { id: 'lighting', image: 'lighting.png', category: t('lighting') },
                 { id: 'rugs', image: 'rugs.png', category: t('rugs') },
                 { id: 'armchairs', image: 'armchair.png', category: t('armchairs') },
             ];
@@ -1126,17 +1139,17 @@
         const HighlightsSection = ({ t }) => {
             const highlightItems = [
                 {
-                    title: t('collectionHighlight'),
+                    title: "ÖNE ÇIKARILAN KOLEKSİYON",
                     subtitle: "Charlotte Bilgen",
                     image: "markalar.png",
-                    discoverText: t('discover'),
+                    discoverText: "KEŞFET",
                     position: "0% 0%"
                 },
                 {
-                    title: t('perfectLiving'),
-                    subtitle: t('iconicTables'),
+                    title: "MÜKEMMEL YAŞAM",
+                    subtitle: "İkonik Masalar",
                     image: "tables.png",
-                    discoverText: t('discover'),
+                    discoverText: "KEŞFET",
                     position: "right 0"
                 }
             ];
