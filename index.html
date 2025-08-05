@@ -96,6 +96,21 @@
 
         const translations = {
           'Türkçe': {
+            discover: 'KEŞFET',
+            newIn: 'Yeni Gelenler',
+            newInDesc: 'Her hafta gelen en yeni parçalarımızı keşfedin.',
+            shopNewIn: 'YENİ GELENLERİ KEŞFET',
+            decor: 'Dekor',
+            lighting: 'Aydınlatma',
+            rugs: 'Halılar',
+            armchairs: 'Koltuklar',
+            allCategories: 'TÜM KATEGORİLER',
+            designers: 'TASARIMCILAR',
+            seating: 'OTURMA GRUPLARI',
+            tables: 'MASALAR',
+            masters: 'USTALAR',
+            shopByRoom: 'ODAYA GÖRE ALIŞVERİŞ',
+            ourGalleries: 'GALERİLERİMİZ',
             home: 'Anasayfa',
             collectorPanel: 'Koleksiyoner Paneli',
             atelierPanel: 'Atelier Paneli',
@@ -112,8 +127,6 @@
             tagline2: 'Yaşam alanlarınıza değer katın. Özenle seçilmiş mobilya, aydınlatma ve dekorasyon ürünleriyle tanışın.',
             exploreLogin: 'Hemen Keşfet / Giriş Yap',
             furniture: 'Mobilya',
-            lighting: 'Aydınlatma',
-            decoration: 'Dekorasyon',
             furnitureDesc: 'Evinizin kalbini oluşturan özel tasarım mobilyalar.',
             genelHata: 'Bir hata oluştu. Lütfen tekrar deneyin.',
             lightingDesc: 'Mekanlarınıza ışık ve estetik katan tasarımlar.',
@@ -257,6 +270,24 @@
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
           'English': {
+            discover: 'DISCOVER',
+            newIn: 'NEW IN',
+            newInDesc: 'Discover our latest pieces, arriving every week.',
+            shopNewIn: 'SHOP NEW IN',
+            decor: 'Décor',
+            lighting: 'Lighting',
+            rugs: 'Rugs',
+            armchairs: 'Armchairs',
+            allCategories: 'ALL CATEGORIES',
+            designers: 'DESIGNERS',
+            seating: 'SEATING',
+            tables: 'TABLES',
+            lighting: 'LIGHTING',
+            rugs: 'RUGS',
+            decor: 'DÉCOR',
+            masters: 'MASTERS',
+            shopByRoom: 'SHOP BY ROOM',
+            ourGalleries: 'OUR GALLERIES',
             home: 'Homepage',
             collectorPanel: 'Collector Panel',
             atelierPanel: 'Atelier Panel',
@@ -484,7 +515,7 @@
             dimensionsCm: 'Abmessungen (cm)',
             weightKg: 'Gewicht (kg)',
             shippingInfo: 'Versandinformationen',
-            professionalPhotoGallery: 'Professionelle Fotogalerie',
+            professionalPhotoGallery: 'Profesyonelle Fotogalerie',
             uploadPhotos: 'Laden Sie mindestens 3, maximal 10 Fotos hoch.',
             saveProduct: 'Produkt speichern',
             currentProducts: 'Aktuelle Produkte',
@@ -538,7 +569,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'Inhaltsverwaltung',
+            contentManagement: 'İçerik Yönetimi',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -582,6 +613,7 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
+
         const App = () => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -821,7 +853,6 @@
               </div>
 
               <NewInSection t={t} />
-
               <HighlightsSection t={t} />
 
               <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100 mt-8">
@@ -1073,10 +1104,11 @@
         const NewInSection = ({ t }) => {
             const productCategories = [
                 { id: 'decor', image: 'dekor.png', category: t('decor') },
-                { id: 'lighting', image: 'lightning.png', category: t('lighting') },
+                { id: 'lighting', image: 'lighting.png', category: t('lighting') },
                 { id: 'rugs', image: 'rugs.png', category: t('rugs') },
                 { id: 'armchairs', image: 'armchair.png', category: t('armchairs') },
             ];
+            
             const [scrollPosition, setScrollPosition] = React.useState(0);
             const scrollRef = React.useRef(null);
             
