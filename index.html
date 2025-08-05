@@ -591,32 +591,31 @@
             categoryName: 'Kategori Adı',
             parentCategory: 'Üst Kategori',
             saveCategory: 'Kategoriyi Kaydet',
-            // Yeni çeviriler
-            searchProduct: 'Ürün, marka, içerik ara',
-            new: 'Yeni',
-            woman: 'Kadın',
-            man: 'Erkek',
-            child: 'Çocuk',
-            life: 'Yaşam',
-            brands: 'Markalar',
-            discount: 'İndirim',
+            // New translations
+            searchProduct: 'Produkt, Marke, Inhalt suchen',
+            new: 'Neu',
+            woman: 'Frau',
+            man: 'Mann',
+            child: 'Kind',
+            life: 'Leben',
+            brands: 'Marken',
+            discount: 'Rabatt',
             mag: 'MAG',
             rewards: 'Rewards',
-            stores: 'Mağazalar',
+            stores: 'Geschäfte',
             forGood: 'for good',
-            edit: 'Düzenle',
-            delete: 'Sil',
-            sales: 'satış',
-            unitsSold: 'adet satış',
-            platformWide: 'Platform genelinde',
-            artPiece: 'Sanat Eseri',
-            lastViewedProduct: 'Son Görüntülenen Ürün',
-            today: 'Bugün',
-            modernScandinavianDesigns: 'Modern İskandinav Tasarımları',
-            naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
+            edit: 'Bearbeiten',
+            delete: 'Löschen',
+            sales: 'Verkäufe',
+            unitsSold: 'verkaufte Einheiten',
+            platformWide: 'Plattformweit',
+            artPiece: 'Kunstwerk',
+            lastViewedProduct: 'Zuletzt angesehenes Produkt',
+            today: 'Heute',
+            modernScandinavianDesigns: 'Moderne skandinavische Designs',
+            naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-
         const App = () => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -1108,7 +1107,7 @@
         const NewInSection = ({ t }) => {
             const productCategories = [
                 { id: 'decor', image: 'dekor.png', category: t('decor') },
-                { id: 'lighting', image: 'lightning.png', category: t('lighting') },
+                { id: 'lighting', image: 'lighting.png', category: t('lighting') },
                 { id: 'rugs', image: 'rugs.png', category: t('rugs') },
                 { id: 'armchairs', image: 'armchair.png', category: t('armchairs') },
             ];
@@ -1163,14 +1162,14 @@
                     title: "İlham Veren Markalar",
                     subtitle: "Dekori Grup",
                     image: "markalar.png",
-                    discoverText: t('discover'),
+                    discoverText: "KEŞFET",
                     position: "0% 0%"
                 },
                 {
                     title: "MÜKEMMEL YAŞAM",
                     subtitle: "İkonik Masalar",
                     image: "tables.png",
-                    discoverText: t('discover'),
+                    discoverText: "KEŞFET",
                     position: "right 0"
                 }
             ];
