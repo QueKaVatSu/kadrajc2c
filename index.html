@@ -96,6 +96,21 @@
 
         const translations = {
           'Türkçe': {
+            discover: 'KEŞFET',
+            newIn: 'Yeni Gelenler',
+            newInDesc: 'Her hafta gelen en yeni parçalarımızı keşfedin.',
+            shopNewIn: 'YENİ GELENLERİ KEŞFET',
+            decor: 'Dekor',
+            lighting: 'Aydınlatma',
+            rugs: 'Halılar',
+            armchairs: 'Koltuklar',
+            allCategories: 'TÜM KATEGORİLER',
+            designers: 'TASARIMCILAR',
+            seating: 'OTURMA GRUPLARI',
+            tables: 'MASALAR',
+            masters: 'USTALAR',
+            shopByRoom: 'ODAYA GÖRE ALIŞVERİŞ',
+            ourGalleries: 'GALERİLERİMİZ',
             home: 'Anasayfa',
             collectorPanel: 'Koleksiyoner Paneli',
             atelierPanel: 'Atelier Paneli',
@@ -112,8 +127,6 @@
             tagline2: 'Yaşam alanlarınıza değer katın. Özenle seçilmiş mobilya, aydınlatma ve dekorasyon ürünleriyle tanışın.',
             exploreLogin: 'Hemen Keşfet / Giriş Yap',
             furniture: 'Mobilya',
-            lighting: 'Aydınlatma',
-            decoration: 'Dekorasyon',
             furnitureDesc: 'Evinizin kalbini oluşturan özel tasarım mobilyalar.',
             genelHata: 'Bir hata oluştu. Lütfen tekrar deneyin.',
             lightingDesc: 'Mekanlarınıza ışık ve estetik katan tasarımlar.',
@@ -556,7 +569,7 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'Inhaltsverwaltung',
+            contentManagement: 'İçerik Yönetimi',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
@@ -600,8 +613,8 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
-
-        const App = () => {
+        
+        const RootComponent = ({ page }) => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
           const [userType, setUserType] = React.useState(null);
@@ -657,7 +670,7 @@
               }
               if (isLoggedIn) {
                   if (userType === 'user') {
-                       return <UserDashboard setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
+                       return <UserDashboardPage setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} currentUser={currentUser} />;
                   }
               }
               return <HomePage setCurrentPath={setCurrentPath} t={t} />;
@@ -666,14 +679,14 @@
           return (
               <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
                   <ScrollingBanner />
-                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
+                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} setLanguage={setLanguage} />
                   <main className="container mx-auto p-6 md:p-10">
                       {renderMainContent()}
                   </main>
               </div>
           );
         };
-        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
+        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, setLanguage }) => {
             const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
             const handleLogout = async () => {
                 try {
@@ -710,7 +723,7 @@
                                     <select
                                         className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 font-medium focus:outline-none"
                                         value={selectedLanguage}
-                                        onChange={(e) => setLanguage(e.target.value)}
+                                        onChange={(e) => { setSelectedLanguage(e.target.value); setLanguage(e.target.value); }}
                                     >
                                         <option value="Türkçe">TR</option>
                                         <option value="English">EN</option>
@@ -1092,12 +1105,10 @@
         const NewInSection = ({ t }) => {
             const productCategories = [
                 { id: 'decor', image: 'dekor.png', category: t('decor') },
-                { id: 'lighting', image: 'lighting.png', category: t('lighting') },
+                { id: 'lighting', image: 'lightning.png', category: t('lighting') },
                 { id: 'rugs', image: 'rugs.png', category: t('rugs') },
                 { id: 'armchairs', image: 'armchair.png', category: t('armchairs') },
             ];
-            
-            const [scrollPosition, setScrollPosition] = React.useState(0);
             const scrollRef = React.useRef(null);
             
             const scrollLeft = () => {
@@ -1145,17 +1156,17 @@
         const HighlightsSection = ({ t }) => {
             const highlightItems = [
                 {
-                    title: "ÖNE ÇIKARILAN KOLEKSİYON",
+                    title: t('collectionHighlight'),
                     subtitle: "Charlotte Bilgen",
-                    image: "image_aca5fd.jpg",
-                    discoverText: "KEŞFET",
+                    image: "markalar.png",
+                    discoverText: t('discover'),
                     position: "0% 0%"
                 },
                 {
-                    title: "MÜKEMMEL YAŞAM",
-                    subtitle: "İkonik Masalar",
-                    image: "image_aca5fd.jpg",
-                    discoverText: "KEŞFET",
+                    title: t('perfectLiving'),
+                    subtitle: t('iconicTables'),
+                    image: "tables.png",
+                    discoverText: t('discover'),
                     position: "right 0"
                 }
             ];
