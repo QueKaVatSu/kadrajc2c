@@ -163,7 +163,7 @@
                 collector: 'Koleksiyoner',
                 atelier: 'Atelier',
                 admin: 'Yönetici',
-                wantToBeDesigner: 'Tasarımcı Ortak olmak ister misin?',
+                wantToBeDesigner: 'Tasarımcı Ortağımız olmak ister misiniz?',
                 atelierPartnershipApplication: 'Atelier Ortaklık Başvurusu',
                 applicationReceived: 'Başvurunuz başarıyla alındı!',
                 contactSoon: 'En kısa sürede sizinle iletişime geçeceğiz.',
@@ -336,8 +336,6 @@
                 raysDiscount: "RAYS Tüm Ürünlerde %30'a Varan İndirim",
                 discoverThisWeeksHighlights: "Bu Haftanın Öne Çıkanlarını Keşfet!",
                 freeShipping: "Ücretsiz Kargoyu Kaçırmayın!",
-                architectOrInteriorDesigner: 'MİMAR VEYA İÇ MİMAR MISINIZ?',
-                joinTradeProgram: 'Ticari programımıza katılın',
                 joinNow: 'ŞİMDİ KATIL',
                 worldwideDeliveries: 'Dünya Çapında Teslimat',
                 worldwideDeliveriesDesc: 'Tüm gönderilerimiz sigortalıdır ve uzman taşıyıcılar tarafından işlenir',
@@ -592,8 +590,6 @@
                 raysDiscount: "RAYS Up to 30% Off All Products",
                 discoverThisWeeksHighlights: "Discover This Week's Highlights!",
                 freeShipping: "Don't Miss Free Shipping!",
-                architectOrInteriorDesigner: 'ARCHITECT OR INTERIOR DESIGNER?',
-                joinTradeProgram: 'Join our trade program',
                 joinNow: 'JOIN NOW',
                 worldwideDeliveries: 'Worldwide Deliveries',
                 worldwideDeliveriesDesc: 'All our shipments are insured and processed by specialized carriers',
@@ -850,8 +846,6 @@
                 raysDiscount: "RAYS Bis zu 30% Rabatt auf alle Produkte",
                 discoverThisWeeksHighlights: "Entdecken Sie die Highlights dieser Woche!",
                 freeShipping: "Verpassen Sie nicht den kostenlosen Versand!",
-                architectOrInteriorDesigner: 'ARCHITEKT ODER INNENARCHITEKT?',
-                joinTradeProgram: 'Treten Sie unserem Handelsprogramm bei',
                 joinNow: 'JETZT BEITRETEN',
                 worldwideDeliveries: 'Weltweite Lieferungen',
                 worldwideDeliveriesDesc: 'Alle unsere Sendungen sind versichert und werden von spezialisierten Spediteuren bearbeitet',
@@ -898,12 +892,12 @@
             const [isSearchOpen, setIsSearchOpen] = React.useState(false);
             const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
             
-            // Gerçek bir uygulama için bu oranlar bir API'den alınmalıdır.
+            // NOTE: For a real application, these rates should be fetched from a live API.
             const exchangeRates = {
                 TRY: 1,
-                USD: 0.030, // 1 TRY = 0.030 USD (Örnek Kur)
-                EUR: 0.028, // 1 TRY = 0.028 EUR (Örnek Kur)
-                GBP: 0.024  // 1 TRY = 0.024 GBP (Örnek Kur)
+                USD: 0.030, // Example Rate: 1 TRY = 0.030 USD
+                EUR: 0.028, // Example Rate: 1 TRY = 0.028 EUR
+                GBP: 0.024  // Example Rate: 1 TRY = 0.024 GBP
             };
 
             const currencySymbols = {
@@ -916,7 +910,7 @@
             const convertPrice = (priceInTry) => {
                 const rate = exchangeRates[currency];
                 const convertedPrice = priceInTry * rate;
-                return `${currencySymbols[currency]}${convertedPrice.toFixed(2)}`;
+                return `${currencySymbols[currency]} ${convertedPrice.toFixed(2)}`;
             };
 
             const handleUserIconClick = () => {
@@ -992,7 +986,6 @@
                     <Navbar 
                         t={t} 
                         setCurrentPath={setCurrentPath} 
-                        isLoggedIn={isLoggedIn} 
                         handleUserIconClick={handleUserIconClick}
                         isSearchOpen={isSearchOpen} 
                         setIsSearchOpen={setIsSearchOpen}
@@ -1087,7 +1080,7 @@
                 </div>
             );
         };
-        const MobileMenu = ({ t, setCurrentPath, setIsMobileMenuOpen, language, setLanguage, currency, setCurrency }) => {
+       const MobileMenu = ({ t, setCurrentPath, setIsMobileMenuOpen, language, setLanguage, currency, setCurrency }) => {
             const [isLangOpen, setIsLangOpen] = React.useState(false);
             const [isCurrencyOpen, setIsCurrencyOpen] = React.useState(false);
 
@@ -1380,11 +1373,8 @@
             return (
                 <div className="my-16">
                     <div className="bg-[#fcf5f6] p-12 text-center flex flex-col items-center justify-center mb-12">
-                        <p className="text-xs font-normal tracking-widest text-gray-500 mb-2">
-                            {t('architectOrInteriorDesigner')}
-                        </p>
                         <h3 className="text-4xl font-normal font-serif-new-roman mb-6 text-gray-800">
-                            {t('joinTradeProgram')}
+                            {t('wantToBeDesigner')}
                         </h3>
                         <button 
                             onClick={() => setCurrentPath('/seller-register')}
@@ -1415,7 +1405,6 @@
                 "kadraj-slide3.png"
             ];
             const [currentSlide, setCurrentSlide] = React.useState(0);
-            const samplePriceTRY = 4850;
             
             const nextSlide = () => {
                 setCurrentSlide((prevSlide) => (prevSlide + 1) % images.length);
@@ -1469,13 +1458,6 @@
                             </div>
                         </div>
                     </div>
-                    {/* Örnek Fiyat Gösterimi */}
-                    <div className="text-center my-8 p-4 bg-gray-100 rounded-lg">
-                        <h3 className="text-xl font-bold">Örnek Ürün Fiyatı</h3>
-                        <p className="text-2xl text-blue-600 font-mono">{convertPrice(samplePriceTRY)}</p>
-                        <p className="text-xs text-gray-500">Bu fiyat, seçtiğiniz para birimine göre anlık olarak güncellenir.</p>
-                    </div>
-
                     <CategoryHighlightSection t={t} />
                     <HighlightsSection t={t} />
                     <NewInSection t={t} />
