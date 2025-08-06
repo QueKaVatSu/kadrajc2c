@@ -96,25 +96,7 @@
 
         const translations = {
           'Türkçe': {
-            discover: 'KEŞFET',
-            newIn: 'Yeni Gelenler',
-            newInDesc: 'Her hafta gelen en yeni parçalarımızı keşfedin.',
-            shopNewIn: 'YENİ GELENLERİ KEŞFET',
-            decor: 'Dekor',
-            lighting: 'Aydınlatma',
-            rugs: 'Halılar',
-            armchairs: 'Koltuklar',
-            allCategories: 'TÜM KATEGORİLER',
-            designers: 'TASARIMCILAR',
-            seating: 'OTURMA GRUPLARI',
-            tables: 'MASALAR',
-            masters: 'USTALAR',
-            shopByRoom: 'ODAYA GÖRE ALIŞVERİŞ',
-            ourGalleries: 'GALERİLERİMİZ',
             home: 'Anasayfa',
-            collectionHighlight: 'İlham Veren Markalar',
-            perfectLiving: 'MÜKEMMEL YAŞAM',
-            iconicTables: 'İkonik Masalar',
             collectorPanel: 'Koleksiyoner Paneli',
             atelierPanel: 'Atelier Paneli',
             adminPanel: 'Yönetici Paneli',
@@ -130,6 +112,8 @@
             tagline2: 'Yaşam alanlarınıza değer katın. Özenle seçilmiş mobilya, aydınlatma ve dekorasyon ürünleriyle tanışın.',
             exploreLogin: 'Hemen Keşfet / Giriş Yap',
             furniture: 'Mobilya',
+            lighting: 'Aydınlatma',
+            decoration: 'Dekorasyon',
             furnitureDesc: 'Evinizin kalbini oluşturan özel tasarım mobilyalar.',
             genelHata: 'Bir hata oluştu. Lütfen tekrar deneyin.',
             lightingDesc: 'Mekanlarınıza ışık ve estetik katan tasarımlar.',
@@ -273,24 +257,6 @@
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
           'English': {
-            discover: 'DISCOVER',
-            newIn: 'NEW IN',
-            newInDesc: 'Discover our latest pieces, arriving every week.',
-            shopNewIn: 'SHOP NEW IN',
-            decor: 'Décor',
-            lighting: 'Lighting',
-            rugs: 'Rugs',
-            armchairs: 'Armchairs',
-            allCategories: 'ALL CATEGORIES',
-            designers: 'DESIGNERS',
-            seating: 'SEATING',
-            tables: 'TABLES',
-            lighting: 'LIGHTING',
-            rugs: 'RUGS',
-            decor: 'DÉCOR',
-            masters: 'MASTERS',
-            shopByRoom: 'SHOP BY ROOM',
-            ourGalleries: 'OUR GALLERIES',
             home: 'Homepage',
             collectorPanel: 'Collector Panel',
             atelierPanel: 'Atelier Panel',
@@ -573,12 +539,12 @@
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
             contentManagement: 'İçerik Yönetimi',
-            homePageBanners: 'Startseiten-Banner',
+            homePageBanners: 'Ana Sayfa Bannerları',
             manageBanners: 'Banner verwalten',
-            specialCollectionPages: 'Spezielle Kollektionsseiten',
+            specialCollectionPages: 'Özel Koleksiyon Sayfaları',
             manageCollections: 'Kollektionen verwalten',
-            blogPosts: 'Blogbeiträge',
-            manageBlogPosts: 'Blogbeiträge verwalten',
+            blogPosts: 'Blog Yazıları',
+            manageBlogPosts: 'Blog Yazılarını Yönet',
             orderId: 'Sipariş ID:',
             product: 'Ürün:',
             date: 'Datum:',
@@ -591,7 +557,7 @@
             categoryName: 'Kategori Adı',
             parentCategory: 'Üst Kategori',
             saveCategory: 'Kategoriyi Kaydet',
-            // New translations
+            // Yeni çeviriler
             searchProduct: 'Produkt, Marke, Inhalt suchen',
             new: 'Neu',
             woman: 'Frau',
@@ -1159,15 +1125,15 @@
         const HighlightsSection = ({ t }) => {
             const highlightItems = [
                 {
-                    title: "İlham Veren Markalar",
+                    title: t('collectionHighlight'),
                     subtitle: "Dekori Grup",
                     image: "markalar.png",
                     discoverText: "KEŞFET",
                     position: "0% 0%"
                 },
                 {
-                    title: "MÜKEMMEL YAŞAM",
-                    subtitle: "İkonik Masalar",
+                    title: t('perfectLiving'),
+                    subtitle: t('iconicTables'),
                     image: "tables.png",
                     discoverText: "KEŞFET",
                     position: "right 0"
@@ -1197,5 +1163,3 @@
     </script>
 </body>
 </html>
-```
-
