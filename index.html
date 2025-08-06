@@ -67,16 +67,6 @@
         .font-serif-new-roman {
             font-family: 'Times New Roman', serif;
         }
-        .highlight-card-bg-1 {
-          background-image: url('markalar.png');
-          background-position: center;
-          background-size: cover;
-        }
-        .highlight-card-bg-2 {
-          background-image: url('tables.png');
-          background-position: center;
-          background-size: cover;
-        }
     </style>
 </head>
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
@@ -549,13 +539,13 @@
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
             contentManagement: 'İçerik Yönetimi',
-            homePageBanners: 'Ana Sayfa Bannerları',
+            homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
-            specialCollectionPages: 'Özel Koleksiyon Sayfaları',
+            specialCollectionPages: 'Spezielle Kollektionsseiten',
             manageCollections: 'Kollektionen verwalten',
-            blogPosts: 'Blog Yazıları',
-            manageBlogPosts: 'Blog Yazılarını Yönet',
-            orderId: 'Sipariş ID:',
+            blogPosts: 'Blogbeiträge',
+            manageBlogPosts: 'Blogbeiträge verwalten',
+            orderId: 'Bestell-ID:',
             product: 'Ürün:',
             date: 'Datum:',
             categoryManagement: 'Kategori Yönetimi',
@@ -592,6 +582,7 @@
             naturalWoodCollection: 'Naturholz-Kollektion',
           },
         };
+
         const App = () => {
           const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
@@ -692,6 +683,10 @@
                 'rugs', 'decor', 'masters', 'shopByRoom', 'ourGalleries'
             ];
 
+            React.useEffect(() => {
+                setLanguage(selectedLanguage);
+            }, [selectedLanguage, setLanguage]);
+
             return (
                 <div className="bg-white">
                     <nav className="border-b border-gray-200">
@@ -701,7 +696,7 @@
                                     <select
                                         className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 font-medium focus:outline-none"
                                         value={selectedLanguage}
-                                        onChange={(e) => { setSelectedLanguage(e.target.value); setLanguage(e.target.value); }}
+                                        onChange={(e) => setSelectedLanguage(e.target.value)}
                                     >
                                         <option value="Türkçe">TR</option>
                                         <option value="English">EN</option>
@@ -1135,15 +1130,15 @@
         const HighlightsSection = ({ t }) => {
             const highlightItems = [
                 {
-                    title: "İlham Veren Markalar",
+                    title: t('collectionHighlight'),
                     subtitle: "Dekori Grup",
                     image: "markalar.png",
                     discoverText: "KEŞFET",
                     position: "0% 0%"
                 },
                 {
-                    title: "MÜKEMMEL YAŞAM",
-                    subtitle: "İkonik Masalar",
+                    title: t('perfectLiving'),
+                    subtitle: t('iconicTables'),
                     image: "tables.png",
                     discoverText: "KEŞFET",
                     position: "right 0"
