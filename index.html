@@ -68,7 +68,6 @@
             font-family: 'Times New Roman', serif;
         }
 
-        /* Yeni eklenen arama çubuğu animasyonu */
         @keyframes fade-in-down {
             from {
                 opacity: 0;
@@ -789,24 +788,32 @@
         };
         const SearchPanel = ({ t, setIsSearchOpen }) => {
             return (
-                <div className="fixed top-0 left-0 w-full h-full bg-white bg-opacity-95 z-50 flex items-start justify-center pt-24 animate-fade-in-down">
-                    <div className="container mx-auto px-6 md:px-10 relative">
-                        <button onClick={() => setIsSearchOpen(false)} className="absolute top-8 right-10 text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                <div className="fixed top-0 left-0 w-full h-full bg-white bg-opacity-95 z-50 flex items-center justify-center animate-fade-in-down">
+                    <video 
+                        src="search1.mp4" 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        className="absolute inset-0 w-full h-full object-cover z-0 opacity-10"
+                    ></video>
+                    <div className="container mx-auto px-6 md:px-10 relative z-10">
+                        <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-10 md:top-8 md:right-10 text-gray-500 hover:text-gray-900 transition-colors duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
-                        <div className="flex flex-col items-center w-full">
+                        <div className="flex flex-col items-center w-full mt-10 md:mt-0">
                             <input 
                                 type="text"
                                 placeholder={t('searchProduct')}
                                 className="w-full max-w-2xl text-center text-4xl border-b-2 border-gray-400 focus:border-gray-800 bg-transparent py-4 outline-none placeholder-gray-400 font-serif-new-roman"
                             />
                             <div className="mt-8 flex space-x-4">
-                                <a href="#" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('new')}</a>
-                                <a href="#" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('woman')}</a>
-                                <a href="#" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('man')}</a>
-                                <a href="#" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('child')}</a>
-                                <a href="#" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('life')}</a>
-                                <a href="#" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('brands')}</a>
+                                <a href="#" className="text-lg font-bold text-gray-900 hover:underline">{t('new')}</a>
+                                <a href="#" className="text-lg font-bold text-gray-900 hover:underline">{t('woman')}</a>
+                                <a href="#" className="text-lg font-bold text-gray-900 hover:underline">{t('man')}</a>
+                                <a href="#" className="text-lg font-bold text-gray-900 hover:underline">{t('child')}</a>
+                                <a href="#" className="text-lg font-bold text-gray-900 hover:underline">{t('life')}</a>
+                                <a href="#" className="text-lg font-bold text-gray-900 hover:underline">{t('brands')}</a>
                             </div>
                         </div>
                     </div>
