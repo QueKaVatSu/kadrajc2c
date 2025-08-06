@@ -567,7 +567,7 @@
                 saveBillingInfo: 'Rechnungsinformationen speichern',
                 galleryManagerPanel: 'Galerie-Manager-Panel',
                 userManager: 'Benutzerverwaltung',
-                designerApplications: 'Tasarımcı Başvuruları',
+                designerApplications: 'Designer-Anträge',
                 pending: 'Ausstehend',
                 approved: 'Genehmigt',
                 allUsers: 'Alle Benutzer',
@@ -849,6 +849,37 @@
                 </div>
             );
         };
+        
+        const CategoryHighlightSection = ({ t }) => {
+            const categoryHighlights = [
+                { name: "Lighting", image: "lighting_highlight.png", bgColor: "bg-white" },
+                { name: "Armchairs", image: "armchairs_highlight.png", bgColor: "bg-white" },
+                { name: "Coffee Tables", image: "coffee_tables_highlight.png", bgColor: "bg-white" },
+                { name: "Rugs", image: "rugs_highlight.png", bgColor: "bg-white" },
+                { name: "Storage", image: "storage_highlight.png", bgColor: "bg-white" },
+                { name: "Gifts", image: "gifts_highlight.png", bgColor: "bg-neutral-200" }, // Renk değişimi için örnek
+            ];
+
+            return (
+                <div className="my-16">
+                    <div className="flex justify-around items-center">
+                        {categoryHighlights.map((category, index) => (
+                            <div key={index} className="flex flex-col items-center">
+                                <div className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center overflow-hidden mb-4 ${category.bgColor}`}>
+                                    <img 
+                                        src={category.image} 
+                                        alt={category.name} 
+                                        className="object-contain max-h-full max-w-full"
+                                    />
+                                </div>
+                                <span className="text-sm md:text-base font-medium text-gray-800">{category.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
         const HomePage = ({ setCurrentPath, t }) => {
             const images = [
                 "kadraj-slide1.png",
@@ -910,41 +941,11 @@
                         </div>
                     </div>
 
+                    <CategoryHighlightSection t={t} />
+
                     <NewInSection t={t} />
 
                     <HighlightsSection t={t} />
-
-                    <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100 mt-8">
-                        <h2 className="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
-                            {t('tagline1')}
-                        </h2>
-                        <p className="text-xl text-gray-700 mb-10 max-w-2xl mx-auto">
-                            {t('tagline2')}
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-                            <div className="p-6 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                                <img src="https://placehold.co/300x200/F5F5F5/6B7280?text=Mobilya" alt={t('furniture')} className="rounded-lg mb-4 w-full h-48 object-cover shadow-sm" />
-                                <h3 className="text-2xl font-semibold text-gray-800 mb-2">{t('furniture')}</h3>
-                                <p className="text-gray-600">{t('furnitureDesc')}</p>
-                            </div>
-                            <div className="p-6 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                                <img src="https://placehold.co/300x200/F5F5F5/6B7280?text=Aydınlatma" alt={t('lighting')} className="rounded-lg mb-4 w-full h-48 object-cover shadow-sm" />
-                                <h3 className="text-2xl font-semibold text-gray-800 mb-2">{t('lighting')}</h3>
-                                <p className="text-gray-600">{t('lightingDesc')}</p>
-                            </div>
-                            <div className="p-6 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                                <img src="https://placehold.co/300x200/F5F5F5/6B7280?text=Dekorasyon" alt={t('decoration')} className="rounded-lg mb-4 w-full h-48 object-cover shadow-sm" />
-                                <h3 className="text-2xl font-semibold text-gray-800 mb-2">{t('decoration')}</h3>
-                                <p className="text-gray-600">{t('decorationDesc')}</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setCurrentPath('/login')}
-                            className="mt-12 bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg"
-                        >
-                            {t('exploreLogin')}
-                        </button>
-                    </div>
                 </>
             );
         };
@@ -1253,4 +1254,4 @@
     </script>
 </body>
 </html>
-
+```
