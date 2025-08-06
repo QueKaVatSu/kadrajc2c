@@ -50,7 +50,7 @@
 <body class="min-h-screen bg-gray-50 font-['Helvetica'] text-gray-800">
     <div id="root"></div>
     <script type="text/babel">
-        // --- ICONS ---
+        // --- ICONS (No changes) ---
         const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
         const LayoutDashboardIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
         const BoxIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>;
@@ -63,113 +63,18 @@
 
         const translations = { /* ... Sizin çeviri objeniz burada ... */ };
 
-        // --- HELPER COMPONENTS ---
-        const Input = ({ label, type = 'text', placeholder, value, onChange, required = true }) => (
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                <input
-                    type={type}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    required={required}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
-                />
-            </div>
-        );
-        const TextArea = ({ label, placeholder, value, onChange, required = true }) => (
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                <textarea
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    required={required}
-                    rows="4"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
-                ></textarea>
-            </div>
-        );
-        const Select = ({ label, options, value, onChange, required = true }) => (
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                <select value={value} onChange={onChange} required={required} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out bg-white">
-                    <option value="">Seçiniz...</option>
-                    {options.map(option => <option key={option} value={option}>{option}</option>)}
-                </select>
-            </div>
-        );
-        const MetricCard = ({ title, value, description, icon }) => (
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-start space-x-4">
-                <div className="bg-gray-100 p-3 rounded-lg">{icon}</div>
-                <div>
-                    <p className="text-sm text-gray-500">{title}</p>
-                    <p className="text-2xl font-bold text-gray-800">{value}</p>
-                    <p className="text-xs text-gray-400">{description}</p>
-                </div>
-            </div>
-        );
-        const ProductListItem = ({ name, status, price, t }) => (
-            <li className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                    <p className="font-semibold text-gray-800">{name}</p>
-                    <p className={`text-xs font-medium ${status === t('active') ? 'text-green-600' : 'text-red-600'}`}>{status}</p>
-                </div>
-                <div className="text-right">
-                    <p className="font-bold text-gray-800">{price}</p>
-                    <div className="flex space-x-2 mt-1">
-                        <button className="text-sm text-blue-600 hover:underline">{t('edit')}</button>
-                        <button className="text-sm text-red-600 hover:underline">{t('delete')}</button>
-                    </div>
-                </div>
-            </li>
-        );
-        const OrderItem = ({ orderId, productName, status, date, t }) => (
-            <li className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="font-semibold text-gray-800">{productName}</p>
-                        <p className="text-xs text-gray-500">{t('orderId')} {orderId}</p>
-                    </div>
-                    <p className="font-bold text-gray-800">{date}</p>
-                </div>
-                 <div className="mt-2 text-sm font-medium text-blue-600">{status}</div>
-            </li>
-        );
+        // --- HELPER COMPONENTS (No changes) ---
+        const Input = ({ label, type = 'text', placeholder, value, onChange, required = true }) => ( <div> <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label> <input type={type} placeholder={placeholder} value={value} onChange={onChange} required={required} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition" /> </div> );
+        const TextArea = ({ label, placeholder, value, onChange, required = true }) => ( <div> <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label> <textarea placeholder={placeholder} value={value} onChange={onChange} required={required} rows="4" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition" ></textarea> </div> );
+        const Select = ({ label, options, value, onChange, required = true }) => ( <div> <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label> <select value={value} onChange={onChange} required={required} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition bg-white"> <option value="">Seçiniz...</option> {options.map(option => <option key={option} value={option}>{option}</option>)} </select> </div> );
+        const MetricCard = ({ title, value, description, icon }) => ( <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-start space-x-4"> <div className="bg-gray-100 p-3 rounded-lg">{icon}</div> <div> <p className="text-sm text-gray-500">{title}</p> <p className="text-2xl font-bold text-gray-800">{value}</p> <p className="text-xs text-gray-400">{description}</p> </div> </div> );
+        const ProductListItem = ({ name, status, price, t }) => ( <li className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"> <div> <p className="font-semibold text-gray-800">{name}</p> <p className={`text-xs font-medium ${status === t('active') ? 'text-green-600' : 'text-red-600'}`}>{status}</p> </div> <div className="text-right"> <p className="font-bold text-gray-800">{price}</p> <div className="flex space-x-2 mt-1"> <button className="text-sm text-blue-600 hover:underline">{t('edit')}</button> <button className="text-sm text-red-600 hover:underline">{t('delete')}</button> </div> </div> </li> );
+        const OrderItem = ({ orderId, productName, status, date, t }) => ( <li className="p-3 bg-gray-50 rounded-lg"> <div className="flex items-center justify-between"> <div> <p className="font-semibold text-gray-800">{productName}</p> <p className="text-xs text-gray-500">{t('orderId')} {orderId}</p> </div> <p className="font-bold text-gray-800">{date}</p> </div> <div className="mt-2 text-sm font-medium text-blue-600">{status}</div> </li> );
 
-        // --- DASHBOARD COMPONENTS ---
-        const SadeNavbar = ({ t, isLoggedIn, setIsLoggedIn }) => {
-            const handleLogout = async () => {
-                try {
-                    await window.signOut(window.firebaseAuth);
-                    setIsLoggedIn(false);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Çıkış yaparken hata oluştu:", error);
-                }
-            };
-            return (
-                <nav className="bg-white py-4 border-b border-gray-100">
-                    <div className="container mx-auto px-6 md:px-10 flex items-center justify-between">
-                        <div className="flex items-center w-1/3 max-w-sm px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
-                            <SearchIcon size={20} className="text-gray-500 mr-2" />
-                            <input type="text" placeholder={t('searchProduct')} className="flex-grow outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent" />
-                        </div>
-                        <div className="flex-grow flex justify-center">
-                            <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} />
-                        </div>
-                        <div className="flex items-center space-x-6 w-1/3 justify-end">
-                            {isLoggedIn && (
-                                <button onClick={handleLogout} className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50">
-                                    <LogOutIcon size={20} />
-                                    <span>{t('logout')}</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </nav>
-            );
-        };
+        // --- DASHBOARD COMPONENTS (No changes in Navbar) ---
+        const SadeNavbar = ({ t, isLoggedIn, setIsLoggedIn }) => { const handleLogout = async () => { try { await window.signOut(window.firebaseAuth); setIsLoggedIn(false); window.location.href = 'index.html'; } catch (error) { console.error("Çıkış yaparken hata oluştu:", error); } }; return ( <nav className="bg-white py-4 border-b border-gray-100"> <div className="container mx-auto px-6 md:px-10 flex items-center justify-between"> <div className="flex items-center w-1/3 max-w-sm px-3 py-2 border border-gray-200 rounded-lg bg-gray-50"> <SearchIcon size={20} className="text-gray-500 mr-2" /> <input type="text" placeholder={t('searchProduct')} className="flex-grow outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent" /> </div> <div className="flex-grow flex justify-center"> <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} /> </div> <div className="flex items-center space-x-6 w-1/3 justify-end"> {isLoggedIn && ( <button onClick={handleLogout} className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50"> <LogOutIcon size={20} /> <span>{t('logout')}</span> </button> )} </div> </div> </nav> ); };
+        
+        // --- Main SellerDashboard Component (UPDATED LOGIC) ---
         const SellerDashboard = ({ currentUser, t }) => {
             const [activeTab, setActiveTab] = React.useState('overview');
             // Form state
@@ -182,7 +87,7 @@
             const [dimensions, setDimensions] = React.useState('');
             const [weight, setWeight] = React.useState('');
             const [shippingInfo, setShippingInfo] = React.useState('');
-            const [imageFiles, setImageFiles] = React.useState([]);
+            const [files, setFiles] = React.useState([]); // <-- DEĞİŞİKLİK: Artık genel dosyaları tutuyor
             // UI state
             const [isUploading, setIsUploading] = React.useState(false);
             const [uploadProgress, setUploadProgress] = React.useState(0);
@@ -191,51 +96,74 @@
             const resetForm = () => {
                 setProductName(''); setDescription(''); setStory(''); setPrice('');
                 setCategory(''); setMaterial(''); setDimensions(''); setWeight('');
-                setShippingInfo(''); setImageFiles([]);
+                setShippingInfo(''); setFiles([]);
+                document.getElementById('file-input').value = null; // Dosya inputunu temizle
             };
 
+            // --- YENİ VE GÜNCELLENMİŞ ÜRÜN KAYDETME FONKSİYONU ---
             const handleSaveProduct = async (e) => {
                 e.preventDefault();
-                if (imageFiles.length === 0) {
-                    setFeedback('Lütfen en az bir ürün fotoğrafı yükleyin.');
-                    return;
-                }
                 setIsUploading(true);
-                setFeedback('');
+                setFeedback('Yükleme işlemi başlatılıyor...');
                 setUploadProgress(0);
 
-                const uploadPromises = Array.from(imageFiles).map(file => {
+                // 1. Dosyaları resim ve video olarak ayır
+                const allFiles = Array.from(files);
+                const imageFiles = allFiles.filter(file => file.type.startsWith('image/'));
+                const videoFiles = allFiles.filter(file => file.type.startsWith('video/'));
+
+                // 2. Kontrolleri yap (en az bir resim, en fazla bir video)
+                if (imageFiles.length === 0) {
+                    setFeedback('Hata: Lütfen en az bir ürün fotoğrafı yükleyin.');
+                    setIsUploading(false);
+                    return;
+                }
+                if (videoFiles.length > 1) {
+                    setFeedback('Hata: Sadece bir adet video yükleyebilirsiniz.');
+                    setIsUploading(false);
+                    return;
+                }
+
+                // 3. Dosyaları yükleme fonksiyonu
+                const uploadFile = (file) => {
                     return new Promise((resolve, reject) => {
                         const fileName = `${Date.now()}-${file.name}`;
                         const storageRef = window.ref(window.firebaseStorage, `products/${fileName}`);
                         const uploadTask = window.uploadBytesResumable(storageRef, file);
-
-                        uploadTask.on('state_changed',
+                        uploadTask.on('state_changed', 
                             (snapshot) => {
                                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                                 setUploadProgress(progress);
-                            },
-                            (error) => {
-                                console.error("Upload failed:", error);
-                                reject(error);
-                            },
+                            }, 
+                            (error) => reject(error),
                             async () => {
                                 const downloadURL = await window.getDownloadURL(uploadTask.snapshot.ref);
                                 resolve(downloadURL);
                             }
                         );
                     });
-                });
+                };
 
                 try {
-                    const imageUrls = await Promise.all(uploadPromises);
+                    // 4. Tüm resimleri ve videoyu paralel olarak yükle
+                    setFeedback('Dosyalar yükleniyor...');
+                    const imageUploadPromises = imageFiles.map(file => uploadFile(file));
+                    const videoUploadPromises = videoFiles.map(file => uploadFile(file));
+                    
+                    const imageUrls = await Promise.all(imageUploadPromises);
+                    const videoUrls = await Promise.all(videoUploadPromises);
+                    
+                    // 5. Veritabanına kaydet
+                    setFeedback('Veritabanına kaydediliyor...');
                     const productData = {
                         sellerId: currentUser.uid,
                         productName, description, story,
                         price: Number(price),
                         category, material, dimensions,
                         weight: Number(weight),
-                        shippingInfo, imageUrls,
+                        shippingInfo, 
+                        imageUrls: imageUrls, // Resim URL'leri
+                        videoUrl: videoUrls.length > 0 ? videoUrls[0] : null, // Sadece ilk videonun URL'si
                         createdAt: window.serverTimestamp()
                     };
                     
@@ -246,7 +174,7 @@
 
                 } catch (error) {
                     console.error("Error saving product:", error);
-                    setFeedback('Ürün kaydedilirken bir hata oluştu.');
+                    setFeedback('Ürün kaydedilirken bir hata oluştu: ' + error.message);
                 } finally {
                     setIsUploading(false);
                 }
@@ -255,14 +183,7 @@
             const renderContent = () => {
                 switch (activeTab) {
                     case 'overview': return (
-                        <div className="space-y-6">
-                            <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3>
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <MetricCard title={t('sales')} value="₺12,500" description={`5 ${t('unitsSold')}`} icon={<DollarSignIcon size={24} className="text-green-500" />} />
-                                <MetricCard title={t('mostPopularProduct')} value="Minimalist Sehpa" description={`120 ${t('views')}`} icon={<PackageIcon size={24} className="text-blue-500" />} />
-                                <MetricCard title={t('productViews')} value="1.540" description={t('platformWide')} icon={<EyeIcon size={24} className="text-indigo-500" />} />
-                            </div>
-                        </div>
+                         <div className="space-y-6"> <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> <MetricCard title={t('sales')} value="₺12,500" description={`5 ${t('unitsSold')}`} icon={<DollarSignIcon size={24} className="text-green-500" />} /> <MetricCard title={t('mostPopularProduct')} value="Minimalist Sehpa" description={`120 ${t('views')}`} icon={<PackageIcon size={24} className="text-blue-500" />} /> <MetricCard title={t('productViews')} value="1.540" description={t('platformWide')} icon={<EyeIcon size={24} className="text-indigo-500" />} /> </div> </div>
                     );
                     case 'productManagement': return (
                         <div className="space-y-6">
@@ -283,15 +204,23 @@
                                     <TextArea label={t('shippingInfo')} placeholder={t('shippingInfo')} value={shippingInfo} onChange={e => setShippingInfo(e.target.value)} />
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">{t('professionalPhotoGallery')}</label>
-                                        <input type="file" multiple onChange={e => setImageFiles(e.target.files)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />
-                                        <p className="mt-1 text-sm text-gray-500">{t('uploadPhotos')}</p>
+                                        {/* --- DEĞİŞİKLİK: accept özelliği eklendi --- */}
+                                        <input 
+                                            id="file-input"
+                                            type="file" 
+                                            multiple 
+                                            accept="image/*,video/*" 
+                                            onChange={e => setFiles(e.target.files)} 
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" 
+                                        />
+                                        <p className="mt-1 text-sm text-gray-500">{t('uploadPhotos')} (Max. 1 video)</p>
                                     </div>
                                     {isUploading && (
                                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                                             <div className="bg-blue-600 h-2.5 rounded-full progress-bar" style={{ width: `${uploadProgress}%` }}></div>
                                         </div>
                                     )}
-                                    {feedback && <p className={`text-sm ${feedback.includes('hata') ? 'text-red-600' : 'text-green-600'}`}>{feedback}</p>}
+                                    {feedback && <p className={`text-sm font-medium ${feedback.includes('Hata') ? 'text-red-600' : 'text-green-600'}`}>{feedback}</p>}
                                     <button type="submit" disabled={isUploading} className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md disabled:bg-gray-400">
                                         {isUploading ? 'Yükleniyor...' : t('saveProduct')}
                                     </button>
@@ -300,16 +229,7 @@
                         </div>
                     );
                     case 'ordersFinance': return (
-                         <div className="space-y-6">
-                            <h3 className="text-2xl font-semibold text-gray-800">{t('ordersFinance')}</h3>
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                <h4 className="text-xl font-medium text-gray-700 mb-4">{t('lastOrders')}</h4>
-                                <ul className="space-y-4">
-                                    <OrderItem orderId="KDA-001" productName="Minimalist Sehpa" status={t('completed')} date="28.07.2024" t={t}/>
-                                    <OrderItem orderId="KDA-002" productName="El Yapımı Seramik Vazo" status={t('inTransit')} date="29.07.2024" t={t}/>
-                                </ul>
-                            </div>
-                        </div>
+                         <div className="space-y-6"> <h3 className="text-2xl font-semibold text-gray-800">{t('ordersFinance')}</h3> <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100"> <h4 className="text-xl font-medium text-gray-700 mb-4">{t('lastOrders')}</h4> <ul className="space-y-4"> <OrderItem orderId="KDA-001" productName="Minimalist Sehpa" status={t('completed')} date="28.07.2024" t={t}/> <OrderItem orderId="KDA-002" productName="El Yapımı Seramik Vazo" status={t('inTransit')} date="29.07.2024" t={t}/> </ul> </div> </div>
                     );
                     default: return null;
                 }
@@ -331,59 +251,8 @@
             );
         };
         
-        // --- MAIN APP ---
-        const App = () => {
-            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-            const [userType, setUserType] = React.useState(null);
-            const [language, setLanguage] = React.useState('Türkçe');
-            const [currentUser, setCurrentUser] = React.useState(null);
-            const [isLoading, setIsLoading] = React.useState(true);
-
-            React.useEffect(() => {
-                const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-                    if (user) {
-                        const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                        const userDocSnap = await window.getDoc(userDocRef);
-                        if (userDocSnap.exists()) {
-                            const role = userDocSnap.data().role;
-                            if (role === 'seller') {
-                                setCurrentUser(user);
-                                setUserType(role);
-                                setIsLoggedIn(true);
-                            } else {
-                                window.location.href = 'index.html'; // Not a seller, redirect
-                            }
-                        } else {
-                           window.location.href = 'index.html'; // No role doc, redirect
-                        }
-                    } else {
-                        window.location.href = 'index.html'; // Not logged in, redirect
-                    }
-                    setIsLoading(false);
-                });
-                return () => unsubscribe();
-            }, []);
-            
-            const t = (key) => (translations[language] && translations[language][key]) || key;
-            
-            if (isLoading) {
-                return <div className="flex justify-center items-center h-screen"><p>Yükleniyor...</p></div>;
-            }
-            
-            if (!isLoggedIn || userType !== 'seller') {
-                // This will be briefly shown before redirection kicks in
-                return <div className="flex justify-center items-center h-screen"><p>Yetkiniz yok veya giriş yapılmamış. Yönlendiriliyorsunuz...</p></div>;
-            }
-            
-            return (
-                <div className="min-h-screen bg-gray-50 font-['Helvetica'] text-gray-800">
-                    <SadeNavbar t={t} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-                    <main className="container mx-auto p-6 md:p-10">
-                        <SellerDashboard currentUser={currentUser} t={t} />
-                    </main>
-                </div>
-            );
-        };
+        // --- MAIN APP (No changes) ---
+        const App = () => { const [isLoggedIn, setIsLoggedIn] = React.useState(false); const [userType, setUserType] = React.useState(null); const [language, setLanguage] = React.useState('Türkçe'); const [currentUser, setCurrentUser] = React.useState(null); const [isLoading, setIsLoading] = React.useState(true); React.useEffect(() => { const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => { if (user) { const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid); const userDocSnap = await window.getDoc(userDocRef); if (userDocSnap.exists()) { const role = userDocSnap.data().role; if (role === 'seller') { setCurrentUser(user); setUserType(role); setIsLoggedIn(true); } else { window.location.href = 'index.html'; } } else { window.location.href = 'index.html'; } } else { window.location.href = 'index.html'; } setIsLoading(false); }); return () => unsubscribe(); }, []); const t = (key) => (translations[language] && translations[language][key]) || key; if (isLoading) { return <div className="flex justify-center items-center h-screen"><p>Yükleniyor...</p></div>; } if (!isLoggedIn || userType !== 'seller') { return <div className="flex justify-center items-center h-screen"><p>Yetkiniz yok veya giriş yapılmamış. Yönlendiriliyorsunuz...</p></div>; } return ( <div className="min-h-screen bg-gray-50 font-['Helvetica'] text-gray-800"> <SadeNavbar t={t} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} /> <main className="container mx-auto p-6 md:p-10"> <SellerDashboard currentUser={currentUser} t={t} /> </main> </div> ); };
         
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
