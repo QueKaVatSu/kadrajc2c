@@ -331,6 +331,18 @@
                 raysDiscount: "RAYS Tüm Ürünlerde %30'a Varan İndirim",
                 discoverThisWeeksHighlights: "Haftanın Öne Çıkanları Keşfet!",
                 freeShipping: "Ücretsiz Kargo Fırsatını Kaçırma!",
+                // New translations
+                architectOrInteriorDesigner: 'MİMAR VEYA İÇ MİMAR MISINIZ?',
+                joinTradeProgram: 'İş Ortağı Programımıza Katılın',
+                joinNow: 'HEMEN KATILIN',
+                worldwideDeliveries: 'Dünya Çapında Teslimat',
+                worldwideDeliveriesDesc: 'Tüm gönderilerimiz sigortalıdır ve özel taşıyıcılarla işleme alınır',
+                securePayment: 'Güvenli Ödeme',
+                securePaymentDesc: 'Kredi kartı, PayPal veya banka havalesi ile tam güvenlik ve gizlilikle ödeme yapabilirsiniz',
+                teamOfSpecialistAdvisers: 'Uzman Danışman Ekibi',
+                teamOfSpecialistAdvisersDesc: 'Tasarım uzmanlarımız tüm sorularınızı ve kişisel taleplerinizi yanıtlamak için burada',
+                certificateOfAuthenticity: 'Orijinallik Sertifikası',
+                certificateOfAuthenticityDesc: 'Her bir parça orijinal ve sertifikalıdır',
             },
             'English': {
                 discover: 'DISCOVER',
@@ -552,6 +564,18 @@
                 raysDiscount: "RAYS Up to 30% Off All Products",
                 discoverThisWeeksHighlights: "Discover This Week's Highlights!",
                 freeShipping: "Don't Miss Free Shipping!",
+                // New translations
+                architectOrInteriorDesigner: 'ARCHITECT OR INTERIOR DESIGNER?',
+                joinTradeProgram: 'Join our trade program',
+                joinNow: 'JOIN NOW',
+                worldwideDeliveries: 'Worldwide Deliveries',
+                worldwideDeliveriesDesc: 'All our shipments are insured and processed by specialized carriers',
+                securePayment: 'Secure Payment',
+                securePaymentDesc: 'You can pay by credit card, PayPal or bank transfer in complete security and privacy',
+                teamOfSpecialistAdvisers: 'Team of Specialist Advisers',
+                teamOfSpecialistAdvisersDesc: 'Our team of design specialists are here to help and will answer all your questions and personalized requests',
+                certificateOfAuthenticity: 'Certificate Of Authenticity',
+                certificateOfAuthenticityDesc: 'Each piece is authentic and certified',
             },
             'Deutsch': {
                 home: 'Startseite',
@@ -760,6 +784,18 @@
                 raysDiscount: "RAYS Bis zu 30% Rabatt auf alle Produkte",
                 discoverThisWeeksHighlights: "Entdecken Sie die Highlights der Woche!",
                 freeShipping: "Verpassen Sie nicht den kostenlosen Versand!",
+                 // New translations
+                architectOrInteriorDesigner: 'ARCHITEKT ODER INNENARCHITEKT?',
+                joinTradeProgram: 'Treten Sie unserem Handelsprogramm bei',
+                joinNow: 'JETZT BEITRETEN',
+                worldwideDeliveries: 'Weltweite Lieferungen',
+                worldwideDeliveriesDesc: 'Alle unsere Sendungen sind versichert und werden von spezialisierten Spediteuren bearbeitet',
+                securePayment: 'Sichere Bezahlung',
+                securePaymentDesc: 'Sie können mit Kreditkarte, PayPal oder Banküberweisung in vollständiger Sicherheit und Privatsphäre bezahlen',
+                teamOfSpecialistAdvisers: 'Team von Fachberatern',
+                teamOfSpecialistAdvisersDesc: 'Unsere Designexperten helfen Ihnen gerne weiter und beantworten alle Ihre Fragen und individuellen Wünsche',
+                certificateOfAuthenticity: 'Echtheitszertifikat',
+                certificateOfAuthenticityDesc: 'Jedes Stück ist authentisch und zertifiziert',
             },
         };
 
@@ -1018,6 +1054,57 @@
                 </div>
             );
         };
+        
+        const TradeProgramSection = ({ t }) => {
+            const features = [
+                {
+                    title: t('worldwideDeliveries'),
+                    description: t('worldwideDeliveriesDesc'),
+                    image: "delivery.png"
+                },
+                {
+                    title: t('securePayment'),
+                    description: t('securePaymentDesc'),
+                    image: "secure-payment.png"
+                },
+                {
+                    title: t('teamOfSpecialistAdvisers'),
+                    description: t('teamOfSpecialistAdvisersDesc'),
+                    image: "advisers.png"
+                },
+                {
+                    title: t('certificateOfAuthenticity'),
+                    description: t('certificateOfAuthenticityDesc'),
+                    image: "certificate.png"
+                },
+            ];
+
+            return (
+                <div className="my-16">
+                    <div className="bg-[#fcf5f6] p-12 text-center flex flex-col items-center justify-center mb-12">
+                        <p className="text-xs font-normal tracking-widest text-gray-500 mb-2">
+                            {t('architectOrInteriorDesigner')}
+                        </p>
+                        <h3 className="text-4xl font-normal font-serif-new-roman mb-6 text-gray-800">
+                            {t('joinTradeProgram')}
+                        </h3>
+                        <button className="bg-black text-white px-8 py-3 text-sm font-bold tracking-wider hover:bg-gray-800 transition-colors duration-300">
+                            {t('joinNow')}
+                        </button>
+                    </div>
+                    <div className="flex justify-around items-start text-center">
+                        {features.map((feature, index) => (
+                            <div key={index} className="w-1/4 px-4">
+                                <img src={feature.image} alt={feature.title} className="mx-auto mb-4 h-24" />
+                                <h4 className="text-lg font-bold mb-2">{feature.title}</h4>
+                                <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
 
         const HomePage = ({ setCurrentPath, t }) => {
             const images = [
@@ -1082,6 +1169,7 @@
                     {/* CategoryHighlightSection buraya taşındı */}
                     <CategoryHighlightSection t={t} />
                     <HighlightsSection t={t} />
+                    <TradeProgramSection t={t} />
                     <NewInSection t={t} />
                 </>
             );
