@@ -379,6 +379,46 @@
                 today: 'Bugün',
                 modernScandinavianDesigns: 'Modern İskandinav Tasarımları',
                 naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
+                // Yeni eklenen çeviriler
+                shopBy: 'SHOP BY',
+                seating: 'SEATING',
+                tables: 'TABLES',
+                lighting: 'LIGHTING',
+                rugs: 'RUGS',
+                storage: 'STORAGE',
+                décor: 'DÉCOR',
+                bedroom: 'BEDROOM',
+                gifts: 'GIFTS',
+                services: 'SERVICES',
+                appointmentBooking: 'APPOINTMENT BOOKING',
+                tradeProgram: 'TRADE PROGRAM',
+                internationalDeliveries: 'INTERNATIONAL DELIVERIES',
+                paymentMethods: 'PAYMENT METHODS',
+                returnsPolicy: 'RETURNS POLICY',
+                followUs: 'FOLLOW US',
+                pinterest: 'PINTEREST',
+                instagram: 'INSTAGRAM',
+                linkedin: 'LINKEDIN',
+                youtube: 'YOUTUBE',
+                about: 'ABOUT',
+                aboutUs: 'ABOUT US',
+                theTeam: 'THE TEAM',
+                ourValues: 'OUR VALUES',
+                ourGalleries: 'OUR GALLERIES',
+                catalogs: 'CATALOGS',
+                bCorp: 'B CORP',
+                inspirations: 'INSPIRATIONS',
+                press: 'PRESS',
+                podcast: 'PODCAST',
+                howTo: 'HOW-TO',
+                careers: 'CAREERS',
+                legalNotice: 'LEGAL NOTICE',
+                privacyPolicy: 'PRIVACY POLICY',
+                subscribeToNewsletter: 'Subscribe to our Newsletter',
+                subscribe: 'SUBSCRIBE',
+                proudToBeBCorp: 'Proud to be Certified B Corporation™',
+                bCorpDescription: 'This company meets the highest verified standards of social and environmental performance, transparency, and accountability.',
+                allRightsReserved: 'All rights reserved.',
             },
             'English': {
                 discover: 'DISCOVER',
@@ -558,6 +598,46 @@
                 today: 'Today',
                 modernScandinavianDesigns: 'Modern Scandinavian Designs',
                 naturalWoodCollection: 'Natural Wood Collection',
+                // Yeni eklenen çeviriler
+                shopBy: 'SHOP BY',
+                seating: 'SEATING',
+                tables: 'TABLES',
+                lighting: 'LIGHTING',
+                rugs: 'RUGS',
+                storage: 'STORAGE',
+                décor: 'DÉCOR',
+                bedroom: 'BEDROOM',
+                gifts: 'GIFTS',
+                services: 'SERVICES',
+                appointmentBooking: 'APPOINTMENT BOOKING',
+                tradeProgram: 'TRADE PROGRAM',
+                internationalDeliveries: 'INTERNATIONAL DELIVERIES',
+                paymentMethods: 'PAYMENT METHODS',
+                returnsPolicy: 'RETURNS POLICY',
+                followUs: 'FOLLOW US',
+                pinterest: 'PINTEREST',
+                instagram: 'INSTAGRAM',
+                linkedin: 'LINKEDIN',
+                youtube: 'YOUTUBE',
+                about: 'ABOUT',
+                aboutUs: 'ABOUT US',
+                theTeam: 'THE TEAM',
+                ourValues: 'OUR VALUES',
+                ourGalleries: 'OUR GALLERIES',
+                catalogs: 'CATALOGS',
+                bCorp: 'B CORP',
+                inspirations: 'INSPIRATIONS',
+                press: 'PRESS',
+                podcast: 'PODCAST',
+                howTo: 'HOW-TO',
+                careers: 'CAREERS',
+                legalNotice: 'LEGAL NOTICE',
+                privacyPolicy: 'PRIVACY POLICY',
+                subscribeToNewsletter: 'Subscribe to our Newsletter',
+                subscribe: 'SUBSCRIBE',
+                proudToBeBCorp: 'Proud to be Certified B Corporation™',
+                bCorpDescription: 'This company meets the highest verified standards of social and environmental performance, transparency, and accountability.',
+                allRightsReserved: 'All rights reserved.',
             },
             'Deutsch': {
                 home: 'Startseite',
@@ -720,6 +800,46 @@
                 today: 'Heute',
                 modernScandinavianDesigns: 'Moderne skandinavische Designs',
                 naturalWoodCollection: 'Naturholz-Kollektion',
+                // Yeni eklenen çeviriler
+                shopBy: 'SHOP BY',
+                seating: 'SEATING',
+                tables: 'TABLES',
+                lighting: 'LIGHTING',
+                rugs: 'RUGS',
+                storage: 'STORAGE',
+                décor: 'DÉCOR',
+                bedroom: 'BEDROOM',
+                gifts: 'GIFTS',
+                services: 'SERVICES',
+                appointmentBooking: 'APPOINTMENT BOOKING',
+                tradeProgram: 'TRADE PROGRAM',
+                internationalDeliveries: 'INTERNATIONAL DELIVERIES',
+                paymentMethods: 'PAYMENT METHODS',
+                returnsPolicy: 'RETURNS POLICY',
+                followUs: 'FOLLOW US',
+                pinterest: 'PINTEREST',
+                instagram: 'INSTAGRAM',
+                linkedin: 'LINKEDIN',
+                youtube: 'YOUTUBE',
+                about: 'ABOUT',
+                aboutUs: 'ABOUT US',
+                theTeam: 'THE TEAM',
+                ourValues: 'OUR VALUES',
+                ourGalleries: 'OUR GALLERIES',
+                catalogs: 'CATALOGS',
+                bCorp: 'B CORP',
+                inspirations: 'INSPIRATIONS',
+                press: 'PRESS',
+                podcast: 'PODCAST',
+                howTo: 'HOW-TO',
+                careers: 'CAREERS',
+                legalNotice: 'LEGAL NOTICE',
+                privacyPolicy: 'PRIVACY POLICY',
+                subscribeToNewsletter: 'Subscribe to our Newsletter',
+                subscribe: 'SUBSCRIBE',
+                proudToBeBCorp: 'Proud to be Certified B Corporation™',
+                bCorpDescription: 'This company meets the highest verified standards of social and environmental performance, transparency, and accountability.',
+                allRightsReserved: 'All rights reserved.',
             },
         };
         const App = () => {
@@ -787,7 +907,7 @@
 
             return (
                 <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                    <ScrollingBanner />
+                    <ScrollingBanner t={t} />
                     <Navbar 
                         setCurrentPath={setCurrentPath} 
                         isLoggedIn={isLoggedIn} 
@@ -796,7 +916,9 @@
                         setUserType={setUserType} 
                         t={t} 
                         isSearchOpen={isSearchOpen} 
-                        setIsSearchOpen={setIsSearchOpen} 
+                        setIsSearchOpen={setIsSearchOpen}
+                        language={language}
+                        setLanguage={setLanguage}
                     />
                     {isSearchOpen && <SearchPanel t={t} setIsSearchOpen={setIsSearchOpen} />}
                     <main className={`container mx-auto p-6 md:p-10 ${isSearchOpen ? 'hidden' : ''}`}>
@@ -805,8 +927,7 @@
                 </div>
             );
         };
-        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, isSearchOpen, setIsSearchOpen }) => {
-            const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
+        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, isSearchOpen, setIsSearchOpen, language, setLanguage }) => {
             const handleLogout = async () => {
                 try {
                     await window.signOut(window.firebaseAuth);
@@ -841,7 +962,7 @@
                                 <div className="relative">
                                     <select
                                         className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 font-medium focus:outline-none"
-                                        value={selectedLanguage}
+                                        value={language}
                                         onChange={(e) => setLanguage(e.target.value)}
                                     >
                                         <option value="Türkçe">TR</option>
@@ -915,14 +1036,41 @@
                 </div>
             );
         };
-        const ScrollingBanner = () => {
+        const ScrollingBanner = ({ t }) => {
             const bannerContent = [
-                "Summer Sale! %50'ye Varan İndirim",
-                "Stoklarımızda En Yenileri!",
-                "RAYS Tüm Ürünlerde %30'a Varan İndirim",
-                "Haftanın Öne Çıkanları Keşfet!",
-                "Ücretsiz Kargo Fırsatını Kaçırma!"
+                "summerSale",
+                "newArrivals",
+                "raysDiscount",
+                "discoverThisWeeksHighlights",
+                "freeShipping"
             ];
+
+            const translations = {
+                'Türkçe': {
+                    summerSale: "Summer Sale! %50'ye Varan İndirim",
+                    newArrivals: "Stoklarımızda En Yenileri!",
+                    raysDiscount: "RAYS Tüm Ürünlerde %30'a Varan İndirim",
+                    discoverThisWeeksHighlights: "Haftanın Öne Çıkanları Keşfet!",
+                    freeShipping: "Ücretsiz Kargo Fırsatını Kaçırma!",
+                },
+                'English': {
+                    summerSale: "Summer Sale! Up to 50% Off",
+                    newArrivals: "New Arrivals in Stock!",
+                    raysDiscount: "RAYS Up to 30% Off All Products",
+                    discoverThisWeeksHighlights: "Discover This Week's Highlights!",
+                    freeShipping: "Don't Miss Free Shipping!",
+                },
+                'Deutsch': {
+                    summerSale: "Sommer-Sale! Bis zu 50% Rabatt",
+                    newArrivals: "Neuheiten auf Lager!",
+                    raysDiscount: "RAYS Bis zu 30% Rabatt auf alle Produkte",
+                    discoverThisWeeksHighlights: "Entdecken Sie die Highlights der Woche!",
+                    freeShipping: "Verpassen Sie nicht den kostenlosen Versand!",
+                },
+            };
+
+            const translatedContent = translations[t('turkce') || 'Türkçe']; // Fallback for t()
+
             return (
                 <div className="w-full bg-[#f2f4f7] text-gray-800 text-sm py-2 overflow-hidden relative">
                     <style>{`
@@ -934,11 +1082,11 @@
                         .animate-scroll:hover { animation-play-state: paused; }
                     `}</style>
                     <div className="flex whitespace-nowrap animate-scroll">
-                        {bannerContent.map((text, index) => (
-                            <span key={index} className="px-8 flex-shrink-0 font-light text-[#222222]">{text}</span>
+                        {bannerContent.map((key, index) => (
+                            <span key={index} className="px-8 flex-shrink-0 font-light text-[#222222]">{translatedContent[key]}</span>
                         ))}
-                        {bannerContent.map((text, index) => (
-                            <span key={`duplicate-${index}`} className="px-8 flex-shrink-0 font-light text-[#222222]">{text}</span>
+                        {bannerContent.map((key, index) => (
+                            <span key={`duplicate-${index}`} className="px-8 flex-shrink-0 font-light text-[#222222]">{translatedContent[key]}</span>
                         ))}
                     </div>
                 </div>
@@ -947,12 +1095,12 @@
         
         const CategoryHighlightSection = ({ t }) => {
             const categoryHighlights = [
-                { name: "Lighting", image: "lighting_highlight.png", bgColor: "bg-white" },
-                { name: "Armchairs", image: "armchairs_highlight.png", bgColor: "bg-white" },
-                { name: "Coffee Tables", image: "coffee_tables_highlight.png", bgColor: "bg-white" },
-                { name: "Rugs", image: "rugs_highlight.png", bgColor: "bg-white" },
-                { name: "Storage", image: "storage_highlight.png", bgColor: "bg-white" },
-                { name: "Gifts", image: "gifts_highlight.png", bgColor: "bg-neutral-200" }, // Renk değişimi için örnek
+                { name: t('lighting'), image: "lighting_highlight.png", bgColor: "bg-white" },
+                { name: t('armchairs'), image: "armchairs_highlight.png", bgColor: "bg-white" },
+                { name: t('tables'), image: "coffee_tables_highlight.png", bgColor: "bg-white" },
+                { name: t('rugs'), image: "rugs_highlight.png", bgColor: "bg-white" },
+                { name: t('storage'), image: "storage_highlight.png", bgColor: "bg-white" },
+                { name: t('gifts'), image: "gifts_highlight.png", bgColor: "bg-neutral-200" },
             ];
 
             return (
@@ -1238,7 +1386,19 @@
                 </div>
             );
         };
-        const TextArea = ({ label, placeholder, value, onChange }) => { return null; };
+        const TextArea = ({ label, placeholder, value, onChange }) => {
+            return (
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                    <textarea
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={onChange}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out h-32"
+                    ></textarea>
+                </div>
+            );
+        };
         const Select = ({ label, options }) => { return null; };
         const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => { return null; };
         const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => { return null; };
@@ -1332,10 +1492,10 @@
                         <div key={index} className="flex-1 relative aspect-square overflow-hidden rounded-xl shadow-lg">
                             <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.image})`, backgroundPosition: item.position }}></div>
                             <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-start justify-end p-8 text-white">
-                                <p className="text-xs font-semibold tracking-widest mb-2">{item.title}</p>
-                                <h3 className="text-3xl font-bold mb-4">{item.subtitle}</h3>
+                                <p className="text-xs font-semibold tracking-widest mb-2">{t(item.title)}</p>
+                                <h3 className="text-3xl font-bold mb-4">{t(item.subtitle)}</h3>
                                 <a href="#" className="flex items-center text-sm font-bold tracking-wider">
-                                    {item.discoverText}
+                                    {t(item.discoverText)}
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </a>
                             </div>
