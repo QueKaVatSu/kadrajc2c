@@ -541,17 +541,17 @@
             blogPosts: 'Blogbeiträge',
             manageBlogPosts: 'Blogbeiträge verwalten',
             orderId: 'Bestell-ID:',
-            product: 'Ürün:',
+            product: 'Produkt:',
             date: 'Datum:',
             categoryManagement: 'Kategori Yönetimi',
             mainCategories: 'Ana Kategoriler',
             subCategories: 'Alt Kategoriler',
-            addCategory: 'Kategori Ekle',
-            editCategory: 'Kategoriyi Düzenle',
+            addCategory: 'Kategorie hinzufügen',
+            editCategory: 'Kategorie bearbeiten',
             deleteCategory: 'Kategoriyi Sil',
-            categoryName: 'Kategori Adı',
-            parentCategory: 'Üst Kategori',
-            saveCategory: 'Kategoriyi Kaydet',
+            categoryName: 'Kategoriename',
+            parentCategory: 'Übergeordnete Kategorie',
+            saveCategory: 'Kategorie speichern',
             // New translations
             searchProduct: 'Produkt, Marke, Inhalt suchen',
             new: 'Neu',
@@ -586,40 +586,44 @@
           const [userType, setUserType] = React.useState(null);
           const [language, setLanguage] = React.useState('Türkçe');
           const [currentUser, setCurrentUser] = React.useState(null);
+          const [isAuthReady, setIsAuthReady] = React.useState(false);
 
           React.useEffect(() => {
             const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
               if (user) {
                 const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                const userDocSnap = await window.getDoc(userDocRef);
-                if (userDocSnap.exists()) {
-                  const role = userDocSnap.data().role;
-                  if (role === 'seller') {
-                    setCurrentUser(user);
-                    setIsLoggedIn(true);
-                    setUserType(role);
-                  } else {
-                    // Satıcı olmayan kullanıcıları ana sayfaya yönlendir
-                    window.location.href = 'index.html';
-                  }
-                } else {
-                  // Kullanıcı belgesi yoksa, ana sayfaya yönlendir
-                  window.location.href = 'index.html';
+                try {
+                    const userDocSnap = await window.getDoc(userDocRef);
+                    if (userDocSnap.exists()) {
+                        const role = userDocSnap.data().role;
+                        if (role === 'seller') {
+                            setCurrentUser(user);
+                            setIsLoggedIn(true);
+                            setUserType(role);
+                        } else {
+                            window.location.href = './index.html'; // Görevi olmayan kullanıcıları yönlendir
+                        }
+                    } else {
+                        window.location.href = './index.html'; // Kullanıcı belgesi yoksa yönlendir
+                    }
+                } catch (error) {
+                    console.error("Kullanıcı rolü okunurken hata oluştu:", error);
+                    window.location.href = './index.html';
                 }
               } else {
                 setCurrentUser(null);
                 setIsLoggedIn(false);
                 setUserType(null);
-                // Giriş yapmamış kullanıcıları ana sayfaya yönlendir
-                window.location.href = 'index.html';
+                window.location.href = './index.html'; // Giriş yapmamış kullanıcıları yönlendir
               }
+              setIsAuthReady(true);
             });
             return () => unsubscribe();
           }, []);
           
           const t = (key) => translations[language][key] || key;
           
-          if (!isLoggedIn || userType !== 'seller') {
+          if (!isAuthReady || !isLoggedIn || userType !== 'seller') {
               return <p>Yükleniyor veya yetkiniz yok...</p>;
           }
           
@@ -637,7 +641,7 @@
                 try {
                     await window.signOut(window.firebaseAuth);
                     setIsLoggedIn(false);
-                    window.location.href = 'index.html';
+                    window.location.href = './index.html';
                 } catch (error) {
                     console.error("Çıkış yaparken hata oluştu:", error);
                 }
@@ -657,7 +661,7 @@
                         </div>
                         {/* Orta kısım: Logo */}
                         <div className="flex-grow flex justify-center">
-                            <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} />
+                            <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = './index.html'} />
                         </div>
                         {/* Sağ kısım: Kullanıcı ve Çıkış */}
                         <div className="flex items-center space-x-6 w-1/3 justify-end">
