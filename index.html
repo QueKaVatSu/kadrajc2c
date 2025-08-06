@@ -81,6 +81,16 @@
         .animate-fade-in-down {
             animation: fade-in-down 0.3s ease-in-out forwards;
         }
+
+        @media (max-width: 767px) {
+            .mobile-grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .mobile-grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        
     </style>
 </head>
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
@@ -108,6 +118,10 @@
         const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
         const MenuIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>;
         const XIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+        const HomeIconFilled = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={props.className}><path d="M12 2L3 9v11h18v-11z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+        const HeartIconFilled = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={props.className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+        const UserIconFilled = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="currentColor" stroke="none" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+        const WhatsAppIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="currentColor" className={props.className}><path d="M12.04 2.33a9.85 9.85 0 0 0-7.05 2.92l-1.68 6.13-1.07 3.91-1.07 3.91a1.86 1.86 0 0 0 1.25 2.06c.55.15 1.09.22 1.63.22h.01a11 11 0 0 0 8.08-3.55 10.15 10.15 0 0 0 3.94-6.84 10.15 10.15 0 0 0-3.94-6.84 10.15 10.15 0 0 0-6.84-3.94zm0 1.83a8.16 8.16 0 0 1 5.8 2.4 8.15 8.15 0 0 1 2.4 5.8 8.15 8.15 0 0 1-2.4 5.8 8.16 8.16 0 0 1-5.8 2.4c-1.92 0-3.75-.76-5.11-2.12-.34-.34-.65-.7-.95-1.07l-.37-.48-.68 2.48 1.15-3.32 1.15-3.32-.4-.21c-1.25-.66-2.07-1.9-2.07-3.31a8.16 8.16 0 0 1 2.4-5.8 8.15 8.15 0 0 1 5.8-2.4z"/><path d="M17.34 12.16a2.12 2.12 0 0 0-1.05-.28c-.46-.07-.9-.08-1.34-.03-.31.03-.62.09-.9.18l-.51.2-1.01-.52-1.01-.52c-.67-.34-1.35-.4-2-.24-.22.05-.43.12-.64.2-.67.28-1.27.75-1.76 1.34-.63.75-1.05 1.62-1.2 2.53-.14.88-.13 1.77.03 2.65.17.89.5 1.71.93 2.42.5.83 1.15 1.52 1.95 2.07.75.52 1.5.88 2.37 1.05.81.16 1.64.13 2.45-.1.5-.14.98-.34 1.45-.58.7-.36 1.25-.83 1.7-1.42.27-.37.48-.79.62-1.24.13-.45.18-.9.18-1.35 0-.64-.2-1.27-.58-1.83zm-2.88 4.63c-.34.2-.68.32-1.04.38-.34.06-.68.04-1.01-.06-.5-.14-.95-.39-1.35-.74-.48-.42-.8-1-1-1.63-.12-.35-.15-.72-.15-1.09 0-.62.13-1.22.4-1.78.34-.7.83-1.24 1.5-1.68.5-.33 1.04-.54 1.6-.64.4-.08.8-.09 1.19-.04.3.04.59.1.88.2.53.2.98.54 1.4.98.5.5.8 1.1.92 1.8.12.7.1 1.4-.08 2.1-.2.78-.54 1.48-1.05 2.1z"/></svg>;
 
 
         const translations = {
@@ -352,6 +366,254 @@
                 securePaymentProcess: 'Ödeme, teslimat ve iade süreçlerinde yüksek standartları benimsiyoruz. Tüm alışverişleriniz sigortalı, korumalı ve takip edilebilirdir.',
                 expertAdviserTeam: 'Uzman Danışman Ekibi',
                 expertAdviserTeamDesc: 'Tasarım uzmanlarımız tüm sorularınızı ve kişisel taleplerinizi yanıtlamak için burada',
+                homeBar: "Anasayfa",
+                loginBar: "Giriş Yap",
+                registerBar: "Üye Ol",
+                favoritesBar: "Favoriler",
+            },
+            'English': {
+                discover: 'DISCOVER',
+                newIn: 'NEW IN',
+                newInDesc: 'Discover our latest pieces, arriving every week.',
+                shopNewIn: 'SHOP NEW IN',
+                decor: 'Décor',
+                lighting: 'Lighting',
+                rugs: 'Rugs',
+                armchairs: 'Armchairs',
+                allCategories: 'ALL CATEGORIES',
+                designers: 'DESIGNERS',
+                seating: 'SEATING',
+                tables: 'TABLES',
+                masters: 'MASTERS',
+                shopByRoom: 'SHOP BY ROOM',
+                ourGalleries: 'OUR GALLERIES',
+                home: 'Homepage',
+                collectorPanel: 'Collector Panel',
+                atelierPanel: 'Atelier Panel',
+                adminPanel: 'Admin Panel',
+                login: 'Login',
+                logout: 'Logout',
+                newAddress: 'New Address',
+                contact: 'Contact',
+                faq: 'Frequently Asked Questions',
+                turkce: 'Türkçe',
+                english: 'English',
+                deutsch: 'Deutsch',
+                tagline1: 'The new address of design.',
+                tagline2: 'Add value to your living spaces. Discover carefully selected furniture, lighting and home decor products.',
+                exploreLogin: 'Explore Now / Login',
+                furniture: 'Furniture',
+                decoration: 'Decoration',
+                furnitureDesc: 'Special design furniture that forms the heart of your home.',
+                genelHata: 'An error occurred. Please try again.',
+                lightingDesc: 'Designs that add light and aesthetics to your spaces.',
+                decorationDesc: 'Unique decorative objects that make a difference with details.',
+                collectorLogin: 'Collector Login',
+                email: 'Email',
+                password: 'Password',
+                invalidCredentials: 'Invalid email or password. Please try again.',
+                sampleAccounts: 'Sample Accounts:',
+                collector: 'Collector',
+                atelier: 'Atelier',
+                admin: 'Admin',
+                wantToBeDesigner: 'Want to be a Designer Partner?',
+                atelierPartnershipApplication: 'Atelier Partnership Application',
+                applicationReceived: 'Your application has been successfully received!',
+                contactSoon: 'We will contact you as soon as possible.',
+                backToLogin: 'Back to Login Page',
+                atelierName: 'Atelier Name',
+                fullName: 'Full Name',
+                confirmPassword: 'Confirm Password',
+                portfolioLink: 'Portfolio Link (Optional)',
+                shortDescription: 'Short Description (Optional)',
+                passwordsMismatch: 'Passwords do not match. Please check.',
+                submitApplication: 'Submit Application',
+                alreadyHaveAccount: 'Already have an account?',
+                overview: 'Overview',
+                productManagement: 'Product Management',
+                ordersFinance: 'Orders & Finance',
+                atelierReview: 'Atelier Review',
+                last30Days: 'Last 30 days',
+                mostPopularProduct: 'Most Popular Product',
+                views: 'views',
+                productViews: 'Product View Count',
+                totalViews: 'Total views',
+                addToFavoritesRate: 'Add to Favorites Rate',
+                averageRate: 'Average rate',
+                addProductManage: 'Add/Manage Product',
+                addNewProduct: 'Add New Product',
+                productName: 'Product Name',
+                productDescription: 'Product Description',
+                productStory: 'Product Story',
+                price: 'Price',
+                category: 'Category',
+                materialInfo: 'Material Information',
+                dimensionsCm: 'Dimensions (cm)',
+                weightKg: 'Weight (kg)',
+                shippingInfo: 'Shipping Information',
+                professionalPhotoGallery: 'Professional Photo Gallery',
+                uploadPhotos: 'Upload at least 3, maximum 10 photos.',
+                saveProduct: 'Save Product',
+                currentProducts: 'Current Products',
+                active: 'Active',
+                passive: 'Passive',
+                orders: 'Orders',
+                lastOrders: 'Last Orders',
+                completed: 'Completed',
+                inTransit: 'In Transit',
+                cancelled: 'Cancelled',
+                financialStatus: 'Financial Status',
+                withdrawableBalance: 'Withdrawable Balance',
+                currentBalance: 'Current balance',
+                totalEarnings: 'Total Earnings',
+                allTime: 'All time',
+                withdrawBalance: 'Withdraw Balance',
+                myOrders: 'My Orders',
+                messageDesigner: 'Message Designer',
+                favorites: 'Favorites',
+                favoriteDesigns: 'Favorite Designs',
+                favoriteAteliers: 'Favorite Ateliers',
+                profileManagement: 'Profile Management',
+                deliveryAddresses: 'Delivery Addresses',
+                addressTitle: 'Address Title',
+                addressLine1: 'Address Line 1',
+                addressLine2: 'Address Line 2 (Optional)',
+                city: 'City',
+                district: 'District',
+                zipCode: 'Zip Code',
+                saveAddress: 'Save Address',
+                billingInformation: 'Billing Information',
+                nameSurnameCompanyName: 'Name Surname / Company Name',
+                tcIdTaxNo: 'TR ID No / Tax No',
+                saveBillingInfo: 'Save Billing Information',
+                galleryManagerPanel: 'Gallery Manager Panel',
+                userManager: 'User Management',
+                designerApplications: 'Designer Applications',
+                pending: 'Pending',
+                approved: 'Approve',
+                allUsers: 'All Users',
+                view: 'View',
+                approve: 'Approve',
+                allListedProducts: 'All Listed Products',
+                featuredProducts: 'Manage Featured Products',
+                financeManagement: 'Finance Management',
+                commissionRates: 'Commission Rates',
+                currentCommissionRate: 'Current Commission Rate:',
+                setCommissionRate: 'Set Commission Rate',
+                designerPayments: 'Designer Payments',
+                managePayments: 'Manage Payments',
+                incomeExpenseReports: 'Income and Expense Reports',
+                viewReports: 'View Reports',
+                contentManagement: 'Content Management',
+                homePageBanners: 'Home Page Banners',
+                manageBanners: 'Manage Banners',
+                specialCollectionPages: 'Special Collection Pages',
+                manageCollections: 'Manage Collections',
+                blogPosts: 'Blog Posts',
+                manageBlogPosts: 'Manage Blog Posts',
+                orderId: 'Order ID:',
+                product: 'Product:',
+                date: 'Date:',
+                categoryManagement: 'Category Management',
+                mainCategories: 'Main Categories',
+                subCategories: 'Sub Categories',
+                addCategory: 'Add Category',
+                editCategory: 'Edit Category',
+                deleteCategory: 'Delete Category',
+                categoryName: 'Category Name',
+                parentCategory: 'Parent Category',
+                saveCategory: 'Save Category',
+                searchProduct: 'Search product, brand, content',
+                new: 'New',
+                woman: 'Woman',
+                man: 'Man',
+                child: 'Child',
+                life: 'Life',
+                brands: 'Brands',
+                discount: 'Discount',
+                mag: 'MAG',
+                rewards: 'Rewards',
+                stores: 'Stores',
+                forGood: 'for good',
+                edit: 'Edit',
+                delete: 'Delete',
+                sales: 'sales',
+                unitsSold: 'units sold',
+                platformWide: 'Platform wide',
+                artPiece: 'Art Piece',
+                lastViewedProduct: 'Last Viewed Product',
+                today: 'Today',
+                modernScandinavianDesigns: 'Modern Scandinavian Designs',
+                naturalWoodCollection: 'Natural Wood Collection',
+                shopBy: 'SHOP BY',
+                décor: 'DÉCOR',
+                gifts: 'GIFTS',
+                services: 'SERVICES',
+                appointmentBooking: 'APPOINTMENT BOOKING',
+                tradeProgram: 'TRADE PROGRAM',
+                internationalDeliveries: 'INTERNATIONAL DELIVERIES',
+                paymentMethods: 'PAYMENT METHODS',
+                returnsPolicy: 'RETURNS POLICY',
+                followUs: 'FOLLOW US',
+                pinterest: 'PINTEREST',
+                instagram: 'INSTAGRAM',
+                linkedin: 'LINKEDIN',
+                youtube: 'YOUTUBE',
+                about: 'ABOUT',
+                aboutUs: 'ABOUT US',
+                theTeam: 'THE TEAM',
+                ourValues: 'OUR VALUES',
+                ourGalleries: 'OUR GALLERIES',
+                catalogs: 'CATALOGS',
+                bCorp: 'B CORP',
+                inspirations: 'INSPIRATIONS',
+                press: 'PRESS',
+                podcast: 'PODCAST',
+                howTo: 'HOW-TO',
+                careers: 'CAREERS',
+                legalNotice: 'LEGAL NOTICE',
+                privacyPolicy: 'PRIVACY POLICY',
+                subscribeToNewsletter: 'Subscribe to our Newsletter',
+                subscribe: 'SUBSCRIBE',
+                proudToBeBCorp: 'Proud to be Certified B Corporation™',
+                bCorpDescription: 'This company meets the highest verified standards of social and environmental performance, transparency, and accountability.',
+                allRightsReserved: 'All rights reserved.',
+                editorSelection: 'Editor\'s ',
+                summer: 'Summer',
+                selection: ' Selection',
+                laclaud: 'Laclaud',
+                inspiringBrands: 'Inspiring Brands',
+                dekoriGroup: 'Dekori Group',
+                perfectLiving: 'PERFECT LIVING',
+                iconicTables: 'Iconic Tables',
+                summerSale: "Summer Sale! Up to 50% Off",
+                newArrivals: "New Arrivals in Stock!",
+                raysDiscount: "RAYS Up to 30% Off All Products",
+                discoverThisWeeksHighlights: "Discover This Week's Highlights!",
+                freeShipping: "Don't Miss Free Shipping!",
+                // New translations
+                architectOrInteriorDesigner: 'ARCHITECT OR INTERIOR DESIGNER?',
+                joinTradeProgram: 'Join our trade program',
+                joinNow: 'JOIN NOW',
+                worldwideDeliveries: 'Worldwide Deliveries',
+                worldwideDeliveriesDesc: 'All our shipments are insured and processed by specialized carriers',
+                securePayment: 'Güvenli Ödeme',
+                securePaymentDesc: 'You can pay by credit card, PayPal or bank transfer in complete security and privacy',
+                teamOfSpecialistAdvisers: 'Team of Specialist Advisers',
+                teamOfSpecialistAdvisersDesc: 'Our team of design specialists are here to help and will answer all your questions and personalized requests',
+                certificateOfAuthenticity: 'Certificate Of Authenticity',
+                certificateOfAuthenticityDesc: 'Each piece is authentic and certified',
+                curatedSelections: 'Küratörlü Seçkiler',
+                curatedSelectionsDesc: 'Her ürün, yalnızca estetik değil bir fikir taşıdığı için seçilir. Kadraj’da sadece görünür değil, anlamlı olan tasarımlar yer alır.',
+                directArtistSupport: 'Sanatçıya Doğrudan Destek',
+                directArtistSupportDesc: 'Satın aldığınız her parça, üreticisinin emeğine doğrudan katkı sağlar. Komisyon sistemimiz adil, şeffaf ve sanatçı dostudur.',
+                securePaymentProcess: 'Ödeme, teslimat ve iade süreçlerinde yüksek standartları benimsiyoruz. Tüm alışverişleriniz sigortalı, korumalı ve takip edilebilirdir.',
+                expertAdviserTeam: 'Uzman Danışman Ekibi',
+                expertAdviserTeamDesc: 'Tasarım uzmanlarımız tüm sorularınızı ve kişisel taleplerinizi yanıtlamak için burada',
+                homeBar: "Anasayfa",
+                loginBar: "Giriş Yap",
+                registerBar: "Üye Ol",
+                favoritesBar: "Favoriler",
             },
             'English': {
                 discover: 'DISCOVER',
@@ -591,7 +853,11 @@
                 directArtistSupportDesc: 'Every piece you purchase directly contributes to the creator’s effort. Our commission system is fair, transparent, and artist-friendly.',
                 securePaymentProcess: 'We uphold high standards in payment, delivery, and return processes. All your purchases are insured, protected, and trackable.',
                 expertAdviserTeam: 'Expert Adviser Team',
-                expertAdviserTeamDesc: 'Our team of design specialists is here to answer all your questions and personalized requests.',
+                expertAdviserTeamDesc: 'Our team of design specialists is here to help and will answer all your questions and personalized requests.',
+                homeBar: "Homepage",
+                loginBar: "Login",
+                registerBar: "Sign Up",
+                favoritesBar: "Favorites",
             },
             'Deutsch': {
                 home: 'Startseite',
@@ -815,10 +1081,14 @@
                 curatedSelections: 'Kuratierte Auswahl',
                 curatedSelectionsDesc: 'Jedes Produkt wird nicht nur wegen seiner Ästhetik, sondern auch wegen der Idee, die es trägt, ausgewählt. Bei Kadraj finden Sie Designs, die nicht nur sichtbar, sondern auch bedeutungsvoll sind.',
                 directArtistSupport: 'Direkte Künstlerunterstützung',
-                directArtistSupportDesc: 'Jeder Kauf eines Stücks trägt direkt zur Arbeit des Schöpfers bei. Unser Provisionssystem ist fair, transparent und künstlerfreundlich.',
-                securePaymentProcess: 'Wir setzen hohe Standards bei Zahlungs-, Liefer- und Rückgabeprozessen. Alle Ihre Einkäufe sind versichert, geschützt und nachverfolgbar.',
-                expertAdviserTeam: 'Team von Fachberatern',
-                expertAdviserTeamDesc: 'Unsere Designexperten stehen Ihnen zur Verfügung, um alle Ihre Fragen und individuellen Wünsche zu beantworten.',
+                directArtistSupportDesc: 'Jeder Kauf, den Sie tätigen, trägt direkt zur Arbeit des Herstellers bei. Unser Provisionssystem ist fair, transparent und künstlerfreundlich.',
+                securePaymentProcess: 'Wir setzen hohe Standards bei Zahlungs-, Liefer- und Rückgabeprozessen. Alle Ihre Einkäufe sind versichert, geschützt und verfolgbar.',
+                expertAdviserTeam: 'Expertenteam für Beratung',
+                expertAdviserTeamDesc: 'Unser Team von Designspezialisten steht Ihnen zur Verfügung, um alle Ihre Fragen und persönlichen Anfragen zu beantworten.',
+                homeBar: "Startseite",
+                loginBar: "Anmelden",
+                registerBar: "Registrieren",
+                favoritesBar: "Favoriten",
             },
         };
 
@@ -909,8 +1179,8 @@
                     <main className={`container mx-auto px-0 md:p-10 ${isSearchOpen || isMobileMenuOpen ? 'hidden' : ''}`}>
                         {renderMainContent()}
                     </main>
-                    <Footer t={t} />
                     <MobileBottomBar t={t} setCurrentPath={setCurrentPath} />
+                    <Footer t={t} />
                 </div>
             );
         };
@@ -997,44 +1267,27 @@
                 'allCategories', 'designers', 'seating', 'tables', 'lighting',
                 'rugs', 'decor', 'masters', 'shopByRoom', 'ourGalleries'
             ];
-            const scrollRef = React.useRef(null);
-            
-            const scrollLeft = () => {
-                if (scrollRef.current) {
-                    scrollRef.current.scrollBy({ left: -200, behavior: 'smooth' });
-                }
-            };
-        
-            const scrollRight = () => {
-                if (scrollRef.current) {
-                    scrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
-                }
-            };
 
             return (
-                <div className="md:hidden fixed inset-0 bg-white z-50 p-6 animate-fade-in-down">
+                <div className="fixed inset-0 bg-white z-50 p-6 animate-fade-in-down">
                     <div className="flex justify-between items-center mb-8">
                         <span className="text-2xl font-light tracking-widest uppercase" onClick={() => { setCurrentPath('/'); setIsMobileMenuOpen(false); }}>KADRAJ L'ATELIER</span>
                         <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-900">
                             <XIcon size={30} />
                         </button>
                     </div>
-                    <div className="relative flex items-center">
-                        <button onClick={scrollLeft} className="absolute left-0 z-10 p-2 text-gray-500 bg-white rounded-full shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                        </button>
-                        <div ref={scrollRef} className="flex overflow-x-scroll no-scrollbar space-x-4">
-                            {menuItems.map((item, index) => (
-                                <a key={index} href="#" className="flex-shrink-0 font-normal hover:text-gray-900 transition duration-300 text-[13px] px-2 py-1">
+                    <ul className="flex flex-col space-y-4 text-xl">
+                        {menuItems.map((item, index) => (
+                            <li key={index} className="border-b border-gray-200 py-2">
+                                <a href="#" className="font-normal hover:text-gray-900 block" onClick={() => setIsMobileMenuOpen(false)}>
                                     {t(item)}
                                 </a>
-                            ))}
-                            <a href="#" className="flex-shrink-0 font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[13px] px-2 py-1">KADRAJ SOCIETY</a>
-                        </div>
-                        <button onClick={scrollRight} className="absolute right-0 z-10 p-2 text-gray-500 bg-white rounded-full shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                        </button>
-                    </div>
+                            </li>
+                        ))}
+                        <li className="border-b border-gray-200 py-2">
+                            <a href="#" className="font-bold text-[#590219] hover:text-gray-900 block" onClick={() => setIsMobileMenuOpen(false)}>KADRAJ SOCIETY</a>
+                        </li>
+                    </ul>
                 </div>
             );
         };
@@ -1072,6 +1325,34 @@
                 </div>
             );
         };
+        const MobileBottomBar = ({ t, setCurrentPath }) => {
+            return (
+                <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg md:hidden z-40">
+                    <div className="grid grid-cols-5 h-16">
+                        <a href="#" className="flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                            <HomeIcon size={24} className="mb-1" />
+                            <span className="text-xs">{t('homeBar')}</span>
+                        </a>
+                        <a href="#" className="flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                            <HeartIcon size={24} className="mb-1" />
+                            <span className="text-xs">{t('favoritesBar')}</span>
+                        </a>
+                        <a href="#" className="flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                            <WhatsAppIcon size={24} className="mb-1" />
+                            <span className="text-xs">WhatsApp</span>
+                        </a>
+                        <a onClick={() => setCurrentPath('/login')} className="flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                            <UserIcon size={24} className="mb-1" />
+                            <span className="text-xs">{t('loginBar')}</span>
+                        </a>
+                        <a onClick={() => setCurrentPath('/seller-register')} className="flex flex-col items-center justify-center text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                            <UserIcon size={24} className="mb-1" />
+                            <span className="text-xs">{t('registerBar')}</span>
+                        </a>
+                    </div>
+                </div>
+            );
+        };
         const ScrollingBanner = ({ t }) => {
             const bannerContent = [
                 'summerSale',
@@ -1102,6 +1383,25 @@
                 </div>
             );
         };
+
+        const CategoriesMobile = ({ t }) => {
+            const categories = [
+                t('seating'), t('tables'), t('lighting'), t('rugs'), t('decor'), t('gifts'), 'KADRAJ SOCIETY'
+            ];
+            return (
+                <div className="md:hidden w-full overflow-x-scroll no-scrollbar py-4 border-b border-gray-200">
+                    <ul className="flex space-x-6 px-4">
+                        {categories.map((item, index) => (
+                            <li key={index} className="flex-shrink-0">
+                                <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-[13px] whitespace-nowrap">
+                                    {item}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        };
         
         const CategoryHighlightSection = ({ t }) => {
             const categoryHighlights = [
@@ -1114,18 +1414,18 @@
             ];
 
             return (
-                <div className="my-16 px-6 md:px-0">
-                    <div className="grid grid-cols-3 md:flex justify-around items-center gap-y-8 md:space-y-0">
+                <div className="my-16">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-0 justify-around items-center">
                         {categoryHighlights.map((category, index) => (
                             <div key={index} className="flex flex-col items-center">
-                                <div className={`w-24 h-24 md:w-48 md:h-48 rounded-full flex items-center justify-center overflow-hidden mb-2 md:mb-4 ${category.bgColor}`}>
+                                <div className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center overflow-hidden mb-4 ${category.bgColor}`}>
                                     <img 
                                         src={category.image} 
                                         alt={category.name} 
                                         className="object-contain max-h-full max-w-full"
                                     />
                                 </div>
-                                <span className="text-xs md:text-base font-medium text-gray-800">{category.name}</span>
+                                <span className="text-sm md:text-base font-medium text-gray-800">{category.name}</span>
                             </div>
                         ))}
                     </div>
@@ -1172,9 +1472,9 @@
                             {t('joinNow')}
                         </button>
                     </div>
-                    <div className="flex flex-col md:flex-row justify-around items-start text-center space-y-8 md:space-y-0">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4 justify-around items-start text-center">
                         {features.map((feature, index) => (
-                            <div key={index} className="w-full md:w-1/4 px-4">
+                            <div key={index} className="w-full px-4">
                                 <div className="relative w-full aspect-square mb-4">
                                     <img src={feature.image} alt={feature.title} className="absolute inset-0 w-full h-full object-cover" />
                                 </div>
@@ -1248,6 +1548,7 @@
                             </div>
                         </div>
                     </div>
+                    <CategoriesMobile t={t} />
                     <CategoryHighlightSection t={t} />
                     <HighlightsSection t={t} />
                     <NewInSection t={t} />
