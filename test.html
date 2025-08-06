@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Firebase Storage Test</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=SİZİN_RECAPTCHA_SITE_KEYINIZ"></script>
+</head>
+<body>
+    <h1>Firebase Storage CORS Test</h1>
+    <input type="file" id="fileInput" />
+    <button id="uploadButton">Yükle</button>
+    <p id="status">Durum: Bekleniyor...</p>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
+        import { getStorage, ref, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // 2. DEĞİŞİKLİK: Kendi Firebase Proje bilgilerinizi buraya yapıştırın
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
+            authDomain: "kadrajatelier-7e02a.firebaseapp.com",
+            projectId: "kadrajatelier-7e02a",
+            storageBucket: "kadrajatelier-7e02a.firebasestorage.app",
+            messagingSenderId: "4259035875263",
+            appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        
+        // 3. DEĞİŞİKLİK: Kendi reCAPTCHA Site Anahtarınızı buraya da yapıştırın
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider('SİZİN_RECAPTCHA_SITE_KEYINIZ'),
+          isTokenAutoRefreshEnabled: true
+        });
+
+        const storage = getStorage(app);
+        const auth = getAuth(app);
+        const statusP = document.getElementById('status');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+
+        // Test için anonim olarak giriş yapalım ki güvenlik kurallarını geçelim
+        signInAnonymously(auth).catch(error => {
+            console.error("Anonymous sign-in failed:", error);
+            statusP.textContent = "Hata: Oturum açılamadı. Güvenlik kurallarını geçemezsiniz.";
+        });
+
+        uploadButton.onclick = () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                statusP.textContent = "Lütfen bir dosya seçin.";
+                return;
+            }
+
+            if (!auth.currentUser) {
+                statusP.textContent = "Hata: Henüz oturum açılmadı, lütfen bekleyin.";
+                return;
+            }
+
+            const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            
+            statusP.textContent = "Yükleme başlıyor...";
+            console.log("Upload started for:", file.name);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    statusP.textContent = `Yükleniyor: ${Math.round(progress)}%`;
+                    console.log('Upload is ' + progress + '% done');
+                }, 
+                (error) => {
+                    console.error("Upload failed:", error);
+                    statusP.textContent = `Yükleme Başarısız! Konsolu kontrol edin. Hata Kodu: ${error.code}`;
+                }, 
+                () => {
+                    statusP.textContent = "Yükleme Başarıyla Tamamlandı!";
+                    console.log("Upload successful!");
+                }
+            );
+        };
+    </script>
+</body>
+</html>
