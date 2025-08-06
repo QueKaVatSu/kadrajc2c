@@ -852,12 +852,12 @@
         
         const CategoryHighlightSection = ({ t }) => {
             const categoryHighlights = [
-                { name: "Lighting", image: "lighting_highlight.png", bgColor: "bg-white" },
-                { name: "Armchairs", image: "armchairs_highlight.png", bgColor: "bg-white" },
-                { name: "Coffee Tables", image: "coffee_tables_highlight.png", bgColor: "bg-white" },
-                { name: "Rugs", image: "rugs_highlight.png", bgColor: "bg-white" },
-                { name: "Storage", image: "storage_highlight.png", bgColor: "bg-white" },
-                { name: "Gifts", image: "gifts_highlight.png", bgColor: "bg-neutral-200" }, // Renk değişimi için örnek
+                { name: "Lighting", image: "lighting_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Armchairs", image: "armchairs_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Coffee Tables", image: "coffee_tables_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Rugs", image: "rugs_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Storage", image: "storage_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Gifts", image: "gifts_highlight.png", bgColor: "bg-neutral-200" },
             ];
 
             return (
@@ -941,11 +941,11 @@
                         </div>
                     </div>
 
-                    <CategoryHighlightSection t={t} />
-
                     <NewInSection t={t} />
 
                     <HighlightsSection t={t} />
+
+                    <CategoryHighlightSection t={t} />
                 </>
             );
         };
@@ -1250,8 +1250,37 @@
             );
         };
         
+        const CategoryHighlightSection = ({ t }) => {
+            const categoryHighlights = [
+                { name: "Lighting", image: "lighting_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Armchairs", image: "armchairs_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Coffee Tables", image: "coffee_tables_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Rugs", image: "rugs_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Storage", image: "storage_highlight.png", bgColor: "bg-neutral-100" },
+                { name: "Gifts", image: "gifts_highlight.png", bgColor: "bg-neutral-200" },
+            ];
+
+            return (
+                <div className="my-16">
+                    <div className="flex justify-around items-center">
+                        {categoryHighlights.map((category, index) => (
+                            <div key={index} className="flex flex-col items-center">
+                                <div className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center overflow-hidden mb-4 ${category.bgColor}`}>
+                                    <img 
+                                        src={category.image} 
+                                        alt={category.name} 
+                                        className="object-contain max-h-full max-w-full"
+                                    />
+                                </div>
+                                <span className="text-sm md:text-base font-medium text-gray-800">{category.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
-```
