@@ -67,6 +67,16 @@
         .font-serif-new-roman {
             font-family: 'Times New Roman', serif;
         }
+        .highlight-card-bg-1 {
+          background-image: url('markalar.png');
+          background-position: center;
+          background-size: cover;
+        }
+        .highlight-card-bg-2 {
+          background-image: url('tables.png');
+          background-position: center;
+          background-size: cover;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
@@ -557,7 +567,7 @@
             categoryName: 'Kategori Adı',
             parentCategory: 'Üst Kategori',
             saveCategory: 'Kategoriyi Kaydet',
-            // Yeni çeviriler
+            // New translations
             searchProduct: 'Produkt, Marke, Inhalt suchen',
             new: 'Neu',
             woman: 'Frau',
@@ -647,14 +657,14 @@
           return (
               <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
                   <ScrollingBanner />
-                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} />
+                  <Navbar setCurrentPath={setCurrentPath} isLoggedIn={isLoggedIn} userType={userType} setIsLoggedIn={setIsLoggedIn} setUserType={setUserType} t={t} setLanguage={setLanguage} />
                   <main className="container mx-auto p-6 md:p-10">
                       {renderMainContent()}
                   </main>
               </div>
           );
         };
-        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t }) => {
+        const Navbar = ({ setCurrentPath, isLoggedIn, userType, setIsLoggedIn, setUserType, t, setLanguage }) => {
             const [selectedLanguage, setSelectedLanguage] = React.useState('Türkçe');
             const handleLogout = async () => {
                 try {
@@ -691,7 +701,7 @@
                                     <select
                                         className="appearance-none bg-transparent border-none text-gray-700 cursor-pointer pr-5 font-medium focus:outline-none"
                                         value={selectedLanguage}
-                                        onChange={(e) => setLanguage(e.target.value)}
+                                        onChange={(e) => { setSelectedLanguage(e.target.value); setLanguage(e.target.value); }}
                                     >
                                         <option value="Türkçe">TR</option>
                                         <option value="English">EN</option>
@@ -1125,15 +1135,15 @@
         const HighlightsSection = ({ t }) => {
             const highlightItems = [
                 {
-                    title: t('collectionHighlight'),
+                    title: "İlham Veren Markalar",
                     subtitle: "Dekori Grup",
                     image: "markalar.png",
                     discoverText: "KEŞFET",
                     position: "0% 0%"
                 },
                 {
-                    title: t('perfectLiving'),
-                    subtitle: t('iconicTables'),
+                    title: "MÜKEMMEL YAŞAM",
+                    subtitle: "İkonik Masalar",
                     image: "tables.png",
                     discoverText: "KEŞFET",
                     position: "right 0"
