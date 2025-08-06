@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetici Paneli - Kadraj l'Atelier</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lek4JwrAAAAAL0JQT_O7OadpWUw8nS2fik1i1fD"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -21,7 +25,14 @@
             messagingSenderId: "4259035875263",
             appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
         };
+        
         const app = initializeApp(firebaseConfig);
+
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider('6Lek4JwrAAAAAL0JQT_O7OadpWUw8nS2fik1i1fD'),
+          isTokenAutoRefreshEnabled: true
+        });
+        
         const auth = getAuth(app);
         const db = getFirestore(app);
         window.firebaseApp = app;
@@ -522,25 +533,25 @@
             managePayments: 'Zahlungen verwalten',
             incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
             viewReports: 'Berichte anzeigen',
-            contentManagement: 'İçerik Yönetimi',
+            contentManagement: 'Inhaltsverwaltung',
             homePageBanners: 'Startseiten-Banner',
             manageBanners: 'Banner verwalten',
             specialCollectionPages: 'Spezielle Kollektionsseiten',
             manageCollections: 'Kollektionen verwalten',
             blogPosts: 'Blogbeiträge',
             manageBlogPosts: 'Blogbeiträge verwalten',
-            orderId: 'Sipariş ID:',
+            orderId: 'Bestell-ID:',
             product: 'Ürün:',
             date: 'Datum:',
-            categoryManagement: 'Kategori Yönetimi',
-            mainCategories: 'Ana Kategoriler',
-            subCategories: 'Alt Kategoriler',
-            addCategory: 'Kategori Ekle',
-            editCategory: 'Kategoriyi Düzenle',
-            deleteCategory: 'Kategoriyi Sil',
-            categoryName: 'Kategori Adı',
-            parentCategory: 'Üst Kategori',
-            saveCategory: 'Kategoriyi Kaydet',
+            categoryManagement: 'Kategorienverwaltung',
+            mainCategories: 'Hauptkategorien',
+            subCategories: 'Unterkategorien',
+            addCategory: 'Kategorie hinzufügen',
+            editCategory: 'Kategorie bearbeiten',
+            deleteCategory: 'Kategorie löschen',
+            categoryName: 'Kategoriename',
+            parentCategory: 'Übergeordnete Kategorie',
+            saveCategory: 'Kategorie speichern',
             // New translations
             searchProduct: 'Produkt, Marke, Inhalt suchen',
             new: 'Neu',
