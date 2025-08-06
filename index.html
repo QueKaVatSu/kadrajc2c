@@ -812,13 +812,13 @@
                 teamOfSpecialistAdvisersDesc: 'Unsere Designexperten helfen Ihnen gerne weiter und beantworten alle Ihre Fragen und individuellen Wünsche',
                 certificateOfAuthenticity: 'Echtheitszertifikat',
                 certificateOfAuthenticityDesc: 'Jedes Stück ist authentisch und zertifiziert',
-                curatedSelections: 'Küratörlü Seçkiler',
-                curatedSelectionsDesc: 'Her ürün, yalnızca estetik değil bir fikir taşıdığı için seçilir. Kadraj’da sadece görünür değil, anlamlı olan tasarımlar yer alır.',
-                directArtistSupport: 'Sanatçıya Doğrudan Destek',
-                directArtistSupportDesc: 'Satın aldığınız her parça, üreticisinin emeğine doğrudan katkı sağlar. Komisyon sistemimiz adil, şeffaf ve sanatçı dostudur.',
-                securePaymentProcess: 'Ödeme, teslimat ve iade süreçlerinde yüksek standartları benimsiyoruz. Tüm alışverişleriniz sigortalı, korumalı ve takip edilebilirdir.',
-                expertAdviserTeam: 'Uzman Danışman Ekibi',
-                expertAdviserTeamDesc: 'Tasarım uzmanlarımız tüm sorularınızı ve kişisel taleplerinizi yanıtlamak için burada',
+                curatedSelections: 'Kuratierte Auswahl',
+                curatedSelectionsDesc: 'Jedes Produkt wird nicht nur wegen seiner Ästhetik, sondern auch wegen der Idee, die es trägt, ausgewählt. Bei Kadraj finden Sie Designs, die nicht nur sichtbar, sondern auch bedeutungsvoll sind.',
+                directArtistSupport: 'Direkte Künstlerunterstützung',
+                directArtistSupportDesc: 'Jeder Kauf eines Stücks trägt direkt zur Arbeit des Schöpfers bei. Unser Provisionssystem ist fair, transparent und künstlerfreundlich.',
+                securePaymentProcess: 'Wir setzen hohe Standards bei Zahlungs-, Liefer- und Rückgabeprozessen. Alle Ihre Einkäufe sind versichert, geschützt und nachverfolgbar.',
+                expertAdviserTeam: 'Team von Fachberatern',
+                expertAdviserTeamDesc: 'Unsere Designexperten stehen Ihnen zur Verfügung, um alle Ihre Fragen und individuellen Wünsche zu beantworten.',
             },
         };
 
@@ -910,6 +910,7 @@
                         {renderMainContent()}
                     </main>
                     <Footer t={t} />
+                    <MobileBottomBar t={t} setCurrentPath={setCurrentPath} />
                 </div>
             );
         };
@@ -996,27 +997,44 @@
                 'allCategories', 'designers', 'seating', 'tables', 'lighting',
                 'rugs', 'decor', 'masters', 'shopByRoom', 'ourGalleries'
             ];
+            const scrollRef = React.useRef(null);
+            
+            const scrollLeft = () => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+                }
+            };
+        
+            const scrollRight = () => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+                }
+            };
 
             return (
-                <div className="fixed inset-0 bg-white z-50 p-6 animate-fade-in-down">
+                <div className="md:hidden fixed inset-0 bg-white z-50 p-6 animate-fade-in-down">
                     <div className="flex justify-between items-center mb-8">
                         <span className="text-2xl font-light tracking-widest uppercase" onClick={() => { setCurrentPath('/'); setIsMobileMenuOpen(false); }}>KADRAJ L'ATELIER</span>
                         <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-900">
                             <XIcon size={30} />
                         </button>
                     </div>
-                    <ul className="flex flex-col space-y-4 text-xl">
-                        {menuItems.map((item, index) => (
-                            <li key={index} className="border-b border-gray-200 py-2">
-                                <a href="#" className="font-normal hover:text-gray-900 block" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="relative flex items-center">
+                        <button onClick={scrollLeft} className="absolute left-0 z-10 p-2 text-gray-500 bg-white rounded-full shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div ref={scrollRef} className="flex overflow-x-scroll no-scrollbar space-x-4">
+                            {menuItems.map((item, index) => (
+                                <a key={index} href="#" className="flex-shrink-0 font-normal hover:text-gray-900 transition duration-300 text-[13px] px-2 py-1">
                                     {t(item)}
                                 </a>
-                            </li>
-                        ))}
-                        <li className="border-b border-gray-200 py-2">
-                            <a href="#" className="font-bold text-[#590219] hover:text-gray-900 block" onClick={() => setIsMobileMenuOpen(false)}>KADRAJ SOCIETY</a>
-                        </li>
-                    </ul>
+                            ))}
+                            <a href="#" className="flex-shrink-0 font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[13px] px-2 py-1">KADRAJ SOCIETY</a>
+                        </div>
+                        <button onClick={scrollRight} className="absolute right-0 z-10 p-2 text-gray-500 bg-white rounded-full shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
                 </div>
             );
         };
@@ -1096,18 +1114,18 @@
             ];
 
             return (
-                <div className="my-16">
-                    <div className="flex flex-col md:flex-row justify-around items-center space-y-8 md:space-y-0">
+                <div className="my-16 px-6 md:px-0">
+                    <div className="grid grid-cols-3 md:flex justify-around items-center gap-y-8 md:space-y-0">
                         {categoryHighlights.map((category, index) => (
                             <div key={index} className="flex flex-col items-center">
-                                <div className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center overflow-hidden mb-4 ${category.bgColor}`}>
+                                <div className={`w-24 h-24 md:w-48 md:h-48 rounded-full flex items-center justify-center overflow-hidden mb-2 md:mb-4 ${category.bgColor}`}>
                                     <img 
                                         src={category.image} 
                                         alt={category.name} 
                                         className="object-contain max-h-full max-w-full"
                                     />
                                 </div>
-                                <span className="text-sm md:text-base font-medium text-gray-800">{category.name}</span>
+                                <span className="text-xs md:text-base font-medium text-gray-800">{category.name}</span>
                             </div>
                         ))}
                     </div>
