@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Kadraj l'Atelier</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lek4JwrAAAAAL0JQT_O7OadpWUw8nS2fik1i1fD"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // APP CHECK MODÜLLERİ EKLENDİ
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -21,7 +26,15 @@
             messagingSenderId: "4259035875263",
             appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
         };
+        
         const app = initializeApp(firebaseConfig);
+        
+        // APP CHECK KURULUMU EKLENDİ
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider('6Lek4JwrAAAAAL0JQT_O7OadpWUw8nS2fik1i1fD'),
+          isTokenAutoRefreshEnabled: true
+        });
+
         const auth = getAuth(app);
         const db = getFirestore(app);
         window.firebaseApp = app;
@@ -97,7 +110,6 @@
 </head>
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
     <div id="root"></div>
-
     <script type="text/babel">
         const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
