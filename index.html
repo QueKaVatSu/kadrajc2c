@@ -985,7 +985,7 @@
                         isMobileMenuOpen={isMobileMenuOpen}
                         setIsMobileMenuOpen={setIsMobileMenuOpen}
                     />
-                    {isMobileMenuOpen && <MobileMenu t={t} setCurrentPath={setCurrentPath} setIsMobileMenuOpen={setIsMobileMenuOpen} />}
+                    {isMobileMenuOpen && <MobileMenu t={t} setCurrentPath={setCurrentPath} setIsMobileMenuOpen={setIsMobileMenuOpen} language={language} setLanguage={setLanguage} />}
                     {isSearchOpen && <SearchPanel t={t} setIsSearchOpen={setIsSearchOpen} />}
                     <main className={`container mx-auto px-0 md:p-10 ${isSearchOpen || isMobileMenuOpen ? 'hidden' : ''}`}>
                         {renderMainContent()}
@@ -1074,7 +1074,9 @@
                 </div>
             );
         };
-        const MobileMenu = ({ t, setCurrentPath, setIsMobileMenuOpen }) => {
+        const MobileMenu = ({ t, setCurrentPath, setIsMobileMenuOpen, language, setLanguage }) => {
+            const [isLangOpen, setIsLangOpen] = React.useState(false);
+
             const menuItems = [
                 { key: 'elbiseler', path: '#' },
                 { key: 'abiyeler', path: '#' },
@@ -1100,26 +1102,49 @@
                 setIsMobileMenuOpen(false);
             };
 
+            const handleLangChange = (lang) => {
+                setLanguage(lang);
+                setIsLangOpen(false);
+            };
+
             return (
-                <div className="fixed inset-0 bg-white z-50 p-6 animate-fade-in-down flex flex-col">
-                    <div className="flex justify-between items-center pb-4 border-b">
-                        <span className="font-bold text-lg">{t('Menu')}</span>
-                        <div className="text-xs">
-                            <span className="cursor-pointer hover:underline">{t('turkce')}</span>
-                            <span className="mx-2">/</span>
-                            <span className="cursor-pointer hover:underline">₺ Türk Lirası</span>
+                <div className="fixed inset-0 bg-white z-50 p-4 flex flex-col animate-fade-in-down">
+                    <div className="flex justify-between items-center pb-3 border-b">
+                        <span
+                            className="font-light tracking-widest uppercase text-lg cursor-pointer"
+                            onClick={() => handleNavigation('/')}
+                        >
+                            KADRAJ L'ATELIER
+                        </span>
+                        
+                        <div className="flex items-center">
+                            <div className="relative">
+                                <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center text-xs p-1">
+                                    <span>{language === 'Türkçe' ? 'Türkçe' : language}</span>
+                                    <span className="mx-1">/</span>
+                                    <span>₺ Türk Lirası</span>
+                                    <ChevronDownIcon size={14} className="ml-1 text-gray-500" />
+                                </button>
+                                {isLangOpen && (
+                                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-10 border">
+                                        <a onClick={() => handleLangChange('Türkçe')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Türkçe</a>
+                                        <a onClick={() => handleLangChange('English')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">English</a>
+                                        <a onClick={() => handleLangChange('Deutsch')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Deutsch</a>
+                                    </div>
+                                )}
+                            </div>
+                            <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-700 ml-2">
+                                <XIcon size={24} />
+                            </button>
                         </div>
-                        <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-700">
-                            <XIcon size={24} />
-                        </button>
                     </div>
 
-                    <ul className="flex-grow mt-4 overflow-y-auto">
+                    <ul className="mt-4 space-y-1">
                         {menuItems.map((item) => (
                             <li key={item.key}>
                                 <a
                                     onClick={() => handleNavigation(item.path)}
-                                    className={`flex justify-between items-center py-3 text-lg font-medium ${item.key === 'outlet' ? 'text-red-600' : 'text-gray-800'}`}
+                                    className={`flex justify-between items-center py-2 text-base font-medium ${item.key === 'outlet' ? 'text-red-600' : 'text-gray-800'}`}
                                 >
                                     <span>{t(item.key)}</span>
                                     <ChevronRightIcon size={20} className="text-gray-400" />
@@ -1129,14 +1154,14 @@
                     </ul>
                     
                     <div className="mt-auto pt-4">
-                        <div className="bg-gray-100 p-4 rounded-lg">
-                            <ul className="space-y-3">
+                        <div className="bg-gray-100 p-3 rounded-lg">
+                            <ul className="space-y-2">
                             {utilityLinks.map((link) => {
                                 const Icon = link.icon;
                                 return (
                                 <li key={link.key}>
-                                    <a onClick={() => handleNavigation(link.path)} className="flex items-center text-gray-700 hover:text-black">
-                                        <Icon size={22} className="mr-3" />
+                                    <a onClick={() => handleNavigation(link.path)} className="flex items-center text-sm text-gray-700 hover:text-black cursor-pointer">
+                                        <Icon size={18} className="mr-3 text-gray-600" />
                                         <span>{t(link.key)}</span>
                                     </a>
                                 </li>
