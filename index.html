@@ -101,6 +101,7 @@
     <script type="text/babel">
         const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+        const UsersIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
         const StoreIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
         const HeartIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
         const FileTextIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>;
@@ -367,7 +368,6 @@
                 kadrajSociety: 'Kadraj Society',
                 hakkimizda: 'Hakkımızda',
                 sss: 'S.S.S',
-                blog: 'Blog',
                 iletisim: 'İletişim',
             },
             'English': {
@@ -621,7 +621,6 @@
                 kadrajSociety: 'Kadraj Society',
                 hakkimizda: 'About Us',
                 sss: 'FAQ',
-                blog: 'Blog',
                 iletisim: 'Contact',
             },
             'Deutsch': {
@@ -877,7 +876,6 @@
                 kadrajSociety: 'Kadraj Society',
                 hakkimizda: 'Über uns',
                 sss: 'FAQ',
-                blog: 'Blog',
                 iletisim: 'Kontakt',
             },
         };
@@ -1058,7 +1056,7 @@
                             </div>
                             <div className="flex items-center space-x-4 md:space-x-6">
                                 <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="text-gray-700 hover:text-gray-300 transition duration-300"><SearchIcon size={24} /></button>
-                                <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-300 transition duration-300"><UserIcon size={24} /></button>
+                                <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><UserIcon size={24} /></button>
                                 <button className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><HeartIcon size={24} /></button>
                                 <button className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><ShoppingBagIcon size={24} /></button>
                             </div>
@@ -1091,15 +1089,14 @@
                 { key: 'kabanlar', path: '#' },
                 { key: 'sweatshirt', path: '#' },
                 { key: 'takimlar', path: '#' },
-                { key: 'outlet', path: '#' },
-                { key: 'kadrajSociety', path: '#' },
+                { key: 'outlet', path: '#' }
             ];
 
             const utilityLinks = [
                 { key: 'home', icon: HomeIcon, path: '/' },
                 { key: 'hakkimizda', icon: TrophyIcon, path: '#' },
                 { key: 'sss', icon: HelpCircleIcon, path: '#' },
-                { key: 'blog', icon: FileTextIcon, path: '#' },
+                { key: 'kadrajSociety', icon: UsersIcon, path: '#' },
                 { key: 'iletisim', icon: PhoneIcon, path: '#' },
             ];
             
@@ -1166,7 +1163,7 @@
                             <li key={item.key}>
                                 <a
                                     onClick={() => handleNavigation(item.path)}
-                                    className={`flex justify-between items-center py-2 text-base cursor-pointer ${item.key === 'outlet' ? 'text-red-600' : 'text-gray-800'} ${item.key === 'kadrajSociety' ? 'text-red-700 font-bold' : 'font-medium'}`}
+                                    className={`flex justify-between items-center py-2 text-base cursor-pointer ${item.key === 'outlet' ? 'text-red-600' : 'text-gray-800'} font-medium`}
                                 >
                                     <span>{t(item.key)}</span>
                                     <ChevronRightIcon size={20} className="text-gray-400" />
@@ -1182,7 +1179,7 @@
                                 const Icon = link.icon;
                                 return (
                                 <li key={link.key}>
-                                    <a onClick={() => handleNavigation(link.path)} className="flex items-center text-sm text-gray-700 hover:text-black cursor-pointer">
+                                    <a onClick={() => handleNavigation(link.path)} className={`flex items-center text-sm cursor-pointer ${link.key === 'kadrajSociety' ? 'text-red-700 font-bold' : 'text-gray-700 hover:text-black'}`}>
                                         <Icon size={18} className="mr-3 text-gray-600" />
                                         <span>{t(link.key)}</span>
                                     </a>
@@ -1385,7 +1382,7 @@
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 justify-around items-start text-center">
                         {features.map((feature, index) => (
                             <div key={index} className="w-full px-2">
-                                <div className="relative w-full aspect-square mb-4">
+                                <div className="relative w-full aspect-square mb-4 mx-auto transform scale-70">
                                     <img src={feature.image} alt={feature.title} className="absolute inset-0 w-full h-full object-cover" />
                                 </div>
                                 <h4 className="text-lg font-bold mb-2">{feature.title}</h4>
