@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetici Paneli - Kadraj l'Atelier</title>
-    <script src="https://www.google.com/recaptcha/api.js?render=6Lf27pwrAAAAAGpNHmTIustfAC525FaEF5PA12Kc"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,7 +12,6 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -27,11 +25,6 @@
         };
         
         const app = initializeApp(firebaseConfig);
-
-        const appCheck = initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider('6Lf27pwrAAAAAGpNHmTIustfAC525FaEF5PA12Kc'),
-          isTokenAutoRefreshEnabled: true
-        });
         
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -447,7 +440,7 @@
             atelierPartnerschaftsantrag: 'Atelier-Partnerschaftsantrag',
             applicationReceived: 'Ihr Antrag wurde erfolgreich empfangen!',
             contactSoon: 'Wir werden uns so schnell wie möglich mit Ihnen in Verbindung setzen.',
-            backToLogin: 'Zur Anmeldeseite zurückkehren',
+            backToLogin: 'Zur Anmeldesite zurückkehren',
             atelierName: 'Atelier-Name',
             fullName: 'Vollständiger Name',
             confirmPassword: 'Passwort bestätigen',
@@ -616,42 +609,42 @@
             const [users, setUsers] = React.useState([]); // userları tutmak için
             const [loading, setLoading] = React.useState(true); // Yükleme durumunu izlemek için
 React.useEffect(() => {
-        if (activeTab === 'userManagement') {
-            const fetchUsers = async () => {
-                setLoading(true);
-                try {
-                    const usersCollection = window.collection(window.firebaseFirestore, 'users');
-                    const usersSnapshot = await window.getDocs(usersCollection);
-                    const usersList = usersSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    setUsers(usersList);
-                } catch (error) {
-                    console.error("Kullanıcılar çekilirken hata oluştu: ", error);
-                }
-                setLoading(false);
-            };
-            fetchUsers();
-        }
-    }, [activeTab]);
-               const handleApprove = async (userId) => {
-        try {
-            const userRef = window.doc(window.firebaseFirestore, 'users', userId);
-            await window.updateDoc(userRef, {
-                status: 'approved',
-            });
-            setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, status: 'approved' } : user));
-            alert('Kullanıcı başarıyla onaylandı.');
-        } catch (error) {
-            console.error("Kullanıcı onaylanırken hata oluştu: ", error);
-            alert('Kullanıcı onaylanamadı.');
-        }
-    };
-    
-    const handleView = (userId) => {
-        alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
-    };
+    if (activeTab === 'userManagement') {
+        const fetchUsers = async () => {
+            setLoading(true);
+            try {
+                const usersCollection = window.collection(window.firebaseFirestore, 'users');
+                const usersSnapshot = await window.getDocs(usersCollection);
+                const usersList = usersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setUsers(usersList);
+            } catch (error) {
+                console.error("Kullanıcılar çekilirken hata oluştu: ", error);
+            }
+            setLoading(false);
+        };
+        fetchUsers();
+    }
+}, [activeTab]);
+            const handleApprove = async (userId) => {
+    try {
+        const userRef = window.doc(window.firebaseFirestore, 'users', userId);
+        await window.updateDoc(userRef, {
+            status: 'approved',
+        });
+        setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, status: 'approved' } : user));
+        alert('Kullanıcı başarıyla onaylandı.');
+    } catch (error) {
+        console.error("Kullanıcı onaylanırken hata oluştu: ", error);
+        alert('Kullanıcı onaylanamadı.');
+    }
+};
+
+const handleView = (userId) => {
+    alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
+};
             const renderContent = () => {
                 // ... renderContent() fonksiyonu buraya gelecek
                 switch (activeTab) {
@@ -678,27 +671,27 @@ React.useEffect(() => {
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                         <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
                         <ul className="space-y-4">
-                             {users.filter(user => user.role === 'atelier' && user.status === 'pending').map(user => (
-                                        <UserListItem 
-                                            key={user.id} 
-                                            user={user} 
-                                            t={t} 
-                                            onApprove={handleApprove} 
-                                            onView={handleView} />
-                            ))}
+                                 {users.filter(user => user.role === 'atelier' && user.status === 'pending').map(user => (
+                                        <UserListItem 
+                                            key={user.id} 
+                                            user={user} 
+                                            t={t} 
+                                            onApprove={handleApprove} 
+                                            onView={handleView} />
+                                ))}
                         </ul>
                     </div>
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                         <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
                         <ul className="space-y-4">
                            {users.map(user => (
-                                    <UserListItem 
-                                        key={user.id} 
-                                        user={user} 
-                                        t={t} 
-                                        onApprove={handleApprove} 
-                                        onView={handleView}
-                                    />
+                                    <UserListItem 
+                                        key={user.id} 
+                                        user={user} 
+                                        t={t} 
+                                        onApprove={handleApprove} 
+                                        onView={handleView}
+                                    />
                             ))}
                         </ul>
                     </div>
@@ -963,7 +956,7 @@ React.useEffect(() => {
                 </li>
             );
         };
-     const UserListItem = ({ user, t, onApprove, onView }) => {
+   const UserListItem = ({ user, t, onApprove, onView }) => {
     const statusColor = user.status === 'active' || user.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
     return (
         <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
