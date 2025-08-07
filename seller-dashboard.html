@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atelier Paneli - Kadraj l'Atelier</title>
-    <script src="https://www.google.com/recaptcha/api.js?render=6Lf27pwrAAAAAGpNHmTIustfAC525FaEF5PA12Kc"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,7 +12,6 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -28,11 +26,6 @@
         };
         
         const app = initializeApp(firebaseConfig);
-
-        const appCheck = initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider('6Lf27pwrAAAAAGpNHmTIustfAC525FaEF5PA12Kc'),
-          isTokenAutoRefreshEnabled: true
-        });
 
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -685,7 +678,7 @@
             const renderContent = () => {
                 switch (activeTab) {
                     case 'overview': return (
-                          <div className="space-y-6"> <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> <MetricCard title={t('sales')} value="₺12,500" description={`5 ${t('unitsSold')}`} icon={<DollarSignIcon size={24} className="text-green-500" />} /> <MetricCard title={t('mostPopularProduct')} value="Minimalist Sehpa" description={`120 ${t('views')}`} icon={<PackageIcon size={24} className="text-blue-500" />} /> <MetricCard title={t('productViews')} value="1.540" description={t('platformWide')} icon={<EyeIcon size={24} className="text-indigo-500" />} /> </div> </div>
+                         <div className="space-y-6"> <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> <MetricCard title={t('sales')} value="₺12,500" description={`5 ${t('unitsSold')}`} icon={<DollarSignIcon size={24} className="text-green-500" />} /> <MetricCard title={t('mostPopularProduct')} value="Minimalist Sehpa" description={`120 ${t('views')}`} icon={<PackageIcon size={24} className="text-blue-500" />} /> <MetricCard title={t('productViews')} value="1.540" description={t('platformWide')} icon={<EyeIcon size={24} className="text-indigo-500" />} /> </div> </div>
                     );
                     case 'productManagement': return (
                         <div className="space-y-6">
@@ -730,7 +723,7 @@
                         </div>
                     );
                     case 'ordersFinance': return (
-                          <div className="space-y-6"> <h3 className="text-2xl font-semibold text-gray-800">{t('ordersFinance')}</h3> <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100"> <h4 className="text-xl font-medium text-gray-700 mb-4">{t('lastOrders')}</h4> <ul className="space-y-4"> <OrderItem orderId="KDA-001" productName="Minimalist Sehpa" status={t('completed')} date="28.07.2024" t={t}/> <OrderItem orderId="KDA-002" productName="El Yapımı Seramik Vazo" status={t('inTransit')} date="29.07.2024" t={t}/> </ul> </div> </div>
+                         <div className="space-y-6"> <h3 className="text-2xl font-semibold text-gray-800">{t('ordersFinance')}</h3> <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100"> <h4 className="text-xl font-medium text-gray-700 mb-4">{t('lastOrders')}</h4> <ul className="space-y-4"> <OrderItem orderId="KDA-001" productName="Minimalist Sehpa" status={t('completed')} date="28.07.2024" t={t}/> <OrderItem orderId="KDA-002" productName="El Yapımı Seramik Vazo" status={t('inTransit')} date="29.07.2024" t={t}/> </ul> </div> </div>
                     );
                     default: return null;
                 }
