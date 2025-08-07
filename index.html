@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Kadraj l'Atelier</title>
-    <script src="https://www.google.com/recaptcha/api.js?render=6Lf27pwrAAAAAGpNHmTIustfAC525FaEF5PA12Kc"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,8 +12,6 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        // APP CHECK MODÜLLERİ EKLENDİ
-        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -29,12 +26,6 @@
         
         const app = initializeApp(firebaseConfig);
         
-        // APP CHECK KURULUMU EKLENDİ
-        const appCheck = initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider('6Lf27pwrAAAAAGpNHmTIustfAC525FaEF5PA12Kc'),
-          isTokenAutoRefreshEnabled: true
-        });
-
         const auth = getAuth(app);
         const db = getFirestore(app);
         window.firebaseApp = app;
@@ -1055,7 +1046,7 @@
                             KADRAJ L'ATELIER
                         </span>
                         <div className="flex items-center">
-                             <div className="relative">
+                               <div className="relative">
                                 <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center text-xs p-1">
                                     <span>{language === 'Türkçe' ? 'Türkçe' : language}</span>
                                     <ChevronDownIcon size={14} className="ml-1 text-gray-500" />
