@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Kadraj l'Atelier</title>
-    
+   
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+   
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -23,9 +23,9 @@
             messagingSenderId: "4259035875263",
             appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
         };
-        
+       
         const app = initializeApp(firebaseConfig);
-        
+       
         const auth = getAuth(app);
         const db = getFirestore(app);
         window.firebaseApp = app;
@@ -729,7 +729,7 @@
                 saveProduct: 'Produkt speichern',
                 currentProducts: 'Aktuelle Produkte',
                 active: 'Aktiv',
-                passive: 'Passiv',
+                passive: 'Pasiv',
                 orders: 'Bestellungen',
                 lastOrders: 'Letzte Bestellungen',
                 completed: 'Abgeschlossen',
@@ -930,13 +930,36 @@
                 ></textarea>
             </div>
         );
-        
+       
         // Layout components (Navbar, Footer, etc.)
         const Navbar = ({ t, setCurrentPath, handleUserIconClick, isSearchOpen, setIsSearchOpen, language, setLanguage, currency, setCurrency, setIsMobileMenuOpen }) => {
-            const menuItems = [
-                'allCategories', 'designers', 'seating', 'tables', 'lighting',
-                'rugs', 'decor', 'masters', 'shopByRoom', 'ourGalleries'
-            ];
+           
+            // Menü elemanlarını tutmak için state oluştur
+            const [menuItems, setMenuItems] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+        
+            // Component yüklendiğinde Firestore'dan veriyi çek
+            React.useEffect(() => {
+                const fetchMenuItems = async () => {
+                    try {
+                        const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
+                        const docSnap = await window.getDoc(headerRef);
+                        if (docSnap.exists()) {
+                            const sortedItems = docSnap.data().menuItems.sort((a, b) => a.order - b.order);
+                            setMenuItems(sortedItems);
+                        } else {
+                            console.log("Header konfigürasyonu bulunamadı!");
+                        }
+                    } catch (error) {
+                        console.error("Header verisi çekilirken hata:", error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+        
+                fetchMenuItems();
+            }, []);
+        
             return (
                 <div className="bg-white">
                     <nav className="border-b border-gray-200">
@@ -990,16 +1013,22 @@
                             </div>
                         </div>
                     </nav>
-                    <CategoriesMobile t={t} />
+                    {/* Mobil menüye de props olarak yolla */}
+                    <CategoriesMobile t={t} menuItems={menuItems} loading={loading} />
                     <nav className="hidden md:block py-2">
                         <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
-                            {menuItems.map((item, index) => (
-                                <li key={index}>
-                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-[13px]">
-                                        {t(item)}
-                                    </a>
-                                </li>
-                            ))}
+                            {loading ? (
+                                <li>Yükleniyor...</li>
+                            ) : (
+                                menuItems.map((item, index) => (
+                                    <li key={index}>
+                                        <a href={item.url} className="font-normal hover:text-gray-900 transition duration-300 text-[13px]">
+                                            {item.title}
+                                        </a>
+                                    </li>
+                                ))
+                            )}
+                            {/* Kadraj Society'i dinamik menüden ayrı tutabiliriz */}
                             <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[13px]">{t('kadrajSociety')}</a></li>
                         </ul>
                     </nav>
@@ -1048,32 +1077,32 @@
                         </span>
                         <div className="flex items-center">
                                <div className="relative">
-                                <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center text-xs p-1">
-                                    <span>{language === 'Türkçe' ? 'Türkçe' : language}</span>
-                                    <ChevronDownIcon size={14} className="ml-1 text-gray-500" />
-                                </button>
-                                {isLangOpen && (
-                                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-20 border">
-                                        <a onClick={() => handleLangChange('Türkçe')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Türkçe</a>
-                                        <a onClick={() => handleLangChange('English')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">English</a>
-                                        <a onClick={() => handleLangChange('Deutsch')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Deutsch</a>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="relative ml-2">
-                                <button onClick={() => setIsCurrencyOpen(!isCurrencyOpen)} className="flex items-center text-xs p-1">
-                                    <span>{currency}</span>
-                                    <ChevronDownIcon size={14} className="ml-1 text-gray-500" />
-                                </button>
-                                {isCurrencyOpen && (
-                                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-20 border">
-                                        <a onClick={() => handleCurrencyChange('TRY')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">₺ TRY</a>
-                                        <a onClick={() => handleCurrencyChange('USD')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">$ USD</a>
-                                        <a onClick={() => handleCurrencyChange('EUR')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">€ EUR</a>
-                                        <a onClick={() => handleCurrencyChange('GBP')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">£ GBP</a>
-                                    </div>
-                                )}
-                            </div>
+                               <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center text-xs p-1">
+                                   <span>{language === 'Türkçe' ? 'Türkçe' : language}</span>
+                                   <ChevronDownIcon size={14} className="ml-1 text-gray-500" />
+                               </button>
+                               {isLangOpen && (
+                                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-20 border">
+                                       <a onClick={() => handleLangChange('Türkçe')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Türkçe</a>
+                                       <a onClick={() => handleLangChange('English')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">English</a>
+                                       <a onClick={() => handleLangChange('Deutsch')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Deutsch</a>
+                                   </div>
+                               )}
+                           </div>
+                           <div className="relative ml-2">
+                               <button onClick={() => setIsCurrencyOpen(!isCurrencyOpen)} className="flex items-center text-xs p-1">
+                                   <span>{currency}</span>
+                                   <ChevronDownIcon size={14} className="ml-1 text-gray-500" />
+                               </button>
+                               {isCurrencyOpen && (
+                                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-20 border">
+                                       <a onClick={() => handleCurrencyChange('TRY')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">₺ TRY</a>
+                                       <a onClick={() => handleCurrencyChange('USD')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">$ USD</a>
+                                       <a onClick={() => handleCurrencyChange('EUR')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">€ EUR</a>
+                                       <a onClick={() => handleCurrencyChange('GBP')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">£ GBP</a>
+                                   </div>
+                               )}
+                           </div>
                             <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-700 ml-2">
                                 <XIcon size={24} />
                             </button>
@@ -1571,7 +1600,7 @@
                 }
             };
             return (
-                 <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
+                <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
                     <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-lg">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('userRegistration')}</h2>
                         {registerSuccess ? (
@@ -1667,16 +1696,16 @@
                 </div>
             );
         };
-        
+       
         // --- NEW/UPDATED USER DASHBOARD COMPONENTS ---
-        
+       
         // Mock data for demonstration
         const mockOrders = [
             { id: 'KDRJ-789123', date: '01.07.2025', product: 'Iroko Ahşap Sandalye', status: 'completed', image: 'armchair.png', price: '3.450' },
             { id: 'KDRJ-789124', date: '15.06.2025', product: 'Pirinç Detaylı Lamba', status: 'inTransit', image: 'lighting.png', price: '1.800' },
             { id: 'KDRJ-789125', date: '02.04.2025', product: 'El Dokuması Halı', status: 'cancelled', image: 'rugs.png', price: '4.900' },
         ];
-        
+       
         const DashboardSection = ({ title, children }) => (
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-sm">
                 <h3 className="text-2xl font-semibold text-gray-800 mb-6 pb-4 border-b">{title}</h3>
@@ -1731,7 +1760,7 @@
                 </DashboardSection>
             );
         };
-        
+       
         const ProfileManagementSection = ({ t, currentUser }) => (
             <DashboardSection title={t('profileManagement')}>
                 <div className="space-y-6 max-w-lg">
@@ -1758,7 +1787,7 @@
         );
 
         const BillingInformationSection = ({ t }) => (
-             <DashboardSection title={t('billingInformation')}>
+              <DashboardSection title={t('billingInformation')}>
                  <div className="space-y-6 max-w-lg">
                     <Input label={t('nameSurnameCompanyName')} type="text" placeholder="Ahmet Yılmaz"/>
                     <Input label={t('tcIdTaxNo')} type="text" placeholder="12345678901"/>
@@ -1771,7 +1800,7 @@
 
         const UserDashboard = ({ setCurrentPath, t, currentUser, currency }) => {
             const [activeView, setActiveView] = React.useState('myOrders');
-            
+           
             const handleLogout = () => {
                 window.signOut(window.firebaseAuth).then(() => {
                     setCurrentPath('/');
@@ -1779,7 +1808,7 @@
                     console.error('Logout Error:', error);
                 });
             };
-            
+           
             const menuItems = [
                 { id: 'myOrders', label: t('myOrders'), icon: FileTextIcon },
                 { id: 'favorites', label: t('favorites'), icon: HeartIcon },
@@ -1798,46 +1827,46 @@
                     default: return <MyOrdersSection t={t} currency={currency} />;
                 }
             };
-            
+           
             return (
                 <div className="container mx-auto">
                      <h2 className="text-3xl md:text-4xl font-light text-gray-800 mb-8">{t('collectorPanel')}</h2>
                      <div className="flex flex-col md:flex-row gap-8">
-                        {/* --- Left Sidebar --- */}
-                        <aside className="w-full md:w-1/4 lg:w-1/5">
-                            <nav className="flex flex-col space-y-2">
-                                {menuItems.map(item => {
-                                    const Icon = item.icon;
-                                    return (
-                                        <button 
-                                            key={item.id}
-                                            onClick={() => setActiveView(item.id)}
-                                            className={`flex items-center p-3 rounded-lg text-left transition-colors text-sm font-medium ${activeView === item.id ? 'bg-gray-800 text-white shadow' : 'text-gray-600 hover:bg-gray-100'}`}
-                                        >
-                                            <Icon size={20} className="mr-3" />
-                                            {item.label}
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center p-3 mt-4 rounded-lg text-left transition-colors text-sm font-medium text-gray-600 hover:bg-gray-100"
-                                >
-                                    <LogOutIcon size={20} className="mr-3" />
-                                    {t('logout')}
-                                </button>
-                            </nav>
-                        </aside>
-                        {/* --- Right Content --- */}
-                        <main className="w-full md:w-3/4 lg:w-4/5">
-                            {renderContent()}
-                        </main>
+                         {/* --- Left Sidebar --- */}
+                         <aside className="w-full md:w-1/4 lg:w-1/5">
+                             <nav className="flex flex-col space-y-2">
+                                 {menuItems.map(item => {
+                                     const Icon = item.icon;
+                                     return (
+                                         <button 
+                                             key={item.id}
+                                             onClick={() => setActiveView(item.id)}
+                                             className={`flex items-center p-3 rounded-lg text-left transition-colors text-sm font-medium ${activeView === item.id ? 'bg-gray-800 text-white shadow' : 'text-gray-600 hover:bg-gray-100'}`}
+                                         >
+                                             <Icon size={20} className="mr-3" />
+                                             {item.label}
+                                         </button>
+                                     );
+                                 })}
+                                 <button
+                                     onClick={handleLogout}
+                                     className="flex items-center p-3 mt-4 rounded-lg text-left transition-colors text-sm font-medium text-gray-600 hover:bg-gray-100"
+                                 >
+                                     <LogOutIcon size={20} className="mr-3" />
+                                     {t('logout')}
+                                 </button>
+                             </nav>
+                         </aside>
+                         {/* --- Right Content --- */}
+                         <main className="w-full md:w-3/4 lg:w-4/5">
+                             {renderContent()}
+                         </main>
                      </div>
                 </div>
             );
         };
 
-        
+       
         // The Main App Component
         const App = () => {
             const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
@@ -1848,7 +1877,7 @@
             const [currentUser, setCurrentUser] = React.useState(null);
             const [isSearchOpen, setIsSearchOpen] = React.useState(false);
             const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-            
+           
             const handleUserIconClick = () => {
                 if (isLoggedIn) {
                     if (userType === 'user') navigate('/user-dashboard');
@@ -1890,25 +1919,25 @@
                     window.removeEventListener('popstate', handlePopState);
                 };
             }, []);
-            
+           
             const navigate = (path) => {
                 window.history.pushState({}, '', path);
                 setCurrentPath(path);
             };
 
             const t = (key) => translations[language]?.[key] || key;
-            
+           
             const renderMainContent = () => {
                 const path = currentPath.toLowerCase();
-                
+               
                 if (path.includes('login')) return <LoginPage setCurrentPath={navigate} t={t} />;
                 if (path.includes('register')) return <UserRegisterPage setCurrentPath={navigate} t={t} />;
                 if (path.includes('seller-register')) return <SellerRegisterPage setCurrentPath={navigate} t={t} />;
-                
+               
                 if (isLoggedIn && userType === 'user' && path.includes('user-dashboard')) {
                     return <UserDashboard setCurrentPath={navigate} t={t} currentUser={currentUser} currency={currency} />;
                 }
-                
+               
                 // Default to home page
                 return <HomePage setCurrentPath={navigate} t={t} />;
             };
@@ -1939,11 +1968,9 @@
                 </div>
             );
         };
-        
+       
         // Final Render Call
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
-
-
