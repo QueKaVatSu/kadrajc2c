@@ -12,8 +12,9 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        // GEREKLİ FONKSİYONLAR EKLENDİ
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
@@ -31,13 +32,15 @@
         window.firebaseApp = app;
         window.firebaseAuth = auth;
         window.firebaseFirestore = db;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.signOut = signOut;
         window.onAuthStateChanged = onAuthStateChanged;
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
+        // GEREKLİ YENİ FONKSİYONLAR EKLENDİ
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.updateDoc = updateDoc;
     </script>
     <style>
         @keyframes scroll-left {
@@ -242,333 +245,8 @@
             modernScandinavianDesigns: 'Modern İskandinav Tasarımları',
             naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
           },
-          'English': {
-            home: 'Homepage',
-            collectorPanel: 'Collector Panel',
-            atelierPanel: 'Atelier Panel',
-            adminPanel: 'Admin Panel',
-            login: 'Login',
-            logout: 'Logout',
-            newAddress: 'New Address',
-            contact: 'Contact',
-            faq: 'Frequently Asked Questions',
-            turkce: 'Türkçe',
-            english: 'English',
-            deutsch: 'Deutsch',
-            tagline1: 'The new address of design.',
-            tagline2: 'Add value to your living spaces. Discover carefully selected furniture, lighting and home decor products.',
-            exploreLogin: 'Explore Now / Login',
-            furniture: 'Furniture',
-            lighting: 'Lighting',
-            decoration: 'Decoration',
-            furnitureDesc: 'Special design furniture that forms the heart of your home.',
-            genelHata: 'An error occurred. Please try again.',
-            lightingDesc: 'Designs that add light and aesthetics to your spaces.',
-            decorationDesc: 'Unique decorative objects that make a difference with details.',
-            collectorLogin: 'Collector Login',
-            email: 'Email',
-            password: 'Password',
-            invalidCredentials: 'Invalid email or password. Please try again.',
-            sampleAccounts: 'Sample Accounts:',
-            collector: 'Collector',
-            atelier: 'Atelier',
-            admin: 'Admin',
-            wantToBeDesigner: 'Want to be a Designer Partner?',
-            atelierPartnershipApplication: 'Atelier Partnership Application',
-            applicationReceived: 'Your application has been successfully received!',
-            contactSoon: 'We will contact you as soon as possible.',
-            backToLogin: 'Back to Login Page',
-            atelierName: 'Atelier Name',
-            fullName: 'Full Name',
-            confirmPassword: 'Confirm Password',
-            portfolioLink: 'Portfolio Link (Optional)',
-            shortDescription: 'Short Description (Optional)',
-            passwordsMismatch: 'Passwords do not match. Please check.',
-            submitApplication: 'Submit Application',
-            alreadyHaveAccount: 'Already have an account?',
-            overview: 'Overview',
-            productManagement: 'Product Management',
-            ordersFinance: 'Orders & Finance',
-            atelierReview: 'Atelier Review',
-            last30Days: 'Last 30 days',
-            mostPopularProduct: 'Most Popular Product',
-            views: 'views',
-            productViews: 'Product View Count',
-            totalViews: 'Total views',
-            addToFavoritesRate: 'Add to Favorites Rate',
-            averageRate: 'Average rate',
-            addProductManage: 'Add/Manage Product',
-            addNewProduct: 'Add New Product',
-            productName: 'Product Name',
-            productDescription: 'Product Description',
-            productStory: 'Product Story',
-            price: 'Price',
-            category: 'Category',
-            materialInfo: 'Material Information',
-            dimensionsCm: 'Dimensions (cm)',
-            weightKg: 'Weight (kg)',
-            shippingInfo: 'Shipping Information',
-            professionalPhotoGallery: 'Professional Photo Gallery',
-            uploadPhotos: 'Upload at least 3, maximum 10 photos.',
-            saveProduct: 'Save Product',
-            currentProducts: 'Current Products',
-            active: 'Active',
-            passive: 'Passive',
-            orders: 'Orders',
-            lastOrders: 'Last Orders',
-            completed: 'Completed',
-            inTransit: 'In Transit',
-            cancelled: 'Cancelled',
-            financialStatus: 'Financial Status',
-            withdrawableBalance: 'Withdrawable Balance',
-            currentBalance: 'Current balance',
-            totalEarnings: 'Total Earnings',
-            allTime: 'All time',
-            withdrawBalance: 'Withdraw Balance',
-            myOrders: 'My Orders',
-            messageDesigner: 'Message Designer',
-            favorites: 'Favorites',
-            favoriteDesigns: 'Favorite Designs',
-            favoriteAteliers: 'Favorite Ateliers',
-            profileManagement: 'Profile Management',
-            deliveryAddresses: 'Delivery Addresses',
-            addressTitle: 'Address Title',
-            addressLine1: 'Address Line 1',
-            addressLine2: 'Address Line 2 (Optional)',
-            city: 'City',
-            district: 'District',
-            zipCode: 'Zip Code',
-            saveAddress: 'Save Address',
-            billingInformation: 'Billing Information',
-            nameSurnameCompanyName: 'Name Surname / Company Name',
-            tcIdTaxNo: 'TR ID No / Tax No',
-            saveBillingInfo: 'Save Billing Information',
-            galleryManagerPanel: 'Gallery Manager Panel',
-            userManager: 'User Management',
-            designerApplications: 'Designer Applications',
-            pending: 'Pending',
-            approved: 'Approved',
-            allUsers: 'All Users',
-            view: 'View',
-            approve: 'Approve',
-            allListedProducts: 'All Listed Products',
-            featuredProducts: 'Featured Products',
-            manageFeaturedProducts: 'Manage Featured Products',
-            financeManagement: 'Finance Management',
-            commissionRates: 'Commission Rates',
-            currentCommissionRate: 'Current Commission Rate:',
-            setCommissionRate: 'Set Commission Rate',
-            designerPayments: 'Designer Payments',
-            managePayments: 'Manage Payments',
-            incomeExpenseReports: 'Income and Expense Reports',
-            viewReports: 'View Reports',
-            contentManagement: 'Content Management',
-            homePageBanners: 'Home Page Banners',
-            manageBanners: 'Manage Banners',
-            specialCollectionPages: 'Special Collection Pages',
-            manageCollections: 'Manage Collections',
-            blogPosts: 'Blog Posts',
-            manageBlogPosts: 'Manage Blog Posts',
-            orderId: 'Order ID:',
-            product: 'Product:',
-            date: 'Date:',
-            categoryManagement: 'Category Management',
-            mainCategories: 'Main Categories',
-            subCategories: 'Sub Categories',
-            addCategory: 'Add Category',
-            editCategory: 'Edit Category',
-            deleteCategory: 'Delete Category',
-            categoryName: 'Category Name',
-            parentCategory: 'Parent Category',
-            saveCategory: 'Save Category',
-            // New translations
-            searchProduct: 'Search product, brand, content',
-            new: 'New',
-            woman: 'Woman',
-            man: 'Man',
-            child: 'Child',
-            life: 'Life',
-            brands: 'Brands',
-            discount: 'Discount',
-            mag: 'MAG',
-            rewards: 'Rewards',
-            stores: 'Stores',
-            forGood: 'for good',
-            edit: 'Edit',
-            delete: 'Delete',
-            sales: 'sales',
-            unitsSold: 'units sold',
-            platformWide: 'Platform wide',
-            artPiece: 'Art Piece',
-            lastViewedProduct: 'Last Viewed Product',
-            today: 'Today',
-            modernScandinavianDesigns: 'Modern Scandinavian Designs',
-            naturalWoodCollection: 'Natural Wood Collection',
-          },
-          'Deutsch': {
-            home: 'Startseite',
-            collectorPanel: 'Sammler-Panel',
-            atelierPanel: 'Atelier-Panel',
-            adminPanel: 'Admin-Panel',
-            login: 'Anmelden',
-            logout: 'Abmelden',
-            newAddress: 'Neue Adresse',
-            contact: 'Kontakt',
-            faq: 'Häufig gestellte Fragen',
-            turkce: 'Türkçe',
-            english: 'English',
-            deutsch: 'Deutsch',
-            tagline1: 'Die neue Adresse des Designs.',
-            tagline2: 'Verleihen Sie Ihren Wohnräumen Wert. Entdecken Sie sorgfältig ausgewählte Möbel, Beleuchtung und Heimdekorationsprodukte.',
-            exploreLogin: 'Jetzt entdecken / Anmelden',
-            furniture: 'Möbel',
-            lighting: 'Beleuchtung',
-            decoration: 'Dekoration',
-            furnitureDesc: 'Spezielle Designermöbel, die das Herzstück Ihres Zuhauses bilden.',
-            genelHata: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
-            lightingDesc: 'Designs, die Ihren Räumen Licht und Ästhetik verleihen.',
-            decorationDesc: 'Einzigartige Dekorationsgegenstände, die mit Details den Unterschied machen.',
-            collectorLogin: 'Sammler-Login',
-            email: 'E-Mail',
-            password: 'Passwort',
-            invalidCredentials: 'Ungültige E-Mail oder Passwort. Bitte versuchen Sie es erneut.',
-            sampleAccounts: 'Beispielkonten:',
-            collector: 'Sammler',
-            atelier: 'Atelier',
-            admin: 'Admin',
-            wantToBeDesigner: 'Möchten Sie Designpartner werden?',
-            atelierPartnerschaftsantrag: 'Atelier-Partnerschaftsantrag',
-            applicationReceived: 'Ihr Antrag wurde erfolgreich empfangen!',
-            contactSoon: 'Wir werden uns so schnell wie möglich mit Ihnen in Verbindung setzen.',
-            backToLogin: 'Zur Anmeldesite zurückkehren',
-            atelierName: 'Atelier-Name',
-            fullName: 'Vollständiger Name',
-            confirmPassword: 'Passwort bestätigen',
-            portfolioLink: 'Portfolio-Link (Optional)',
-            safetyWarning: 'Sicherheitshinweis: Diese Seite ist nur für Entwicklungs- und Testzwecke gedacht. Verwenden Sie keine echten Passwörter.',
-            shortDescription: 'Kurze Beschreibung (Optional)',
-            passwordsMismatch: 'Passwörter stimmen nicht überein. Bitte überprüfen Sie.',
-            submitApplication: 'Antrag absenden',
-            alreadyHaveAccount: 'Haben Sie bereits ein Konto?',
-            overview: 'Übersicht',
-            productManagement: 'Produktverwaltung',
-            ordersFinance: 'Bestellungen & Finanzen',
-            atelierReview: 'Atelier-Bewertung',
-            last30Days: 'Letzte 30 Tage',
-            mostPopularProduct: 'Beliebtestes Produkt',
-            views: 'Ansichten',
-            productViews: 'Produktansichtszahl',
-            totalViews: 'Gesamtansichten',
-            addToFavoritesRate: 'Zu Favoriten hinzufügen Rate',
-            averageRate: 'Durchschnittliche Rate',
-            addProductManage: 'Produkt hinzufügen/verwalten',
-            addNewProduct: 'Neues Produkt hinzufügen',
-            productName: 'Produktname',
-            productDescription: 'Produktbeschreibung',
-            productStory: 'Produktgeschichte',
-            price: 'Preis',
-            category: 'Kategorie',
-            materialInfo: 'Materialinformationen',
-            dimensionsCm: 'Abmessungen (cm)',
-            weightKg: 'Gewicht (kg)',
-            shippingInfo: 'Versandinformationen',
-            professionalPhotoGallery: 'Professionelle Fotogalerie',
-            uploadPhotos: 'Laden Sie mindestens 3, maximal 10 Fotos hoch.',
-            saveProduct: 'Produkt speichern',
-            currentProducts: 'Aktuelle Produkte',
-            active: 'Aktiv',
-            passive: 'Pasiv',
-            orders: 'Bestellungen',
-            lastOrders: 'Letzte Bestellungen',
-            completed: 'Abgeschlossen',
-            inTransit: 'Unterwegs',
-            cancelled: 'Storniert',
-            financialStatus: 'Finanzstatus',
-            withdrawableBalance: 'Auszahlbarer Saldo',
-            currentBalance: 'Aktueller Saldo',
-            totalEarnings: 'Gesamteinnahmen',
-            allTime: 'Gesamtzeit',
-            withdrawBalance: 'Saldo abheben',
-            myOrders: 'Meine Bestellungen',
-            messageDesigner: 'Designer benachrichtigen',
-            favorites: 'Favoriten',
-            favoriteDesigns: 'Lieblingsdesigns',
-            favoriteAteliers: 'Lieblingsateliers',
-            profileManagement: 'Profilverwaltung',
-            deliveryAddresses: 'Lieferadressen',
-            addressTitle: 'Adressbezeichnung',
-            addressLine1: 'Adresszeile 1',
-            addressLine2: 'Adresszeile 2 (Optional)',
-            city: 'Stadt',
-            district: 'Bezirk',
-            zipCode: 'Postleitzahl',
-            saveAddress: 'Adresse speichern',
-            billingInformation: 'Rechnungsinformationen',
-            nameSurnameCompanyName: 'Name Nachname / Firmenname',
-            tcIdTaxNo: 'TR ID-Nr. / Steuernummer',
-            saveBillingInfo: 'Rechnungsinformationen speichern',
-            galleryManagerPanel: 'Galerie-Manager-Panel',
-            userManager: 'Benutzerverwaltung',
-            designerApplications: 'Designer-Anträge',
-            pending: 'Ausstehend',
-            approved: 'Genehmigt',
-            allUsers: 'Alle Benutzer',
-            view: 'Anzeigen',
-            approve: 'Genehmigen',
-            allListedProducts: 'Alle gelisteten Produkte',
-            featuredProducts: 'Ausgewählte Produkte',
-            manageFeaturedProducts: 'Ausgewählte Produkte verwalten',
-            financeManagement: 'Finanzverwaltung',
-            commissionRates: 'Provisionssätze',
-            currentCommissionRate: 'Aktueller Provisionssatz:',
-            setCommissionRate: 'Provisionssatz festlegen',
-            designerPayments: 'Designer-Zahlungen',
-            managePayments: 'Zahlungen verwalten',
-            incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
-            viewReports: 'Berichte anzeigen',
-            contentManagement: 'Inhaltsverwaltung',
-            homePageBanners: 'Startseiten-Banner',
-            manageBanners: 'Banner verwalten',
-            specialCollectionPages: 'Spezielle Kollektionsseiten',
-            manageCollections: 'Kollektionen verwalten',
-            blogPosts: 'Blogbeiträge',
-            manageBlogPosts: 'Blogbeiträge verwalten',
-            orderId: 'Bestell-ID:',
-            product: 'Ürün:',
-            date: 'Datum:',
-            categoryManagement: 'Kategorienverwaltung',
-            mainCategories: 'Hauptkategorien',
-            subCategories: 'Unterkategorien',
-            addCategory: 'Kategorie hinzufügen',
-            editCategory: 'Kategorie bearbeiten',
-            deleteCategory: 'Kategorie löschen',
-            categoryName: 'Kategoriename',
-            parentCategory: 'Übergeordnete Kategorie',
-            saveCategory: 'Kategorie speichern',
-            // New translations
-            searchProduct: 'Produkt, Marke, Inhalt suchen',
-            new: 'Neu',
-            woman: 'Frau',
-            man: 'Mann',
-            child: 'Kind',
-            life: 'Leben',
-            brands: 'Marken',
-            discount: 'Rabatt',
-            mag: 'MAG',
-            rewards: 'Rewards',
-            stores: 'Geschäfte',
-            forGood: 'for good',
-            edit: 'Bearbeiten',
-            delete: 'Löschen',
-            sales: 'Verkäufe',
-            unitsSold: 'verkaufte Einheiten',
-            platformWide: 'Plattformweit',
-            artPiece: 'Kunstwerk',
-            lastViewedProduct: 'Zuletzt angesehenes Produkt',
-            today: 'Heute',
-            modernScandinavianDesigns: 'Moderne skandinavische Designs',
-            naturalWoodCollection: 'Naturholz-Kollektion',
-          },
+          'English': { /* ... Diğer diller ... */ },
+          'Deutsch': { /* ... Diğer diller ... */ },
         };
         const Navbar = ({ isLoggedIn, userType, t }) => {
             const handleLogout = async () => {
@@ -604,49 +282,131 @@
             );
         };
         const ScrollingBanner = () => { /* Bu bileşen admin sayfasında kullanılmadığı için içeriği boş bırakılabilir */ return null; };
+
+        // --- YENİ EKLENEN HEADER YÖNETİM BİLEŞENİ ---
+        const HeaderManagement = ({ t }) => {
+            const [menuItems, setMenuItems] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [feedback, setFeedback] = React.useState('');
+
+            React.useEffect(() => {
+                const fetchMenuItems = async () => {
+                    setLoading(true);
+                    try {
+                        const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
+                        const docSnap = await window.getDoc(headerRef);
+                        if (docSnap.exists()) {
+                            const sortedItems = docSnap.data().menuItems.sort((a, b) => a.order - b.order);
+                            setMenuItems(sortedItems);
+                        } else {
+                            setFeedback('Header konfigürasyonu bulunamadı.');
+                        }
+                    } catch (err) {
+                        setFeedback('Veri çekilirken bir hata oluştu: ' + err.message);
+                        console.error(err);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchMenuItems();
+            }, []);
+
+            const handleItemChange = (index, field, value) => {
+                const newItems = [...menuItems];
+                newItems[index][field] = field === 'order' ? parseInt(value, 10) || 0 : value;
+                setMenuItems(newItems);
+            };
+
+            const addNewItem = () => setMenuItems([...menuItems, { title: '', url: '/', order: menuItems.length + 1 }]);
+            const deleteItem = (index) => setMenuItems(menuItems.filter((_, i) => i !== index));
+
+            const saveChanges = async () => {
+                setLoading(true);
+                setFeedback('Kaydediliyor...');
+                try {
+                    const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
+                    await window.setDoc(headerRef, { menuItems });
+                    setFeedback('Header başarıyla güncellendi!');
+                    setTimeout(() => setFeedback(''), 3000);
+                } catch (err) {
+                    setFeedback('Güncelleme sırasında bir hata oluştu.');
+                    console.error(err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            if (loading && !menuItems.length) return <p>Yükleniyor...</p>;
+
+            return (
+                <div className="space-y-6">
+                    <h3 className="text-2xl font-semibold text-gray-800">Header Yönetimi</h3>
+                    {feedback && <p className={`p-3 rounded-lg ${feedback.includes('hata') || feedback.includes('bulunamadı') ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{feedback}</p>}
+                    <div className="space-y-4">
+                        {menuItems.map((item, index) => (
+                            <div key={index} className="flex items-center gap-4 p-4 border rounded-lg bg-gray-50">
+                                <input type="text" placeholder="Başlık" value={item.title} onChange={(e) => handleItemChange(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-md"/>
+                                <input type="text" placeholder="URL" value={item.url} onChange={(e) => handleItemChange(index, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-md"/>
+                                <input type="number" placeholder="Sıra" value={item.order} onChange={(e) => handleItemChange(index, 'order', e.target.value)} className="w-24 px-3 py-2 border rounded-md"/>
+                                <button onClick={() => deleteItem(index)} className="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600">&times;</button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-between items-center pt-4 border-t">
+                        <button onClick={addNewItem} className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Yeni Eleman Ekle</button>
+                        <button onClick={saveChanges} disabled={loading} className="bg-gray-800 text-white py-2 px-6 rounded-lg hover:bg-gray-900 transition disabled:bg-gray-400">
+                            {loading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+        
         const AdminDashboard = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
             const [activeTab, setActiveTab] = React.useState('overview');
-            const [users, setUsers] = React.useState([]); // userları tutmak için
-            const [loading, setLoading] = React.useState(true); // Yükleme durumunu izlemek için
-React.useEffect(() => {
-    if (activeTab === 'userManagement') {
-        const fetchUsers = async () => {
-            setLoading(true);
-            try {
-                const usersCollection = window.collection(window.firebaseFirestore, 'users');
-                const usersSnapshot = await window.getDocs(usersCollection);
-                const usersList = usersSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setUsers(usersList);
-            } catch (error) {
-                console.error("Kullanıcılar çekilirken hata oluştu: ", error);
-            }
-            setLoading(false);
-        };
-        fetchUsers();
-    }
-}, [activeTab]);
+            const [users, setUsers] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            
+            React.useEffect(() => {
+                if (activeTab === 'userManagement') {
+                    const fetchUsers = async () => {
+                        setLoading(true);
+                        try {
+                            const usersCollection = window.collection(window.firebaseFirestore, 'users');
+                            const usersSnapshot = await window.getDocs(usersCollection);
+                            const usersList = usersSnapshot.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data()
+                            }));
+                            setUsers(usersList);
+                        } catch (error) {
+                            console.error("Kullanıcılar çekilirken hata oluştu: ", error);
+                        }
+                        setLoading(false);
+                    };
+                    fetchUsers();
+                }
+            }, [activeTab]);
+            
             const handleApprove = async (userId) => {
-    try {
-        const userRef = window.doc(window.firebaseFirestore, 'users', userId);
-        await window.updateDoc(userRef, {
-            status: 'approved',
-        });
-        setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, status: 'approved' } : user));
-        alert('Kullanıcı başarıyla onaylandı.');
-    } catch (error) {
-        console.error("Kullanıcı onaylanırken hata oluştu: ", error);
-        alert('Kullanıcı onaylanamadı.');
-    }
-};
-
-const handleView = (userId) => {
-    alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
-};
+                try {
+                    const userRef = window.doc(window.firebaseFirestore, 'users', userId);
+                    await window.updateDoc(userRef, {
+                        status: 'approved',
+                    });
+                    setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, status: 'approved' } : user));
+                    alert('Kullanıcı başarıyla onaylandı.');
+                } catch (error) {
+                    console.error("Kullanıcı onaylanırken hata oluştu: ", error);
+                    alert('Kullanıcı onaylanamadı.');
+                }
+            };
+        
+            const handleView = (userId) => {
+                alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
+            };
+            
             const renderContent = () => {
-                // ... renderContent() fonksiyonu buraya gelecek
                 switch (activeTab) {
                     case 'overview':
                         return (
@@ -662,43 +422,43 @@ const handleView = (userId) => {
                             </div>
                         );
                     case 'userManagement':
-    return (
-        <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-gray-800">{t('userManager')}</h3>
-            {loading && <p>Kullanıcılar yükleniyor...</p>} 
-            {!loading && (
-                <>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
-                        <ul className="space-y-4">
-                                 {users.filter(user => user.role === 'atelier' && user.status === 'pending').map(user => (
-                                        <UserListItem 
-                                            key={user.id} 
-                                            user={user} 
-                                            t={t} 
-                                            onApprove={handleApprove} 
-                                            onView={handleView} />
-                                ))}
-                        </ul>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
-                        <ul className="space-y-4">
-                           {users.map(user => (
-                                    <UserListItem 
-                                        key={user.id} 
-                                        user={user} 
-                                        t={t} 
-                                        onApprove={handleApprove} 
-                                        onView={handleView}
-                                    />
-                            ))}
-                        </ul>
-                    </div>
-                </>
-            )}
-        </div>
-    );
+                        return (
+                            <div className="space-y-6">
+                                <h3 className="text-2xl font-semibold text-gray-800">{t('userManager')}</h3>
+                                {loading && <p>Kullanıcılar yükleniyor...</p>} 
+                                {!loading && (
+                                    <>
+                                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                                            <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
+                                            <ul className="space-y-4">
+                                                     {users.filter(user => user.role === 'seller' && user.status === 'pending').map(user => (
+                                                            <UserListItem 
+                                                                key={user.id} 
+                                                                user={user} 
+                                                                t={t} 
+                                                                onApprove={handleApprove} 
+                                                                onView={handleView} />
+                                                    ))}
+                                            </ul>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                                            <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
+                                            <ul className="space-y-4">
+                                               {users.map(user => (
+                                                        <UserListItem 
+                                                            key={user.id} 
+                                                            user={user} 
+                                                            t={t} 
+                                                            onApprove={handleApprove} 
+                                                            onView={handleView}
+                                                        />
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        );
                     case 'productManagement':
                         return (
                             <div className="space-y-6">
@@ -774,7 +534,7 @@ const handleView = (userId) => {
                                 </div>
                             </div>
                         );
-                    case 'categoryManagement': // Kategori yönetimi eklendi
+                    case 'categoryManagement':
                         return (
                             <div className="space-y-6">
                                 <h3 className="text-2xl font-semibold text-gray-800">{t('categoryManagement')}</h3>
@@ -796,6 +556,9 @@ const handleView = (userId) => {
                                 </div>
                             </div>
                         );
+                    // YENİ CASE EKLENDİ
+                    case 'headerManagement':
+                        return <HeaderManagement t={t} />;
                     default:
                         return null;
                 }
@@ -850,7 +613,6 @@ const handleView = (userId) => {
                                     <span>{t('contentManagement')}</span>
                                 </button>
                             </li>
-                            {/* Kategori Yönetimi sekmesi eklendi */}
                             <li>
                                 <button
                                     onClick={() => setActiveTab('categoryManagement')}
@@ -858,6 +620,16 @@ const handleView = (userId) => {
                                 >
                                     <TagsIcon size={20} />
                                     <span>{t('categoryManagement')}</span>
+                                </button>
+                            </li>
+                            {/* YENİ SEKMEYİ EKLEYİN */}
+                            <li>
+                                <button
+                                    onClick={() => setActiveTab('headerManagement')}
+                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'headerManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
+                                >
+                                    <SettingsIcon size={20} />
+                                    <span>Header Yönetimi</span>
                                 </button>
                             </li>
                         </ul>
@@ -868,170 +640,61 @@ const handleView = (userId) => {
                 </div>
             );
         };
-        const MetricCard = ({ title, value, description, icon }) => {
-            return (
-                <div className="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4 border border-gray-100">
-                    <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
-                    <div>
-                        <h4 className="text-lg font-medium text-gray-700">{title}</h4>
-                        <p className="text-2xl font-bold text-gray-900">{value}</p>
-                        <p className="text-sm text-gray-500">{description}</p>
-                    </div>
-                </div>
-            );
-        };
-        const Input = ({ label, type = 'text', placeholder, value, onChange }) => {
-            return (
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                    <input
-                        type={type}
-                        placeholder={placeholder}
-                        value={value}
-                        onChange={onChange}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
-                    />
-                </div>
-            );
-        };
-        const TextArea = ({ label, placeholder, value, onChange }) => {
-            return (
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                    <textarea
-                        placeholder={placeholder}
-                        rows="4"
-                        value={value}
-                        onChange={onChange}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
-                    ></textarea>
-                </div>
-            );
-        };
-        const Select = ({ label, options }) => {
-            return (
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                    <select className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out">
-                        {options.map((option, index) => (
-                            <option key={index} value={option}>{option}</option>
-                        ))}
-                    </select>
-                </div>
-            );
-        };
-        const ProductListItem = ({ name, status, price, showAdminActions = false, t }) => {
-            const statusColor = status === t('active') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-            return (
-                <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                    <div>
-                        <p className="text-lg font-medium text-gray-800">{name}</p>
-                        <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{status}</p>
-                        {price && <p className="text-gray-600 mt-1">{price}</p>}
-                    </div>
-                    {showAdminActions && (
-                        <div className="flex space-x-2 mt-3 md:mt-0">
-                            <button onClick={() => alert(`'${name}' ürününü düzenle`)} className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('edit')}</button>
-                            <button onClick={() => alert(`'${name}' ürününü sil`)} className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition duration-200">{t('delete')}</button>
-                        </div>
-                    )}
-                </li>
-            );
-        };
-        const OrderItem = ({ orderId, productName, status, date, showMessageButton = false, t }) => {
-            const statusColor = status === t('completed') ? 'bg-green-100 text-green-700' : status === t('inTransit') ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
-            return (
-                <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                    <div>
-                        <p className="text-lg font-medium text-gray-800">{t('orderId')} {orderId}</p>
-                        <p className="text-gray-600">{t('product')}: {productName}</p>
-                        <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{status}</p>
-                        <p className="text-gray-500 text-sm mt-1">{t('date')}: {date}</p>
-                    </div>
-                    {showMessageButton && (
-                        <button onClick={() => alert(`'${orderId}' siparişi için tasarımcıya mesaj gönder`)} className="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800 transition duration-200 mt-3 md:mt-0">
-                            {t('messageDesigner')}
-                        </button>
-                    )}
-                </li>
-            );
-        };
-   const UserListItem = ({ user, t, onApprove, onView }) => {
-    const statusColor = user.status === 'active' || user.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
-    return (
-        <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-            <div>
-                <p className="text-lg font-medium text-gray-800">{user.nameSurname}</p>
-                <p className="text-gray-600">Tip: {user.role === 'atelier' ? t('atelier') : t('collector')}</p>
-                <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{t(user.status)}</p>
-            </div>
-            <div className="flex space-x-2 mt-3 md:mt-0">
-                <button onClick={() => onView(user.id)} className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('view')}</button>
-                {user.status === 'pending' && (
-                    <button onClick={() => onApprove(user.id)} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition duration-200">{t('approve')}</button>
-                )}
-            </div>
-        </li>
-    );
-};
-        const CategoryListItem = ({ name, t }) => {
-            return (
-                <li className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                    <span className="text-lg font-medium text-gray-800">{name}</span>
-                    <div className="flex space-x-2">
-                        <button onClick={() => alert(`'${name}' kategorisini düzenle`)} className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('edit')}</button>
-                        <button onClick={() => alert(`'${name}' kategorisini sil`)} className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition duration-200">{t('delete')}</button>
-                    </div>
-                </li>
-            );
-        };
+        const MetricCard = ({ title, value, description, icon }) => { /* ... */ };
+        const Input = ({ label, type, placeholder, value, onChange }) => { /* ... */ };
+        const TextArea = ({ label, placeholder, value, onChange }) => { /* ... */ };
+        const Select = ({ label, options }) => { /* ... */ };
+        const ProductListItem = ({ name, status, price, showAdminActions, t }) => { /* ... */ };
+        const OrderItem = ({ orderId, productName, status, date, showMessageButton, t }) => { /* ... */ };
+        const UserListItem = ({ user, t, onApprove, onView }) => { /* ... */ };
+        const CategoryListItem = ({ name, t }) => { /* ... */ };
         
         const App = () => {
-          const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-          const [userType, setUserType] = React.useState(null);
-          const [language, setLanguage] = React.useState('Türkçe');
-          const [currentUser, setCurrentUser] = React.useState(null);
+            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+            const [userType, setUserType] = React.useState(null);
+            const [language, setLanguage] = React.useState('Türkçe');
+            const [currentUser, setCurrentUser] = React.useState(null);
 
-          React.useEffect(() => {
-            const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-              if (user) {
-                setCurrentUser(user);
-                setIsLoggedIn(true);
-                const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                const userDocSnap = await window.getDoc(userDocRef);
-                if (userDocSnap.exists()) {
-                  const role = userDocSnap.data().role;
-                  setUserType(role);
-                  if (role !== 'admin') {
-                    window.location.href = 'index.html';
-                  }
-                } else {
-                  window.location.href = 'index.html';
-                }
-              } else {
-                setCurrentUser(null);
-                setIsLoggedIn(false);
-                setUserType(null);
-                window.location.href = 'index.html';
-              }
-            });
-            return () => unsubscribe();
-          }, []);
+            React.useEffect(() => {
+                const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                    if (user) {
+                        setCurrentUser(user);
+                        setIsLoggedIn(true);
+                        const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
+                        const userDocSnap = await window.getDoc(userDocRef);
+                        if (userDocSnap.exists()) {
+                            const role = userDocSnap.data().role;
+                            setUserType(role);
+                            if (role !== 'admin') {
+                                window.location.href = 'index.html';
+                            }
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    } else {
+                        setCurrentUser(null);
+                        setIsLoggedIn(false);
+                        setUserType(null);
+                        window.location.href = 'index.html';
+                    }
+                });
+                return () => unsubscribe();
+            }, []);
 
-          const t = (key) => translations[language][key] || key;
-          
-          if (!isLoggedIn || userType !== 'admin') {
-              return <p>Yükleniyor veya yetkiniz yok...</p>;
-          }
-          
-          return (
-            <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                <Navbar isLoggedIn={isLoggedIn} userType={userType} t={t} />
-                <main className="container mx-auto p-6 md:p-10">
-                    <AdminDashboard isLoggedIn={isLoggedIn} userType={userType} t={t} currentUser={currentUser} />
-                </main>
-            </div>
-          );
+            const t = (key) => translations[language][key] || key;
+            
+            if (!isLoggedIn || userType !== 'admin') {
+                return <p>Yükleniyor veya yetkiniz yok...</p>;
+            }
+            
+            return (
+                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
+                    <Navbar isLoggedIn={isLoggedIn} userType={userType} t={t} />
+                    <main className="container mx-auto p-6 md:p-10">
+                        <AdminDashboard isLoggedIn={isLoggedIn} userType={userType} t={t} currentUser={currentUser} />
+                    </main>
+                </div>
+            );
         };
         
         // Ana uygulama render ediliyor
