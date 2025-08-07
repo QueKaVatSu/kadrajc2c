@@ -613,6 +613,45 @@
         const ScrollingBanner = () => { /* Bu bileşen admin sayfasında kullanılmadığı için içeriği boş bırakılabilir */ return null; };
         const AdminDashboard = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
             const [activeTab, setActiveTab] = React.useState('overview');
+            const [users, setUsers] = React.useState([]); // userları tutmak için
+            const [loading, setLoading] = React.useState(true); // Yükleme durumunu izlemek için
+React.useEffect(() => {
+        if (activeTab === 'userManagement') {
+            const fetchUsers = async () => {
+                setLoading(true);
+                try {
+                    const usersCollection = window.collection(window.firebaseFirestore, 'users');
+                    const usersSnapshot = await window.getDocs(usersCollection);
+                    const usersList = usersSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setUsers(usersList);
+                } catch (error) {
+                    console.error("Kullanıcılar çekilirken hata oluştu: ", error);
+                }
+                setLoading(false);
+            };
+            fetchUsers();
+        }
+    }, [activeTab]);
+               const handleApprove = async (userId) => {
+        try {
+            const userRef = window.doc(window.firebaseFirestore, 'users', userId);
+            await window.updateDoc(userRef, {
+                status: 'approved',
+            });
+            setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, status: 'approved' } : user));
+            alert('Kullanıcı başarıyla onaylandı.');
+        } catch (error) {
+            console.error("Kullanıcı onaylanırken hata oluştu: ", error);
+            alert('Kullanıcı onaylanamadı.');
+        }
+    };
+    
+    const handleView = (userId) => {
+        alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
+    };
             const renderContent = () => {
                 // ... renderContent() fonksiyonu buraya gelecek
                 switch (activeTab) {
@@ -630,25 +669,43 @@
                             </div>
                         );
                     case 'userManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('userManager')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
-                                    <ul className="space-y-4">
-                                        <UserListItem name="Mehmet Demir" type={t('atelier')} status={t('pending')} t={t} />
-                                        <UserListItem name="Zeynep Kaya" type={t('atelier')} status={t('approved')} t={t} />
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
-                                    <ul className="space-y-4">
-                                        <UserListItem name="Elif Can" type={t('collector')} status={t('active')} t={t} />
-                                        <UserListItem name="Ali Veli" type={t('atelier')} status={t('active')} t={t} />
-                                    </ul>
-                                </div>
-                            </div>
-                        );
+    return (
+        <div className="space-y-6">
+            <h3 className="text-2xl font-semibold text-gray-800">{t('userManager')}</h3>
+            {loading && <p>Kullanıcılar yükleniyor...</p>} 
+            {!loading && (
+                <>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
+                        <ul className="space-y-4">
+                             {users.filter(user => user.role === 'atelier' && user.status === 'pending').map(user => (
+                                        <UserListItem 
+                                            key={user.id} 
+                                            user={user} 
+                                            t={t} 
+                                            onApprove={handleApprove} 
+                                            onView={handleView} />
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
+                        <ul className="space-y-4">
+                           {users.map(user => (
+                                    <UserListItem 
+                                        key={user.id} 
+                                        user={user} 
+                                        t={t} 
+                                        onApprove={handleApprove} 
+                                        onView={handleView}
+                                    />
+                            ))}
+                        </ul>
+                    </div>
+                </>
+            )}
+        </div>
+    );
                     case 'productManagement':
                         return (
                             <div className="space-y-6">
@@ -906,24 +963,24 @@
                 </li>
             );
         };
-        const UserListItem = ({ name, type, status, t }) => {
-            const statusColor = status === t('active') || status === t('approved') ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
-            return (
-                <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
-                    <div>
-                        <p className="text-lg font-medium text-gray-800">{name}</p>
-                        <p className="text-gray-600">Tip: {type}</p>
-                        <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{status}</p>
-                    </div>
-                    <div className="flex space-x-2 mt-3 md:mt-0">
-                        <button onClick={() => alert(`'${name}' kullanıcısını görüntüle`)} className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('view')}</button>
-                        {status === t('pending') && (
-                            <button onClick={() => alert(`'${name}' kullanıcısını onayla`)} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition duration-200">{t('approve')}</button>
-                        )}
-                    </div>
-                </li>
-            );
-        };
+     const UserListItem = ({ user, t, onApprove, onView }) => {
+    const statusColor = user.status === 'active' || user.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
+    return (
+        <li className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+            <div>
+                <p className="text-lg font-medium text-gray-800">{user.nameSurname}</p>
+                <p className="text-gray-600">Tip: {user.role === 'atelier' ? t('atelier') : t('collector')}</p>
+                <p className={`text-sm font-semibold ${statusColor} px-2 py-0.5 rounded-full inline-block mt-1`}>{t(user.status)}</p>
+            </div>
+            <div className="flex space-x-2 mt-3 md:mt-0">
+                <button onClick={() => onView(user.id)} className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800 transition duration-200">{t('view')}</button>
+                {user.status === 'pending' && (
+                    <button onClick={() => onApprove(user.id)} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition duration-200">{t('approve')}</button>
+                )}
+            </div>
+        </li>
+    );
+};
         const CategoryListItem = ({ name, t }) => {
             return (
                 <li className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
