@@ -2129,3 +2129,79 @@
     </script>
 </body>
 </html>
+
+<!-- ===== [ADDED BY ASSISTANT] Dynamic homeHero + scrollingBanner readers (non-destructive) ===== -->
+<script type="module">
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  const app = window.firebaseApp || undefined;
+  const db = window.firebaseFirestore || (app ? getFirestore(app) : null);
+
+  async function loadDocs(){
+    if(!db) return;
+    try{
+      const hero = await getDoc(doc(db,'siteConfiguration','homeHero'));
+      if(hero.exists()){
+        const d = hero.data()||{};
+        // LEFT
+        let leftHost = document.getElementById('dynamic-home-hero-left');
+        if(!leftHost){
+          const wrap = document.createElement('div');
+          wrap.id='dynamic-home-hero';
+          wrap.style="display:flex;gap:0;margin-top:0";
+          leftHost = document.createElement('div'); leftHost.id='dynamic-home-hero-left'; leftHost.style="position:relative;width:33.33%;aspect-ratio:9/10;overflow:hidden";
+          const right = document.createElement('div'); right.id='dynamic-home-hero-right'; right.style="position:relative;width:66.66%;aspect-ratio:16/9;overflow:hidden";
+          const container = document.body.querySelector('.container, .mx-auto') || document.body;
+          container.prepend(wrap);
+          wrap.append(leftHost, right);
+        }
+        const l = d.left||{};
+        leftHost.innerHTML = (l.mediaType==='video'
+          ? `<video src="${l.src||''}" ${l.poster?`poster="${l.poster}"`:''} autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`
+          : `<img src="${l.src||''}" style="width:100%;height:100%;object-fit:cover">`)
+          + `<div style="position:absolute;inset:0;background:rgba(0,0,0,${l.overlayOpacity??0.3})"></div>
+             <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:16px;color:#fff">
+              ${l.eyebrow?`<p style="font-size:10px;letter-spacing:.2em;opacity:.8;margin:0 0 4px 0;text-transform:uppercase">${l.eyebrow}</p>`:''}
+              ${l.title?`<h3 style="font-size:28px;margin:0 0 8px 0;font-weight:700">${l.title}</h3>`:''}
+              ${l.ctaText?`<a href="${l.ctaHref||'#'}" style="font-size:12px;font-weight:700">${l.ctaText} →</a>`:''}
+             </div>`;
+
+        // RIGHT slider
+        const right = document.getElementById('dynamic-home-hero-right');
+        const slides = (Array.isArray(d.slides)?d.slides:[]).sort((a,b)=>(a.order||0)-(b.order||0));
+        right.innerHTML = `<div id="dyn-track" style="display:flex;height:100%;transition:transform .7s ease"></div>
+                           <button id="dyn-prev" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:9999px;padding:8px">‹</button>
+                           <button id="dyn-next" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:9999px;padding:8px">›</button>`;
+        const track = document.getElementById('dyn-track');
+        track.style.width = `${Math.max(1, slides.length)*100}%`;
+        track.innerHTML = (slides.length?slides:[{mediaType:'image',src:''}]).map(s=>`
+          <div style="width:100%;height:100%;flex-shrink:0">
+            ${s.mediaType==='video'
+              ? `<video src="${s.src||''}" ${s.poster?`poster="${s.poster}"`:''} autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`
+              : `<img src="${s.src||''}" style="width:100%;height:100%;object-fit:cover">`}
+          </div>`).join('');
+        let cur=0;
+        const go = (i)=>{ cur=(i+slides.length)%slides.length; track.style.transform=`translateX(-${cur*(100/(slides.length||1))}%)`; };
+        document.getElementById('dyn-prev').onclick=()=>go(cur-1);
+        document.getElementById('dyn-next').onclick=()=>go(cur+1);
+        setInterval(()=> go(cur+1), 7000);
+      }
+
+      const ban = await getDoc(doc(db,'siteConfiguration','scrollingBanner'));
+      if(ban.exists()){
+        const b = ban.data()||{};
+        let bar = document.getElementById('dynamic-scrolling-banner');
+        if(!bar){
+          bar = document.createElement('div'); bar.id='dynamic-scrolling-banner';
+          document.body.prepend(bar);
+        }
+        const items = (b.items||[]).map(it=>it.text||it.textKey||'').filter(Boolean);
+        bar.innerHTML = `<div style="white-space:nowrap;overflow:hidden;background:${b.bgColor||'#f2f4f7'};color:${b.textColor||'#222'};font-family:${b.fontFamily||'Helvetica, Arial, sans-serif'};font-size:${(b.fontSize||14)}px;font-weight:${b.fontWeight||300};letter-spacing:${b.letterSpacing||0}px;padding:6px 0">
+          <div style="display:inline-flex;gap:48px;animation:scroll-left ${(b.speedSec||40)}s linear infinite" ${b.pauseOnHover?'onmouseover="this.style.animationPlayState=\'paused\'" onmouseout="this.style.animationPlayState=\'running\'"':''}>
+            ${items.concat(items).map(t=>`<span style="padding:0 24px">${t}</span>`).join('')}
+          </div>
+        </div>`;
+      }
+    }catch(e){ console.warn(e); }
+  }
+  loadDocs();
+</script>
