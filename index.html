@@ -1796,7 +1796,120 @@
         };
         
         // --- NEW/UPDATED USER DASHBOARD COMPONENTS ---
-        
+        const ProductPage = ({ productId, setCurrentPath, t, currency }) => {
+            const [product, setProduct] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [activeImage, setActiveImage] = React.useState(0);
+            const [activeTab, setActiveTab] = React.useState('description');
+
+            React.useEffect(() => {
+                const fetchProduct = async () => {
+                    setLoading(true);
+                    try {
+                        // URL'den gelen productId ile Firestore'dan ilgili ürünü çekiyoruz.
+                        const productRef = window.doc(window.firebaseFirestore, 'products', productId);
+                        const docSnap = await window.getDoc(productRef);
+
+                        if (docSnap.exists()) {
+                            setProduct({ id: docSnap.id, ...docSnap.data() });
+                        } else {
+                            setError("Ürün bulunamadı.");
+                        }
+                    } catch (err) {
+                        console.error("Ürün detayı çekilirken hata:", err);
+                        setError("Ürün bilgileri alınırken bir hata oluştu.");
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchProduct();
+            }, [productId]); // productId değiştiğinde bu effect yeniden çalışır.
+
+            if (loading) {
+                return <div className="text-center py-20">Yükleniyor...</div>;
+            }
+
+            if (error) {
+                return <div className="text-center py-20 text-red-500">{error}</div>;
+            }
+
+            if (!product) {
+                return null; // veya ürün yoksa başka bir component gösterilebilir.
+            }
+
+            const tabs = [
+                { id: 'description', label: t('productDescription') },
+                { id: 'story', label: t('productStory') },
+                { id: 'details', label: t('materialInfo') },
+                { id: 'shipping', label: t('shippingInfo') },
+            ];
+
+            return (
+                <div className="container mx-auto mt-8">
+                    <div className="flex flex-col md:flex-row gap-10 lg:gap-16">
+                        {/* Sol Taraf: Resim Galerisi */}
+                        <div className="w-full md:w-1/2">
+                            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
+                                <img src={product.imageUrls?.[activeImage] || 'https://via.placeholder.com/600'} alt={product.productName} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="grid grid-cols-5 gap-2">
+                                {product.imageUrls?.map((url, index) => (
+                                    <div key={index} 
+                                         className={`aspect-square bg-gray-100 rounded-md overflow-hidden cursor-pointer border-2 ${activeImage === index ? 'border-gray-800' : 'border-transparent'}`}
+                                         onClick={() => setActiveImage(index)}>
+                                        <img src={url} alt={`${product.productName} - ${index + 1}`} className="w-full h-full object-cover"/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Sağ Taraf: Ürün Bilgileri */}
+                        <div className="w-full md:w-1/2">
+                            <p className="text-sm font-semibold text-gray-500 uppercase">{product.category}</p>
+                            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 my-3">{product.productName}</h1>
+                            <p className="text-3xl text-gray-800 mb-6">{product.price} {currency}</p>
+                            
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                                <button className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                                    <ShoppingBagIcon size={20} />
+                                    Sepete Ekle
+                                </button>
+                                <button className="w-full sm:w-auto border border-gray-300 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-100 transition">
+                                    <HeartIcon size={20} />
+                                </button>
+                            </div>
+
+                             {/* Detay Sekmeleri */}
+                            <div className="border-b border-gray-200">
+                                <nav className="-mb-px flex space-x-6">
+                                    {tabs.map(tab => (
+                                        <button key={tab.id}
+                                             onClick={() => setActiveTab(tab.id)}
+                                             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id ? 'border-gray-800 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                                            {tab.label}
+                                        </button>
+                                    ))}
+                                </nav>
+                            </div>
+                            <div className="py-6 text-gray-600 leading-relaxed text-sm">
+                                {activeTab === 'description' && <p>{product.productDescription}</p>}
+                                {activeTab === 'story' && <p>{product.productStory || "Bu ürün için henüz bir hikaye eklenmemiş."}</p>}
+                                {activeTab === 'details' && (
+                                    <ul>
+                                        <li><strong>Materyal:</strong> {product.materialInfo}</li>
+                                        <li><strong>Boyutlar:</strong> {product.dimensionsCm}</li>
+                                        <li><strong>Ağırlık:</strong> {product.weightKg} kg</li>
+                                    </ul>
+                                )}
+                                {activeTab === 'shipping' && <p>{product.shippingInfo || "Standart kargo bilgileri geçerlidir."}</p>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
         // Mock data for demonstration
         const mockOrders = [
             { id: 'KDRJ-789123', date: '01.07.2025', product: 'Iroko Ahşap Sandalye', status: 'completed', image: 'armchair.png', price: '3.450' },
@@ -2073,6 +2186,6 @@
     </script>
 </body>
 </html>
-```
+
 
 
