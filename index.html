@@ -2527,6 +2527,45 @@ const getProductIdFromUrl = () => {
   return null;
 };
 
+const innerTextTrim = (el) => (el && (el.textContent||'').trim()) || '';
+const parsePrice = (s) => {
+  if (!s) return null;
+  const m = (s.replace(/\./g,'').match(/(\d+[\d\s]*)/)||[])[1];
+  if (!m) return null;
+  return parseInt(m.replace(/\s/g,''),10);
+};
+
+const resolveProductFromPage = async () => {
+  // Try URL-based first
+  let pid = getProductIdFromUrl();
+  if (pid) return pid;
+  try {
+    // Try to read product name and price from DOM
+    const name = innerTextTrim(document.querySelector('h1, .product-title, [data-product-name]'));
+    const priceText = innerTextTrim(document.querySelector('[class*="price"], [data-price]'));
+    const priceVal = parsePrice(priceText);
+    const productsRef = window.collection(window.firebaseFirestore, 'products');
+    const qs = await window.getDocs(productsRef);
+    const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Prefer exact name match (case-insensitive)
+    if (name) {
+      const byName = all.find(p => (p.productName||'').toLowerCase() === name.toLowerCase());
+      if (byName) return byName.id;
+      // try includes
+      const byInc = all.find(p => (p.productName||'').toLowerCase().includes(name.toLowerCase()));
+      if (byInc) return byInc.id;
+    }
+    // Try price-only (if unique)
+    if (priceVal != null) {
+      const byPrice = all.filter(p => (p.price|0) === priceVal);
+      if (byPrice.length === 1) return byPrice[0].id;
+    }
+  } catch(e){ console.warn('resolveProductFromPage failed', e); }
+  return null;
+};
+
+
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-add-to-cart],[data-toggle-favorite],[data-open-cart],[data-open-favorites],[data-category],[data-quick-add],[data-quick-fav],a[href^="/category/"]');
   if (!el) return;
@@ -2573,7 +2612,7 @@ document.addEventListener('click', async (e) => {
     // try to get productId from nearest container
     const container = el.closest('[data-product-id]');
     let productId = container ? container.getAttribute('data-product-id') : null;
-    if (!productId) { productId = getProductIdFromUrl(); }
+    if (!productId) { productId = await resolveProductFromPage(); }
     if (!productId) { console.warn('productId not found in DOM'); return; }
     try {
       const ref = window.doc(window.firebaseFirestore, 'products', productId);
@@ -2602,7 +2641,7 @@ const tryAttachBarButtons = () => {
     if (title.includes('favori') || title.includes('favorite')) el.setAttribute('data-open-favorites','true');
   });
 
-  // Auto-tag product detail buttons if data-* not present
+  // Auto-tag product detail buttons if data-* not present (enhanced)
   document.querySelectorAll('button').forEach(btn => {
     const t = (btn.textContent || '').trim().toLowerCase();
     if (!btn.hasAttribute('data-add-to-cart') && (t === 'sepete ekle' || t === 'add to cart')) {
