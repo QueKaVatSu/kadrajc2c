@@ -2054,26 +2054,31 @@
             
             const t = (key) => translations[language]?.[key] || key;
             
-            const renderMainContent = () => {
-                const path = currentPath.toLowerCase();
-                
-                if (path.startsWith('/products/')) {
-                    const productId = path.split('/')[2];
-                    if (productId) {
-                        return <ProductPage productId={productId} setCurrentPath={navigate} t={t} currency={currency} />;
-                    }
-                }
+const renderMainContent = () => {
+    const path = currentPath; // .toLowerCase() kaldırıldı, sorun buydu.
+    
+    // Path'i küçük harfe çevirmeden önce /products/ ile başlayıp başlamadığını kontrol edelim
+    // Bu, diğer path'lerdeki (login vs.) .toLowerCase() kullanımını etkilemez.
+    if (path.toLowerCase().startsWith('/products/')) {
+        const pathParts = path.split('/');
+        const productId = pathParts[2]; // Orijinal büyük/küçük harfli ID'yi al
+        if (productId) {
+            return <ProductPage productId={productId} setCurrentPath={navigate} t={t} currency={currency} />;
+        }
+    }
 
-                if (path.includes('login')) return <LoginPage setCurrentPath={navigate} t={t} />;
-                if (path.includes('register')) return <UserRegisterPage setCurrentPath={navigate} t={t} />;
-                if (path.includes('seller-register')) return <SellerRegisterPage setCurrentPath={navigate} t={t} />;
-                
-                if (isLoggedIn && userType === 'user' && path.includes('user-dashboard')) {
-                    return <UserDashboard setCurrentPath={navigate} t={t} currentUser={currentUser} currency={currency} />;
-                }
-                
-                return <HomePage setCurrentPath={navigate} t={t} />;
-            };
+    // Diğer sayfa yönlendirmeleri için küçük harf kullanmaya devam edebiliriz
+    const lowerCasePath = path.toLowerCase();
+    if (lowerCasePath.includes('login')) return <LoginPage setCurrentPath={navigate} t={t} />;
+    if (lowerCasePath.includes('register')) return <UserRegisterPage setCurrentPath={navigate} t={t} />;
+    if (lowerCasePath.includes('seller-register')) return <SellerRegisterPage setCurrentPath={navigate} t={t} />;
+    
+    if (isLoggedIn && userType === 'user' && lowerCasePath.includes('user-dashboard')) {
+        return <UserDashboard setCurrentPath={navigate} t={t} currentUser={currentUser} currency={currency} />;
+    }
+    
+    return <HomePage setCurrentPath={navigate} t={t} />;
+};
 
             return (
                 <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
@@ -2106,3 +2111,4 @@
     </script>
 </body>
 </html>
+
