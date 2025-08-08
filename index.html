@@ -1478,6 +1478,38 @@
 
         // Page Components
         const HomePage = ({ setCurrentPath, t }) => {
+            // [ADDED] Firestore-driven homeHero content (non-destructive)
+            const [homeHeroLeft, setHomeHeroLeft] = React.useState({
+                mediaType: 'video', src: 'loop1.mp4', poster: '', eyebrow: t('summer')+' '+t('selection'), title: t('laclaud'), ctaText: t('discover'), ctaHref: '#', overlayOpacity: 0.3
+            });
+            const [homeHeroSlides, setHomeHeroSlides] = React.useState([
+                {mediaType:'image', src:'kadraj-slide1.png', order:0},
+                {mediaType:'image', src:'kadraj-slide2.png', order:1},
+                {mediaType:'image', src:'kadraj-slide3.png', order:2},
+            ]);
+            const [homeHeroCurrent, setHomeHeroCurrent] = React.useState(0);
+            const hhNext = () => setHomeHeroCurrent((p)=>(p+1)% (homeHeroSlides.length||1));
+            const hhPrev = () => setHomeHeroCurrent((p)=>(p-1+(homeHeroSlides.length||1))% (homeHeroSlides.length||1));
+            React.useEffect(()=>{
+                (async()=>{
+                    try{
+                        const ref = doc(firebaseFirestore, 'siteConfiguration', 'homeHero');
+                        const snap = await getDoc(ref);
+                        if(snap.exists()){
+                            const d = snap.data() || {};
+                            if(d.left) setHomeHeroLeft(prev=>({...prev, ...d.left}));
+                            if(Array.isArray(d.slides) && d.slides.length){
+                                setHomeHeroSlides([...(d.slides)].sort((a,b)=>(a.order||0)-(b.order||0)));
+                            }
+                        }
+                    }catch(e){ console.warn('homeHero fetch error', e); }
+                })();
+            },[]);
+            React.useEffect(()=>{
+                const id = setInterval(hhNext, 7000);
+                return ()=>clearInterval(id);
+            },[homeHeroSlides.length]);
+
             const images = [ "kadraj-slide1.png", "kadraj-slide2.png", "kadraj-slide3.png" ];
             const [currentSlide, setCurrentSlide] = React.useState(0);
             const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % images.length);
@@ -1488,7 +1520,41 @@
             }, []);
             return (
                 <>
+                    
+                    {/* [ADDED] Dynamic Home Hero from Firestore (original preserved below) */}
                     <div className="flex flex-col md:flex-row mt-0 gap-0 border-0">
+                        <div className="relative w-full md:w-1/3 aspect-[9/10] overflow-hidden">
+                            { "video"===homeHeroLeft.mediaType ? (
+                                <video src={homeHeroLeft.src} poster={homeHeroLeft.poster||undefined} autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
+                            ):(
+                                <img src={homeHeroLeft.src} alt="hero" className="w-full h-full object-cover"/>
+                            )}
+                            <div className="absolute inset-0" style={{ background:`rgba(0,0,0,${homeHeroLeft.overlayOpacity??0.3})` }}></div>
+                            <div className="absolute inset-0 flex flex-col items-start justify-end p-8 text-white">
+                                {homeHeroLeft.eyebrow && <p className="text-xs font-normal tracking-wider opacity-80 mb-1">{homeHeroLeft.eyebrow}</p>}
+                                {homeHeroLeft.title && <h3 className="text-4xl font-bold mb-4">{homeHeroLeft.title}</h3>}
+                                {homeHeroLeft.ctaText && <a href={homeHeroLeft.ctaHref||"#"} className="flex items-center text-sm font-bold tracking-wider">{homeHeroLeft.ctaText} <span className="ml-1">→</span></a>}
+                            </div>
+                        </div>
+                        <div className="relative w-full md:w-2/3 aspect-[16/9] overflow-hidden">
+                            <div className="flex h-full transition-transform duration-700 ease-out" style={{ transform:`translateX(-${homeHeroCurrent*100}%)`, width: `${Math.max(1, homeHeroSlides.length)*100}%` }}>
+                                {(homeHeroSlides.length?homeHeroSlides:[{mediaType:'image',src:''}]).map((s,i)=>(
+                                    <div key={i} className="w-full h-full flex-shrink-0">
+                                        {s.mediaType==='video'
+                                            ? <video src={s.src||''} poster={s.poster||undefined} autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
+                                            : <img src={s.src||''} className="w-full h-full object-cover" alt="slide"/>}
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white border rounded-full p-2" onClick={hhPrev}>‹</button>
+                            <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white border rounded-full p-2" onClick={hhNext}>›</button>
+                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
+                                {homeHeroSlides.map((_,idx)=>(<button key={idx} onClick={()=>setHomeHeroCurrent(idx)} className={`w-2 h-2 rounded-full ${homeHeroCurrent===idx?'bg-gray-900':'bg-gray-300'}`}></button>))}
+                            </div>
+                        </div>
+                    </div>
+                    {/* ORIGINAL HERO BLOCK (kept, commented out)
+<div className="flex flex-col md:flex-row mt-0 gap-0 border-0">
                         <div className="relative w-full md:w-1/3 aspect-[9/10] overflow-hidden">
                             <video src="loop1.mp4" autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
                             <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-start justify-end p-8 text-white">
@@ -1520,7 +1586,9 @@
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    
+                    */}
+</div>
                     <CategoryHighlightSection t={t} />
                     <HighlightsSection t={t} />
                     <NewInSection t={t} />
@@ -2129,79 +2197,3 @@
     </script>
 </body>
 </html>
-
-<!-- ===== [ADDED BY ASSISTANT] Dynamic homeHero + scrollingBanner readers (non-destructive) ===== -->
-<script type="module">
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  const app = window.firebaseApp || undefined;
-  const db = window.firebaseFirestore || (app ? getFirestore(app) : null);
-
-  async function loadDocs(){
-    if(!db) return;
-    try{
-      const hero = await getDoc(doc(db,'siteConfiguration','homeHero'));
-      if(hero.exists()){
-        const d = hero.data()||{};
-        // LEFT
-        let leftHost = document.getElementById('dynamic-home-hero-left');
-        if(!leftHost){
-          const wrap = document.createElement('div');
-          wrap.id='dynamic-home-hero';
-          wrap.style="display:flex;gap:0;margin-top:0";
-          leftHost = document.createElement('div'); leftHost.id='dynamic-home-hero-left'; leftHost.style="position:relative;width:33.33%;aspect-ratio:9/10;overflow:hidden";
-          const right = document.createElement('div'); right.id='dynamic-home-hero-right'; right.style="position:relative;width:66.66%;aspect-ratio:16/9;overflow:hidden";
-          const container = document.body.querySelector('.container, .mx-auto') || document.body;
-          container.prepend(wrap);
-          wrap.append(leftHost, right);
-        }
-        const l = d.left||{};
-        leftHost.innerHTML = (l.mediaType==='video'
-          ? `<video src="${l.src||''}" ${l.poster?`poster="${l.poster}"`:''} autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`
-          : `<img src="${l.src||''}" style="width:100%;height:100%;object-fit:cover">`)
-          + `<div style="position:absolute;inset:0;background:rgba(0,0,0,${l.overlayOpacity??0.3})"></div>
-             <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:16px;color:#fff">
-              ${l.eyebrow?`<p style="font-size:10px;letter-spacing:.2em;opacity:.8;margin:0 0 4px 0;text-transform:uppercase">${l.eyebrow}</p>`:''}
-              ${l.title?`<h3 style="font-size:28px;margin:0 0 8px 0;font-weight:700">${l.title}</h3>`:''}
-              ${l.ctaText?`<a href="${l.ctaHref||'#'}" style="font-size:12px;font-weight:700">${l.ctaText} →</a>`:''}
-             </div>`;
-
-        // RIGHT slider
-        const right = document.getElementById('dynamic-home-hero-right');
-        const slides = (Array.isArray(d.slides)?d.slides:[]).sort((a,b)=>(a.order||0)-(b.order||0));
-        right.innerHTML = `<div id="dyn-track" style="display:flex;height:100%;transition:transform .7s ease"></div>
-                           <button id="dyn-prev" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:9999px;padding:8px">‹</button>
-                           <button id="dyn-next" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:9999px;padding:8px">›</button>`;
-        const track = document.getElementById('dyn-track');
-        track.style.width = `${Math.max(1, slides.length)*100}%`;
-        track.innerHTML = (slides.length?slides:[{mediaType:'image',src:''}]).map(s=>`
-          <div style="width:100%;height:100%;flex-shrink:0">
-            ${s.mediaType==='video'
-              ? `<video src="${s.src||''}" ${s.poster?`poster="${s.poster}"`:''} autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`
-              : `<img src="${s.src||''}" style="width:100%;height:100%;object-fit:cover">`}
-          </div>`).join('');
-        let cur=0;
-        const go = (i)=>{ cur=(i+slides.length)%slides.length; track.style.transform=`translateX(-${cur*(100/(slides.length||1))}%)`; };
-        document.getElementById('dyn-prev').onclick=()=>go(cur-1);
-        document.getElementById('dyn-next').onclick=()=>go(cur+1);
-        setInterval(()=> go(cur+1), 7000);
-      }
-
-      const ban = await getDoc(doc(db,'siteConfiguration','scrollingBanner'));
-      if(ban.exists()){
-        const b = ban.data()||{};
-        let bar = document.getElementById('dynamic-scrolling-banner');
-        if(!bar){
-          bar = document.createElement('div'); bar.id='dynamic-scrolling-banner';
-          document.body.prepend(bar);
-        }
-        const items = (b.items||[]).map(it=>it.text||it.textKey||'').filter(Boolean);
-        bar.innerHTML = `<div style="white-space:nowrap;overflow:hidden;background:${b.bgColor||'#f2f4f7'};color:${b.textColor||'#222'};font-family:${b.fontFamily||'Helvetica, Arial, sans-serif'};font-size:${(b.fontSize||14)}px;font-weight:${b.fontWeight||300};letter-spacing:${b.letterSpacing||0}px;padding:6px 0">
-          <div style="display:inline-flex;gap:48px;animation:scroll-left ${(b.speedSec||40)}s linear infinite" ${b.pauseOnHover?'onmouseover="this.style.animationPlayState=\'paused\'" onmouseout="this.style.animationPlayState=\'running\'"':''}>
-            ${items.concat(items).map(t=>`<span style="padding:0 24px">${t}</span>`).join('')}
-          </div>
-        </div>`;
-      }
-    }catch(e){ console.warn(e); }
-  }
-  loadDocs();
-</script>
