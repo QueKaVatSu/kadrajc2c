@@ -16,14 +16,14 @@
         import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
-            authDomain: "kadrajatelier-7e02a.firebaseapp.com",
-            projectId: "kadrajatelier-7e02a",
-            storageBucket: "kadrajatelier-7e02a.firebaseapp.com",
-            messagingSenderId: "4259035875263",
-            appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
-        };
+const firebaseConfig = {
+  apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
+  authDomain: "kadrajatelier-7e02a.firebaseapp.com",
+  projectId: "kadrajatelier-7e02a",
+  storageBucket: "kadrajatelier-7e02a.firebasestorage.app", // Burası düzeltildi
+  messagingSenderId: "4259035875263",
+  appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
+};
         
         const app = initializeApp(firebaseConfig);
 
