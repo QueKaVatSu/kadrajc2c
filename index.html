@@ -2054,31 +2054,17 @@
             
             const t = (key) => translations[language]?.[key] || key;
             
-        const renderMainContent = () => {
-            // Ürün detay sayfası kontrolü
-            // URL'nin '/products/' ile başlayıp başlamadığını KÜÇÜK HARFE çevirerek kontrol et
-            if (currentPath.toLowerCase().startsWith('/products/')) {
-                // productId'yi ORİJİNAL, büyük/küçük harf duyarlı `currentPath`'ten al
-                const productId = currentPath.split('/')[2];
-                if (productId) {
-                    return <ProductPage productId={productId} setCurrentPath={navigate} t={t} currency={currency} />;
+            const renderMainContent = () => {
+                const path = currentPath.toLowerCase();
+                
+                if (path.startsWith('/products/')) {
+                    const productId = path.split('/')[2];
+                    if (productId) {
+                        return <ProductPage productId={productId} setCurrentPath={navigate} t={t} currency={currency} />;
+                    }
                 }
-            }
 
-            // Diğer sayfalar için `toLowerCase()` kullanmaya devam edebiliriz
-            const path = currentPath.toLowerCase();
-
-            if (path.includes('login')) return <LoginPage setCurrentPath={navigate} t={t} />;
-            if (path.includes('register')) return <UserRegisterPage setCurrentPath={navigate} t={t} />;
-            if (path.includes('seller-register')) return <SellerRegisterPage setCurrentPath={navigate} t={t} />;
-            
-            if (isLoggedIn && userType === 'user' && path.includes('user-dashboard')) {
-                return <UserDashboard setCurrentPath={navigate} t={t} currentUser={currentUser} currency={currency} />;
-            }
-            
-            // Diğer hiçbir koşul eşleşmezse ana sayfayı göster
-            return <HomePage setCurrentPath={navigate} t={t} />;
-        };
+                if (path.includes('login')) return <LoginPage setCurrentPath={navigate} t={t} />;
                 if (path.includes('register')) return <UserRegisterPage setCurrentPath={navigate} t={t} />;
                 if (path.includes('seller-register')) return <SellerRegisterPage setCurrentPath={navigate} t={t} />;
                 
@@ -2120,5 +2106,3 @@
     </script>
 </body>
 </html>
-
-
