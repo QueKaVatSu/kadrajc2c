@@ -1478,43 +1478,6 @@
 
         // Page Components
         const HomePage = ({ setCurrentPath, t }) => {
-            // [SAFE-ADD] Firestore-driven homeHero (no template literals, no nullish coalescing)
-            const [homeHeroLeft, setHomeHeroLeft] = React.useState({
-              mediaType: 'video', src: 'loop1.mp4', poster: '', eyebrow: t('summer')+' '+t('selection'), title: t('laclaud'), ctaText: t('discover'), ctaHref: '#', overlayOpacity: 0.3
-            });
-            const [homeHeroSlides, setHomeHeroSlides] = React.useState([
-              {mediaType:'image', src:'kadraj-slide1.png', order:0},
-              {mediaType:'image', src:'kadraj-slide2.png', order:1},
-              {mediaType:'image', src:'kadraj-slide3.png', order:2}
-            ]);
-            const [homeHeroCurrent, setHomeHeroCurrent] = React.useState(0);
-            const hhNext = function(){ setHomeHeroCurrent(function(p){ return (p+1) % (homeHeroSlides.length||1); }); };
-            const hhPrev = function(){ setHomeHeroCurrent(function(p){ return (p-1+(homeHeroSlides.length||1)) % (homeHeroSlides.length||1); }); };
-            React.useEffect(function(){
-              (async function(){
-                try{
-                  var db = window.firebaseFirestore;
-                  var getDoc = window.getDoc;
-                  var doc = window.doc;
-                  if(!db || !getDoc || !doc) return;
-                  var ref = doc(db, 'siteConfiguration', 'homeHero');
-                  var snap = await getDoc(ref);
-                  if(snap.exists()){
-                    var d = snap.data() || {};
-                    if(d.left) setHomeHeroLeft(function(prev){ return Object.assign({}, prev, d.left); });
-                    if(Array.isArray(d.slides) && d.slides.length){
-                      var sorted = d.slides.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
-                      setHomeHeroSlides(sorted);
-                    }
-                  }
-                }catch(e){ console.warn('homeHero fetch error', e); }
-              })();
-            },[]);
-            React.useEffect(function(){
-              var id = setInterval(hhNext, 7000);
-              return function(){ clearInterval(id); };
-            },[homeHeroSlides.length]);
-
             const images = [ "kadraj-slide1.png", "kadraj-slide2.png", "kadraj-slide3.png" ];
             const [currentSlide, setCurrentSlide] = React.useState(0);
             const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % images.length);
@@ -1525,45 +1488,7 @@
             }, []);
             return (
                 <>
-                    
-                    {/* [SAFE-ADD] Dynamic Home Hero from Firestore (original preserved below) */}
                     <div className="flex flex-col md:flex-row mt-0 gap-0 border-0">
-                      <div className="relative w-full md:w-1/3 aspect-[9/10] overflow-hidden">
-                        {homeHeroLeft.mediaType==='video' ? (
-                          <video src={homeHeroLeft.src} poster={homeHeroLeft.poster||undefined} autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
-                        ) : (
-                          <img src={homeHeroLeft.src} alt="hero" className="w-full h-full object-cover" />
-                        )}
-                        <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,' + ((homeHeroLeft.overlayOpacity||0.3)) + ')' }}></div>
-                        <div className="absolute inset-0 flex flex-col items-start justify-end p-8 text-white">
-                          {homeHeroLeft.eyebrow && <p className="text-xs tracking-wider opacity-80 mb-1">{homeHeroLeft.eyebrow}</p>}
-                          {homeHeroLeft.title && <h3 className="text-4xl font-bold mb-4">{homeHeroLeft.title}</h3>}
-                          {homeHeroLeft.ctaText && <a href={homeHeroLeft.ctaHref||'#'} className="flex items-center text-sm font-bold tracking-wider">{homeHeroLeft.ctaText}<span className="ml-1">→</span></a>}
-                        </div>
-                      </div>
-                      <div className="relative w-full md:w-2/3 aspect-[16/9] overflow-hidden">
-                        <div className="flex h-full transition-transform duration-700 ease-out" style={{ transform: 'translateX(-' + (homeHeroCurrent*100) + '%)', width: (Math.max(1, homeHeroSlides.length)*100) + '%' }}>
-                          {(homeHeroSlides.length?homeHeroSlides:[{mediaType:'image',src:''}]).map(function(s,i){
-                            return (
-                              <div key={i} className="w-full h-full flex-shrink-0">
-                                {s.mediaType==='video'
-                                  ? <video src={s.src||''} poster={s.poster||undefined} autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
-                                  : <img src={s.src||''} className="w-full h-full object-cover" alt="slide" />}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white border rounded-full p-2" onClick={hhPrev}>‹</button>
-                        <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white border rounded-full p-2" onClick={hhNext}>›</button>
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
-                          {homeHeroSlides.map(function(_,idx){
-                            return <button key={idx} onClick={function(){ setHomeHeroCurrent(idx); }} className={'w-2 h-2 rounded-full ' + (homeHeroCurrent===idx?'bg-gray-900':'bg-gray-300')}></button>;
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    {/* ORIGINAL HERO BLOCK (kept, commented out)
-<div className="flex flex-col md:flex-row mt-0 gap-0 border-0">
                         <div className="relative w-full md:w-1/3 aspect-[9/10] overflow-hidden">
                             <video src="loop1.mp4" autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
                             <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-start justify-end p-8 text-white">
@@ -1595,9 +1520,7 @@
                                 ))}
                             </div>
                         </div>
-                    
-                    */}
-</div>
+                    </div>
                     <CategoryHighlightSection t={t} />
                     <HighlightsSection t={t} />
                     <NewInSection t={t} />
