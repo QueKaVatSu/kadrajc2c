@@ -1,894 +1,814 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetici Paneli - Kadraj l'Atelier</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Yönetici Paneli - Kadraj l'Atelier</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        // GEREKLİ FONKSİYONLAR EKLENDİ
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    /* Tailwind'i class tabanlı dark-mode’da kullanabilmek için */
+    window.tailwind = window.tailwind || {};
+    tailwind.config = { darkMode: 'class' };
+  </script>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
-            authDomain: "kadrajatelier-7e02a.firebaseapp.com",
-            projectId: "kadrajatelier-7e02a",
-            storageBucket: "kadrajatelier-7e02a.firebaseapp.com",
-            messagingSenderId: "4259035875263",
-            appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firebaseFirestore = db;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        // GEREKLİ YENİ FONKSİYONLAR EKLENDİ
-        window.collection = collection;
-        window.getDocs = getDocs;
-        window.updateDoc = updateDoc;
-    </script>
-    <style>
-        @keyframes scroll-left {
-            0% { transform: translateX(0%); }
-            100% { transform: translateX(-100%); }
-        }
-        .animate-scroll { animation: scroll-left 40s linear infinite; }
-        .animate-scroll:hover { animation-play-state: paused; }
-        .aspect-w-16 { position: relative; width: 100%; padding-bottom: 56.25%; }
-        .aspect-h-9 { position: relative; width: 100%; padding-bottom: 56.25%; }
-        .md\:aspect-w-1 { padding-bottom: 100%; }
-        .md\:aspect-h-1 { padding-bottom: 100%; }
-        .aspect-w-16 > *, .aspect-h-9 > *, .md\:aspect-w-1 > *, .md\:aspect-h-1 > * { position: absolute; height: 100%; width: 100%; top: 0; left: 0; }
-    </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Firebase init -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
+      authDomain: "kadrajatelier-7e02a.firebaseapp.com",
+      projectId: "kadrajatelier-7e02a",
+      storageBucket: "kadrajatelier-7e02a.firebaseapp.com",
+      messagingSenderId: "4259035875263",
+      appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // global’lere dokunmadan ekledim
+    window.firebaseApp = app;
+    window.firebaseAuth = auth;
+    window.firebaseFirestore = db;
+    window.signOut = signOut;
+    window.onAuthStateChanged = onAuthStateChanged;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.getDoc = getDoc;
+    window.collection = collection;
+    window.getDocs = getDocs;
+    window.updateDoc = updateDoc;
+  </script>
+
+  <style>
+    @keyframes scroll-left { 0%{transform:translateX(0%)} 100%{transform:translateX(-100%)} }
+    .animate-scroll { animation: scroll-left 40s linear infinite }
+    .animate-scroll:hover { animation-play-state: paused }
+    .aspect-w-16,.aspect-h-9,.md\:aspect-w-1,.md\:aspect-h-1 { position:relative;width:100% }
+    .aspect-h-9,.aspect-w-16 { padding-bottom:56.25% }
+    .md\:aspect-w-1,.md\:aspect-h-1 { padding-bottom:100% }
+    .aspect-w-16 > *, .aspect-h-9 > *, .md\:aspect-w-1 > *, .md\:aspect-h-1 > * { position:absolute;height:100%;width:100%;top:0;left:0 }
+
+    /* ---- Koyu tema override (var olan sınıfları silmeden) ---- */
+    html.dark body { background:#0b0f14; color:#e5e7eb }
+    html.dark .bg-white { background:#111827 !important; }
+    html.dark .text-gray-800 { color:#e5e7eb !important; }
+    html.dark .text-gray-700 { color:#d1d5db !important; }
+    html.dark .border-gray-100 { border-color:#1f2937 !important; }
+    html.dark .border-gray-200 { border-color:#374151 !important; }
+    html.dark .hover\:bg-gray-50:hover { background:#0f172a !important; }
+    html.dark .bg-gray-800 { background:#0f172a !important; }
+    html.dark .hover\:bg-gray-900:hover { background:#111827 !important; }
+    html.dark .shadow-sm { box-shadow: 0 4px 14px rgba(0,0,0,.45) !important; }
+  </style>
 </head>
 <body class="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-    <div id="root"></div>
-    <script type="text/babel">
-        // İKONLAR (Admin sayfasında kullanılanlar)
-        const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-        const UserIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-        const StoreIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
-        const SettingsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.04.04a2 2 0 0 1 0 2.83l-.04.04a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.04-.04a2 2 0 0 1 0-2.83l.04-.04a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
-        const PackageIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m7.5 4.27 9 5.16"/><path d="M2.5 8.67 12 14l9.5-5.33"/><path d="M12 22V14"/><path d="M2.5 17.33 12 22l9.5-4.67"/><path d="M2.5 12l9.5 5.5 9.5-5.5"/></svg>;
-        const HeartIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
-        const LayoutDashboardIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
-const UsersIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-        const BoxIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>;
-        const DollarSignIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
-        const FileTextIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>;
-        
-        const MegaphoneIcon = (props) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 11l18-5v12l-18-5v-2z"/>
-                <path d="M11 19a2 2 0 1 1-4 0v-7"/>
-            </svg>
-        );
-const LogInIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>;
-        const LogOutIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="17 17 22 12 17 7"/><line x1="22" x2="10" y1="12" y2="12"/></svg>;
-        const SearchIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
-        const ShoppingBagIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M6 2L3 7v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-3-5Z"/><line x1="3" x2="21" y1="7" y2="7"/><path d="M12 22v-4"/><path d="M12 7V2"/></svg>;
-        const EyeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>;
-        const ChevronDownIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m6 9 6 6 6-6"/></svg>;
-        const PlusIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>;
-        const TagsIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>;
-        
-        // ÇEVİRİLER
-        const translations = {
-          'Türkçe': {
-            home: 'Anasayfa',
-            collectorPanel: 'Koleksiyoner Paneli',
-            atelierPanel: 'Atelier Paneli',
-            adminPanel: 'Yönetici Paneli',
-            login: 'Giriş Yap',
-            logout: 'Çıkış Yap',
-            newAddress: 'Yeni Adres',
-            contact: 'İletişim',
-            faq: 'Sıkça Sorulan Sorular',
-            turkce: 'Türkçe',
-            english: 'English',
-            deutsch: 'Deutsch',
-            tagline1: 'Tasarımın yeni adresi.',
-            tagline2: 'Yaşam alanlarınıza değer katın. Özenle seçilmiş mobilya, aydınlatma ve dekorasyon ürünleriyle tanışın.',
-            exploreLogin: 'Hemen Keşfet / Giriş Yap',
-            furniture: 'Mobilya',
-            lighting: 'Aydınlatma',
-            decoration: 'Dekorasyon',
-            furnitureDesc: 'Evinizin kalbini oluşturan özel tasarım mobilyalar.',
-            genelHata: 'Bir hata oluştu. Lütfen tekrar deneyin.',
-            lightingDesc: 'Mekanlarınıza ışık ve estetik katan tasarımlar.',
-            decorationDesc: 'Detaylarla fark yaratan benzersiz dekoratif objeler.',
-            collectorLogin: 'Koleksiyoner Girişi',
-            email: 'E-posta',
-            password: 'Şifre',
-            invalidCredentials: 'Hatalı e-posta veya şifre. Lütfen tekrar deneyin.',
-            sampleAccounts: 'Örnek Hesaplar:',
-            collector: 'Koleksiyoner',
-            atelier: 'Atelier',
-            admin: 'Yönetici',
-            wantToBeDesigner: 'Tasarımcı Ortak olmak ister misin?',
-            atelierPartnershipApplication: 'Atelier Ortaklık Başvurusu',
-            applicationReceived: 'Başvurunuz başarıyla alındı!',
-            contactSoon: 'En kısa sürede sizinle iletişime geçeceğiz.',
-            backToLogin: 'Giriş Sayfasına Dön',
-            atelierName: 'Atelier Adı',
-            fullName: 'Ad Soyad',
-            confirmPassword: 'Şifre Tekrar',
-            portfolioLink: 'Portfolyo Linki (Opsiyonel)',
-            shortDescription: 'Kısa Tanıtım (Opsiyonel)',
-            passwordsMismatch: 'Şifreler uyuşmuyor. Lütfen kontrol edin.',
-            submitApplication: 'Başvuruyu Gönder',
-            alreadyHaveAccount: 'Zaten hesabın var mı?',
-            overview: 'Genel Bakış',
-            productManagement: 'Ürün Yönetimi',
-            ordersFinance: 'Siparişler & Finans',
-            atelierReview: 'Atelier İncelemesi',
-            last30Days: 'Son 30 gün içinde',
-            mostPopularProduct: 'En Çok İlgi Çeken Ürün',
-            views: 'görüntülenme',
-            productViews: 'Ürün Görüntülenme Sayısı',
-            totalViews: 'Toplam görüntülenme',
-            addToFavoritesRate: 'Favorilere Eklenme Oranı',
-            averageRate: 'Ortalama oran',
-            addProductManage: 'Ürün Ekle/Yönet',
-            addNewProduct: 'Yeni Ürün Ekle',
-            productName: 'Ürün Adı',
-            productDescription: 'Ürün Açıklaması',
-            productStory: 'Ürünün Hikayesi',
-            price: 'Fiyat',
-            category: 'Kategori',
-            materialInfo: 'Materyal Bilgisi',
-            dimensionsCm: 'Boyutlar (cm)',
-            weightKg: 'Ağırlık (kg)',
-            shippingInfo: 'Kargo Bilgileri',
-            professionalPhotoGallery: 'Profesyonel Fotoğraf Galerisi',
-            uploadPhotos: 'En az 3, en fazla 10 fotoğraf yükleyin.',
-            saveProduct: 'Ürünü Kaydet',
-            currentProducts: 'Mevcut Ürünler',
-            active: 'Aktif',
-            passive: 'Pasif',
-            orders: 'Siparişler',
-            lastOrders: 'Son Siparişler',
-            completed: 'Tamamlandı',
-            inTransit: 'Kargoda',
-            cancelled: 'İptal Edildi',
-            financialStatus: 'Finansal Durum',
-            withdrawableBalance: 'Çekilebilir Bakiye',
-            currentBalance: 'Güncel bakiye',
-            totalEarnings: 'Toplam Kazanç',
-            allTime: 'Tüm zamanlar',
-            withdrawBalance: 'Bakiye Çek',
-            myOrders: 'Siparişlerim',
-            messageDesigner: 'Tasarımcıya Mesaj Gönder',
-            favorites: 'Favorilerim',
-            favoriteDesigns: 'Favori Tasarımlar',
-            favoriteAteliers: 'Favori Atelierler',
-            profileManagement: 'Profil Yönetimi',
-            deliveryAddresses: 'Teslimat Adresleri',
-            addressTitle: 'Adres Başlığı',
-            addressLine1: 'Adres Satırı 1',
-            addressLine2: 'Adres Satırı 2 (Opsiyonel)',
-            city: 'İl',
-            district: 'İlçe',
-            zipCode: 'Posta Kodu',
-            saveAddress: 'Adresi Kaydet',
-            billingInformation: 'Fatura Bilgileri',
-            nameSurnameCompanyName: 'Ad Soyad / Firma Adı',
-            tcIdTaxNo: 'TC Kimlik No / Vergi No',
-            saveBillingInfo: 'Fatura Bilgilerini Kaydet',
-            galleryManagerPanel: 'Galeri Yöneticisi Paneli',
-            userManager: 'Kullanıcı Yönetimi',
-            designerApplications: 'Tasarımcı Başvuruları',
-            pending: 'Beklemede',
-            approved: 'Onaylandı',
-            allUsers: 'Tüm Kullanıcılar',
-            view: 'Görüntüle',
-            approve: 'Onayla',
-            allListedProducts: 'Tüm Listelenen Ürünler',
-            featuredProducts: 'Öne Çıkarılan Ürünler',
-            manageFeaturedProducts: 'Öne Çıkarılan Ürünleri Yönet',
-            financeManagement: 'Finans Yönetimi',
-            commissionRates: 'Komisyon Oranları',
-            currentCommissionRate: 'Mevcut Komisyon Oranı:',
-            setCommissionRate: 'Komisyon Oranını Ayarla',
-            designerPayments: 'Tasarımcı Ödemeleri',
-            managePayments: 'Ödemeleri Yönet',
-            incomeExpenseReports: 'Gelir ve Gider Raporları',
-            viewReports: 'Raporları Görüntüle',
-            contentManagement: 'İçerik Yönetimi',
-            homePageBanners: 'Ana Sayfa Bannerları',
-            manageBanners: 'Bannerları Yönet',
-            specialCollectionPages: 'Özel Koleksiyon Sayfaları',
-            manageCollections: 'Koleksiyonları Yönet',
-            blogPosts: 'Blog Yazıları',
-            manageBlogPosts: 'Blog Yazılarını Yönet',
-            orderId: 'Sipariş ID:',
-            product: 'Ürün:',
-            date: 'Tarih:',
-            categoryManagement: 'Kategori Yönetimi',
-            mainCategories: 'Ana Kategoriler',
-            subCategories: 'Alt Kategoriler',
-            addCategory: 'Kategori Ekle',
-            editCategory: 'Kategoriyi Düzenle',
-            deleteCategory: 'Kategoriyi Sil',
-            categoryName: 'Kategori Adı',
-            parentCategory: 'Üst Kategori',
-            saveCategory: 'Kategoriyi Kaydet',
-            // Yeni çeviriler
-            searchProduct: 'Ürün, marka, içerik ara',
-            new: 'Yeni',
-            woman: 'Kadın',
-            man: 'Erkek',
-            child: 'Çocuk',
-            life: 'Yaşam',
-            brands: 'Markalar',
-            discount: 'İndirim',
-            mag: 'MAG',
-            rewards: 'Rewards',
-            stores: 'Mağazalar',
-            forGood: 'for good',
-            edit: 'Düzenle',
-            delete: 'Sil',
-            sales: 'satış',
-            unitsSold: 'adet satış',
-            platformWide: 'Platform genelinde',
-            artPiece: 'Sanat Eseri',
-            lastViewedProduct: 'Son Görüntülenen Ürün',
-            today: 'Bugün',
-            modernScandinavianDesigns: 'Modern İskandinav Tasarımları',
-            naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
-          },
-          'English': { /* ... Diğer diller ... */ },
-          'Deutsch': { /* ... Diğer diller ... */ },
-        };
-        const Navbar = ({ isLoggedIn, userType, t }) => {
-            const handleLogout = async () => {
-                try {
-                    await window.signOut(window.firebaseAuth);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Çıkış yaparken hata oluştu:", error);
-                }
-            };
-            return (
-                <div className="bg-white">
-                    <nav className="border-b border-gray-200">
-                        <div className="container mx-auto px-6 md:px-10 flex items-center justify-between py-4">
-                            <div className="flex items-center w-1/3">
-                                {/* Soldaki öğeler */}
-                            </div>
-                            <div className="flex-grow flex justify-center">
-                                <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} />
-                            </div>
-                            <div className="flex items-center space-x-6 w-1/3 justify-end">
-                                <button className="text-gray-700 hover:text-gray-900 transition duration-300"><UserIcon size={24} /></button>
-                                {isLoggedIn && (
-                                    <button onClick={handleLogout} className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50">
-                                        <LogOutIcon size={20} />
-                                        <span>{t('logout')}</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </nav>
-                </div>
-            );
-        };
-        const ScrollingBanner = () => { /* Bu bileşen admin sayfasında kullanılmadığı için içeriği boş bırakılabilir */ return null; };
+  <div id="root"></div>
 
-        // --- YENİ EKLENEN HEADER YÖNETİM BİLEŞENİ ---
-        const HeaderManagement = ({ t }) => {
-            const [menuItems, setMenuItems] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
-            const [feedback, setFeedback] = React.useState('');
+  <script type="text/babel">
+    /* ================== İKONLAR ================== */
+    const HomeIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>);
+    const UserIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>);
+    const StoreIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>);
+    const SettingsIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.04.04a2 2 0 0 1 0 2.83l-.04.04a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.04-.04a2 2 0 0 1 0-2.83l.04-.04a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>);
+    const PackageIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="m7.5 4.27 9 5.16"/><path d="M2.5 8.67 12 14l9.5-5.33"/><path d="M12 22V14"/><path d="M2.5 17.33 12 22l9.5-4.67"/><path d="M2.5 12l9.5 5.5 9.5-5.5"/></svg>);
+    const HeartIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>);
+    const LayoutDashboardIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>);
+    const UsersIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>);
+    const BoxIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>);
+    const DollarSignIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>);
+    const FileTextIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>);
+    const MegaphoneIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-5v12l-18-5v-2z"/><path d="M11 19a2 2 0 1 1-4 0v-7"/></svg>);
+    const LogOutIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="17 17 22 12 17 7"/><line x1="22" x2="10" y1="12" y2="12"/></svg>);
+    const SearchIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>);
+    const ShoppingBagIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M6 2L3 7v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-3-5Z"/><line x1="3" x2="21" y1="7" y2="7"/><path d="M12 22v-4"/><path d="M12 7V2"/></svg>);
+    const EyeIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>);
+    const ChevronDownIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="m6 9 6 6 6-6"/></svg>);
+    const PlusIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>);
+    const TagsIcon=(p)=>(<svg xmlns="http://www.w3.org/2000/svg" width={p.size} height={p.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M15 1H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V2l-4 4zm-4 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>);
 
-            React.useEffect(() => {
-                const fetchMenuItems = async () => {
-                    setLoading(true);
-                    try {
-                        const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
-                        const docSnap = await window.getDoc(headerRef);
-                        if (docSnap.exists()) {
-                            const sortedItems = docSnap.data().menuItems.sort((a, b) => a.order - b.order);
-                            setMenuItems(sortedItems);
-                        } else {
-                            setFeedback('Header konfigürasyonu bulunamadı.');
-                        }
-                    } catch (err) {
-                        setFeedback('Veri çekilirken bir hata oluştu: ' + err.message);
-                        console.error(err);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchMenuItems();
-            }, []);
+    /* ================== ÇEVİRİLER (kısaltılmış — anahtarlar örnektir) ================== */
+    const translations = {
+      'Türkçe': {
+        home: 'Anasayfa', adminPanel:'Yönetici Paneli', logout:'Çıkış Yap',
+        overview:'Genel Bakış', productManagement:'Ürün Yönetimi', userManager:'Kullanıcı Yönetimi',
+        financeManagement:'Finans Yönetimi', contentManagement:'İçerik Yönetimi', categoryManagement:'Kategori Yönetimi',
+        allUsers:'Tüm Kullanıcılar', designerApplications:'Tasarımcı Başvuruları',
+        totalEarnings:'Toplam Kazanç', last30Days:'Son 30 gün içinde', mostPopularProduct:'En Çok İlgi Çeken Ürün',
+        mostPopularCategory:'En Popüler Kategori', product:'Ürün', platformWide:'Platform genelinde',
+        featuredProducts:'Öne Çıkarılan Ürünler', manageFeaturedProducts:'Öne Çıkarılan Ürünleri Yönet',
+        commissionRates:'Komisyon Oranları', currentCommissionRate:'Mevcut Komisyon Oranı:',
+        setCommissionRate:'Komisyon Oranını Ayarla', designerPayments:'Tasarımcı Ödemeleri',
+        managePayments:'Ödemeleri Yönet', incomeExpenseReports:'Gelir ve Gider Raporları', viewReports:'Raporları Görüntüle',
+        mainCategories:'Ana Kategoriler', addCategory:'Kategori Ekle', editCategory:'Kategoriyi Düzenle',
+        deleteCategory:'Kategoriyi Sil', categoryName:'Kategori Adı', parentCategory:'Üst Kategori', saveCategory:'Kategoriyi Kaydet',
+        homePageBanners:'Ana Sayfa Bannerları', manageBanners:'Bannerları Yönet', specialCollectionPages:'Özel Koleksiyon Sayfaları',
+        manageCollections:'Koleksiyonları Yönet', blogPosts:'Blog Yazıları', manageBlogPosts:'Blog Yazılarını Yönet',
+        searchProduct:'Ürün, marka, içerik ara', new:'Yeni', woman:'Kadın', man:'Erkek',
+        summer:'Yaz', selection:'Seçkisi', laclaud:'Laclaud', discover:'Keşfet',
+        darkMode:'Gece Modu', today:'Bugün', active:'Aktif', passive:'Pasif', orders:'Siparişler',
+        sales:'satış', unitsSold:'adet satış'
+      },
+      'English': {},
+      'Deutsch': {}
+    };
 
-            const handleItemChange = (index, field, value) => {
-                const newItems = [...menuItems];
-                newItems[index][field] = field === 'order' ? parseInt(value, 10) || 0 : value;
-                setMenuItems(newItems);
-            };
+    /* ================== Gece Modu Toggle ================== */
+    const DarkModeToggle = () => {
+      const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initial = (localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light')) === 'dark';
+      const [dark, setDark] = React.useState(initial);
 
-            const addNewItem = () => setMenuItems([...menuItems, { title: '', url: '/', order: menuItems.length + 1 }]);
-            const deleteItem = (index) => setMenuItems(menuItems.filter((_, i) => i !== index));
-
-            const saveChanges = async () => {
-                setLoading(true);
-                setFeedback('Kaydediliyor...');
-                try {
-                    const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
-                    await window.setDoc(headerRef, { menuItems });
-                    setFeedback('Header başarıyla güncellendi!');
-                    setTimeout(() => setFeedback(''), 3000);
-                } catch (err) {
-                    setFeedback('Güncelleme sırasında bir hata oluştu.');
-                    console.error(err);
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            if (loading && !menuItems.length) return <p>Yükleniyor...</p>;
-
-            return (
-                <div className="space-y-6">
-                    <h3 className="text-2xl font-semibold text-gray-800">Header Yönetimi</h3>
-                    {feedback && <p className={`p-3 rounded-lg ${feedback.includes('hata') || feedback.includes('bulunamadı') ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{feedback}</p>}
-                    <div className="space-y-4">
-                        {menuItems.map((item, index) => (
-                            <div key={index} className="flex items-center gap-4 p-4 border rounded-lg bg-gray-50">
-                                <input type="text" placeholder="Başlık" value={item.title} onChange={(e) => handleItemChange(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-md"/>
-                                <input type="text" placeholder="URL" value={item.url} onChange={(e) => handleItemChange(index, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-md"/>
-                                <input type="number" placeholder="Sıra" value={item.order} onChange={(e) => handleItemChange(index, 'order', e.target.value)} className="w-24 px-3 py-2 border rounded-md"/>
-                                <button onClick={() => deleteItem(index)} className="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600">&times;</button>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-between items-center pt-4 border-t">
-                        <button onClick={addNewItem} className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Yeni Eleman Ekle</button>
-                        <button onClick={saveChanges} disabled={loading} className="bg-gray-800 text-white py-2 px-6 rounded-lg hover:bg-gray-900 transition disabled:bg-gray-400">
-                            {loading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-        
-        const AdminDashboard = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
-            const [activeTab, setActiveTab] = React.useState('overview');
-            const [users, setUsers] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
-            
-            React.useEffect(() => {
-                if (activeTab === 'userManagement') {
-                    const fetchUsers = async () => {
-                        setLoading(true);
-                        try {
-                            const usersCollection = window.collection(window.firebaseFirestore, 'users');
-                            const usersSnapshot = await window.getDocs(usersCollection);
-                            const usersList = usersSnapshot.docs.map(doc => ({
-                                id: doc.id,
-                                ...doc.data()
-                            }));
-                            setUsers(usersList);
-                        } catch (error) {
-                            console.error("Kullanıcılar çekilirken hata oluştu: ", error);
-                        }
-                        setLoading(false);
-                    };
-                    fetchUsers();
-                }
-            }, [activeTab]);
-            
-            const handleApprove = async (userId) => {
-                try {
-                    const userRef = window.doc(window.firebaseFirestore, 'users', userId);
-                    await window.updateDoc(userRef, {
-                        status: 'approved',
-                    });
-                    setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, status: 'approved' } : user));
-                    alert('Kullanıcı başarıyla onaylandı.');
-                } catch (error) {
-                    console.error("Kullanıcı onaylanırken hata oluştu: ", error);
-                    alert('Kullanıcı onaylanamadı.');
-                }
-            };
-        
-            const handleView = (userId) => {
-                alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
-            };
-            
-            const renderContent = () => {
-                switch (activeTab) {
-                    case 'overview':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('overview')}</h3>
-                                {currentUser && <p className="text-gray-600">Kullanıcı ID: {currentUser.uid}</p>}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <MetricCard title={t('totalEarnings')} value="₺250,000" description={t('last30Days')} icon={<DollarSignIcon size={24} className="text-green-600" />} />
-                                    <MetricCard title={t('mostPopularProduct')} value="Ayşe Yılmaz Tasarım" description={`₺50,000 ${t('sales')}`} icon={<StoreIcon size={24} className="text-purple-500" />} />
-                                    <MetricCard title={t('mostPopularCategory')} value={t('furniture')} description={`80 ${t('unitsSold')}`} icon={<BoxIcon size={24} className="text-blue-500" />} />
-                                    <MetricCard title={t('totalInventory')} value={`1,200 ${t('product')}`} description={t('platformWide')} icon={<PackageIcon size={24} className="text-orange-500" />} />
-                                </div>
-                            </div>
-                        );
-                    case 'userManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('userManager')}</h3>
-                                {loading && <p>Kullanıcılar yükleniyor...</p>} 
-                                {!loading && (
-                                    <>
-                                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                            <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerApplications')}</h4>
-                                            <ul className="space-y-4">
-                                                     {users.filter(user => user.role === 'seller' && user.status === 'pending').map(user => (
-                                                            <UserListItem 
-                                                                key={user.id} 
-                                                                user={user} 
-                                                                t={t} 
-                                                                onApprove={handleApprove} 
-                                                                onView={handleView} />
-                                                    ))}
-                                            </ul>
-                                        </div>
-                                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                            <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allUsers')}</h4>
-                                            <ul className="space-y-4">
-                                               {users.map(user => (
-                                                        <UserListItem 
-                                                            key={user.id} 
-                                                            user={user} 
-                                                            t={t} 
-                                                            onApprove={handleApprove} 
-                                                            onView={handleView}
-                                                        />
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        );
-                    case 'productManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('productManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('allListedProducts')}</h4>
-                                    <ul className="space-y-4">
-                                        <ProductListItem name="Modern Ahşap Sandalye" status={t('active')} price="₺1,200" showAdminActions t={t} />
-                                        <ProductListItem name="Soyut Yağlıboya Tablo" status={t('active')} price="₺3,500" showAdminActions t={t} />
-                                        <ProductListItem name="Endüstriyel Tarz Lamba" status={t('passive')} price="₺850" showAdminActions t={t} />
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('featuredProducts')}</h4>
-                                    <p className="text-gray-600">{t('manageFeaturedProducts')}</p>
-                                    <button onClick={() => alert('Öne Çıkarılan ürünler yönetiliyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageFeaturedProducts')}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    case 'financeManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('financeManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('commissionRates')}</h4>
-                                    <p className="text-gray-600">{t('currentCommissionRate')} <span className="font-semibold"> %15</span></p>
-                                    <button onClick={() => alert('Komisyon oranı ayarlanıyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('setCommissionRate')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('designerPayments')}</h4>
-                                    <p className="text-gray-600">{t('managePayments')}</p>
-                                    <button onClick={() => alert('Ödemeler yönetiliyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('managePayments')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('incomeExpenseReports')}</h4>
-                                    <p className="text-gray-600">{t('viewReports')}</p>
-                                    <button onClick={() => alert('Raporlar görüntüleniyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('viewReports')}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    case 'contentManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('contentManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('homePageBanners')}</h4>
-                                    <p className="text-gray-600">{t('manageBanners')}</p>
-                                    <button onClick={() => alert('Bannerlar yönetiliyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageBanners')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('specialCollectionPages')}</h4>
-                                    <p className="text-gray-600">{t('manageCollections')}</p>
-                                    <button onClick={() => alert('Koleksiyonlar yönetiliyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageCollections')}
-                                    </button>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('blogPosts')}</h4>
-                                    <p className="text-gray-600">{t('manageBlogPosts')}</p>
-                                    <button onClick={() => alert('Blog yazıları yönetiliyor...')} className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
-                                        {t('manageBlogPosts')}
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    case 'marqueeManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">Kayan Banner (Marquee) Ayarları</h3>
-                                <ScrollingBannerSettings t={t} />
-                            </div>
-                        );
-                    case 'categoryManagement':
-                        return (
-                            <div className="space-y-6">
-                                <h3 className="text-2xl font-semibold text-gray-800">{t('categoryManagement')}</h3>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('mainCategories')}</h4>
-                                    <ul className="space-y-2">
-                                        <CategoryListItem name="Mobilya" t={t} />
-                                        <CategoryListItem name="Aydınlatma" t={t} />
-                                        <CategoryListItem name="Dekorasyon" t={t} />
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                    <h4 className="text-xl font-medium text-gray-700 mb-4">{t('addCategory')}</h4>
-                                    <form className="space-y-4">
-                                        <Input label={t('categoryName')} placeholder="Kategori Adı" />
-                                        <Select label={t('parentCategory')} options={['Yok', 'Mobilya', 'Aydınlatma', 'Dekorasyon']} />
-                                        <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">{t('saveCategory')}</button>
-                                    </form>
-                                </div>
-                            </div>
-                        );
-                    // YENİ CASE EKLENDİ
-                    case 'headerManagement':
-                        return <HeaderManagement t={t} />;
-                    default:
-                        return null;
-                }
-            };
-            return (
-                <div className="flex flex-col md:flex-row gap-8">
-                    <div className="md:w-1/4 bg-white p-6 rounded-xl shadow-sm h-fit border border-gray-100">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('adminPanel')}</h2>
-                        <ul className="space-y-3">
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('overview')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'overview' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <LayoutDashboardIcon size={20} />
-                                    <span>{t('overview')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('userManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'userManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <UsersIcon size={20} />
-                                    <span>{t('userManager')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('productManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'productManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <BoxIcon size={20} />
-                                    <span>{t('productManagement')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('financeManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'financeManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <DollarSignIcon size={20} />
-                                    <span>{t('financeManagement')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('contentManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'contentManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <FileTextIcon size={20} />
-                                    <span>{t('contentManagement')}</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('categoryManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'categoryManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <TagsIcon size={20} />
-                                    <span>{t('categoryManagement')}</span>
-                                </button>
-                            </li>
-                            {/* YENİ SEKMEYİ EKLEYİN */}
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('headerManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'headerManagement' ? 'bg-gray-100 text-gray-800 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <SettingsIcon size={20} />
-                                    <span>Header Yönetimi</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => setActiveTab('marqueeManagement')}
-                                    className={`flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'marqueeManagement' ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-800'}`}
-                                >
-                                    <MegaphoneIcon size={20} />
-                                    <span>Kayan Banner (Marquee) Ayarları</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="md:w-3/4 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                        {renderContent()}
-                    </div>
-                </div>
-            );
-        };
-        const MetricCard = ({ title, value, description, icon }) => { /* ... */ };
-        const Input = ({ label, type, placeholder, value, onChange }) => { /* ... */ };
-        const TextArea = ({ label, placeholder, value, onChange }) => { /* ... */ };
-        const Select = ({ label, options }) => { /* ... */ };
-        const ProductListItem = ({ name, status, price, showAdminActions, t }) => { /* ... */ };
-        const OrderItem = ({ orderId, productName, status, date, showMessageButton, t }) => { /* ... */ };
-        const UserListItem = ({ user, t, onApprove, onView }) => { /* ... */ };
-        const CategoryListItem = ({ name, t }) => { /* ... */ };
-        
-        
-// --- Kayan Banner (Marquee) Ayarları Bileşeni ---
-const ScrollingBannerSettings = ({ t }) => {
-  const [cfg, setCfg] = React.useState({
-    items: [
-      { textKey: 'summerSale' },
-      { textKey: 'newArrivals' },
-      { textKey: 'raysDiscount' },
-      { textKey: 'discoverThisWeeksHighlights' },
-      { textKey: 'freeShipping' }
-    ],
-    speedSec: 40,
-    fontFamily: "Helvetica, Arial, sans-serif",
-    fontSize: 14,
-    fontWeight: 300,
-    textColor: "#222222",
-    bgColor: "#f2f4f7",
-    pauseOnHover: true,
-    letterSpacing: 0
-  });
-  const [feedback, setFeedback] = React.useState('');
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(()=>{
-    (async()=>{
-      try{
-        const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner');
-        const snap = await window.getDoc(ref);
-        if (snap.exists()) {
-          const data = snap.data()||{};
-          setCfg(prev=>({...prev, ...data, items: (data.items && data.items.length? data.items : prev.items)}));
+      React.useEffect(() => {
+        const el = document.documentElement;
+        if (dark) {
+          el.classList.add('dark');
+          localStorage.setItem('theme','dark');
+        } else {
+          el.classList.remove('dark');
+          localStorage.setItem('theme','light');
         }
-      } catch(e) { console.warn(e); }
-      finally { setLoading(false); }
-    })();
-  },[]);
+      }, [dark]);
 
-  const itemsResolved = (cfg.items||[]).map(it => it.textKey ? (t(it.textKey) || it.textKey) : (it.text || ''));
-  const updateItem=(i,f,v)=>{ const n=[...(cfg.items||[])]; n[i]={...n[i],[f]:v}; setCfg({...cfg,items:n}); };
-  const addItem=()=>setCfg({...cfg,items:[...(cfg.items||[]),{textKey:'',text:'',href:''}]});
-  const removeItem=i=>setCfg({...cfg,items:(cfg.items||[]).filter((_,x)=>x!==i)});
+      return (
+        <button
+          onClick={()=>setDark(v=>!v)}
+          title={dark ? 'Açık moda geç' : 'Gece Modu'}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          aria-label="Gece Modu"
+        >
+          <span className="text-sm">{dark ? '🌙' : '☀️'}</span>
+          <span className="hidden sm:inline text-sm">{dark ? 'Koyu' : 'Açık'}</span>
+        </button>
+      );
+    };
 
-  const save=async()=>{
-    try{
-      const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner');
-      await window.setDoc(ref, cfg, { merge:true });
-      setFeedback('Kaydedildi.');
-      setTimeout(()=>setFeedback(''),2000);
-    }catch(e){
-      console.error(e);
-      setFeedback('Kaydedilemedi: '+e.message);
-    }
-  };
+    /* ================== Navbar ================== */
+    const Navbar = ({ isLoggedIn, userType, t }) => {
+      const handleLogout = async () => {
+        try {
+          await window.signOut(window.firebaseAuth);
+          window.location.href = 'index.html';
+        } catch (error) {
+          console.error("Çıkış yaparken hata oluştu:", error);
+        }
+      };
+      return (
+        <div className="bg-white dark:bg-[#111827]">
+          <nav className="border-b border-gray-200 dark:border-gray-700">
+            <div className="container mx-auto px-6 md:px-10 flex items-center justify-between py-4">
+              <div className="flex items-center w-1/3">{/* Solda boş */}</div>
+              <div className="flex-grow flex justify-center">
+                <img src="ana logo yatay@2x.png" alt="Kadraj l'Atelier Logo" className="h-8 cursor-pointer" onClick={() => window.location.href = 'index.html'} />
+              </div>
+              <div className="flex items-center space-x-3 sm:space-x-4 w-1/3 justify-end">
+                <button className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition duration-300"><UserIcon size={24} /></button>
 
-  const FONT_OPTIONS=[
-    {label:'Inter', family:"'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif", weights:[300,700]},
-    {label:'Jost', family:"'Jost', Helvetica, Arial, sans-serif", weights:[300,700]},
-    {label:'Roboto', family:"'Roboto', Helvetica, Arial, sans-serif", weights:[300,700]},
-    {label:'IBM Plex Sans', family:"'IBM Plex Sans', Helvetica, Arial, sans-serif", weights:[300,700]},
-    {label:'Helvetica/Arial', family:"Helvetica, Arial, sans-serif", weights:[300,700]},
-    {label:'Georgia', family:"Georgia, 'Times New Roman', serif", weights:[300,700]},
-    {label:'Playfair Display', family:"'Playfair Display', Georgia, serif", weights:[300,700]}
-  ];
+                {/* <<< Gece Modu Toggle (Çıkışın SOLUNA) >>> */}
+                <DarkModeToggle />
 
-  const pickFont=(family, weight)=> setCfg({...cfg, fontFamily: family, fontWeight: weight});
+                {isLoggedIn && (
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition duration-300 ease-in-out px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <LogOutIcon size={20} />
+                    <span>{t('logout')}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </nav>
+        </div>
+      );
+    };
 
-  const liveContainer={backgroundColor:cfg.bgColor,color:cfg.textColor,fontFamily:cfg.fontFamily,fontSize:cfg.fontSize+'px',fontWeight:cfg.fontWeight,letterSpacing:(cfg.letterSpacing||0)+'px',borderRadius:'12px',overflow:'hidden',border:'1px solid #e5e7eb'};
-  const liveTrack={display:'flex',whiteSpace:'nowrap',padding:'8px 0',animation:`scroll-left ${cfg.speedSec||40}s linear infinite`};
-
-  return (
-    <div className="space-y-6">
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">İçerikler</span>
-            <button onClick={addItem} className="px-3 py-1.5 rounded-lg border bg-gray-50 hover:bg-gray-100">+ Ekle</button>
+    /* ================== Küçük yardımcı bileşenler (çalışır stub) ================== */
+    const MetricCard = ({ title, value, description, icon }) => (
+      <div className="bg-white dark:bg-[#111827] p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-gray-500 dark:text-gray-300">{title}</div>
+            <div className="text-2xl font-semibold mt-1">{value}</div>
+            {description && <div className="text-xs text-gray-400 mt-1">{description}</div>}
           </div>
-          <div className="space-y-3">
-            {(cfg.items||[]).map((it, idx)=>(
-              <div key={idx} className="border rounded-lg p-3 grid md:grid-cols-3 gap-3">
-                <input className="border rounded p-2" placeholder="textKey (örn: summerSale)"
-                       value={it.textKey||''} onChange={e=>updateItem(idx,'textKey',e.target.value)}/>
-                <input className="border rounded p-2" placeholder="Serbest metin (opsiyonel)"
-                       value={it.text||''} onChange={e=>updateItem(idx,'text',e.target.value)}/>
-                <div className="flex gap-2">
-                  <input className="border rounded p-2 flex-1" placeholder="Bağlantı (opsiyonel)"
-                         value={it.href||''} onChange={e=>updateItem(idx,'href',e.target.value)}/>
-                  <button onClick={()=>removeItem(idx)} className="px-2 border rounded hover:bg-red-50">Sil</button>
-                </div>
+          <div>{icon}</div>
+        </div>
+      </div>
+    );
+    const Input = ({ label, type='text', placeholder, value, onChange }) => (
+      <label className="block">
+        <span className="text-sm text-gray-600">{label}</span>
+        <input type={type} placeholder={placeholder} value={value} onChange={onChange}
+               className="mt-1 w-full border rounded-lg p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700"/>
+      </label>
+    );
+    const TextArea = ({ label, placeholder, value, onChange }) => (
+      <label className="block">
+        <span className="text-sm text-gray-600">{label}</span>
+        <textarea placeholder={placeholder} value={value} onChange={onChange}
+                  className="mt-1 w-full border rounded-lg p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700"/>
+      </label>
+    );
+    const Select = ({ label, options=[] }) => (
+      <label className="block">
+        <span className="text-sm text-gray-600">{label}</span>
+        <select className="mt-1 w-full border rounded-lg p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700">
+          {options.map((o,i)=><option key={i} value={o}>{o}</option>)}
+        </select>
+      </label>
+    );
+    const ProductListItem = ({ name, status, price }) => (
+      <li className="flex items-center justify-between border rounded-lg p-3 bg-white dark:bg-[#111827] border-gray-100 dark:border-gray-700">
+        <div>
+          <div className="font-medium">{name}</div>
+          <div className="text-xs text-gray-500">{status}</div>
+        </div>
+        <div className="font-semibold">{price}</div>
+      </li>
+    );
+    const OrderItem = ({ orderId, productName, status, date }) => (
+      <li className="border rounded-lg p-3 bg-white dark:bg-[#111827] border-gray-100 dark:border-gray-700">
+        <div className="font-medium">{orderId} – {productName}</div>
+        <div className="text-xs text-gray-500">{status} • {date}</div>
+      </li>
+    );
+    const UserListItem = ({ user, t, onApprove, onView }) => (
+      <li className="flex items-center justify-between border rounded-lg p-3 bg-white dark:bg-[#111827] border-gray-100 dark:border-gray-700">
+        <div>
+          <div className="font-medium">{user.displayName || user.email || user.id}</div>
+          <div className="text-xs text-gray-500">{user.role || 'user'}{user.status ? ` • ${user.status}` : ''}</div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={()=>onView(user.id)} className="px-3 py-1 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800">Görüntüle</button>
+          {user.status!=='approved' && <button onClick={()=>onApprove(user.id)} className="px-3 py-1 rounded-lg bg-gray-900 text-white hover:bg-black">Onayla</button>}
+        </div>
+      </li>
+    );
+    const CategoryListItem = ({ name }) => (
+      <li className="border rounded-lg p-3 bg-white dark:bg-[#111827] border-gray-100 dark:border-gray-700">{name}</li>
+    );
+
+    /* ================== Header Yönetimi ================== */
+    const HeaderManagement = ({ t }) => {
+      const [menuItems, setMenuItems] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [feedback, setFeedback] = React.useState('');
+
+      React.useEffect(() => {
+        const fetchMenuItems = async () => {
+          setLoading(true);
+          try {
+            const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
+            const docSnap = await window.getDoc(headerRef);
+            if (docSnap.exists()) {
+              const sortedItems = (docSnap.data().menuItems||[]).sort((a, b) => (a.order||0) - (b.order||0));
+              setMenuItems(sortedItems);
+            } else {
+              setFeedback('Header konfigürasyonu bulunamadı.');
+            }
+          } catch (err) {
+            setFeedback('Veri çekilirken bir hata oluştu: ' + err.message);
+            console.error(err);
+          } finally {
+            setLoading(false);
+          }
+        };
+        fetchMenuItems();
+      }, []);
+
+      const handleItemChange = (index, field, value) => {
+        const newItems = [...menuItems];
+        newItems[index][field] = field === 'order' ? parseInt(value, 10) || 0 : value;
+        setMenuItems(newItems);
+      };
+
+      const addNewItem = () => setMenuItems([...menuItems, { title: '', url: '/', order: menuItems.length + 1 }]);
+      const deleteItem = (index) => setMenuItems(menuItems.filter((_, i) => i !== index));
+
+      const saveChanges = async () => {
+        setLoading(true);
+        setFeedback('Kaydediliyor...');
+        try {
+          const headerRef = window.doc(window.firebaseFirestore, 'siteConfiguration', 'header');
+          await window.setDoc(headerRef, { menuItems });
+          setFeedback('Header başarıyla güncellendi!');
+          setTimeout(() => setFeedback(''), 3000);
+        } catch (err) {
+          setFeedback('Güncelleme sırasında bir hata oluştu.');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (loading && !menuItems.length) return <p>Yükleniyor...</p>;
+
+      return (
+        <div className="space-y-6">
+          <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Header Yönetimi</h3>
+          {feedback && <p className={`p-3 rounded-lg ${feedback.includes('hata') || feedback.includes('bulunamadı') ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{feedback}</p>}
+          <div className="space-y-4">
+            {menuItems.map((item, index) => (
+              <div key={index} className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-[#111827] border-gray-100 dark:border-gray-700">
+                <input type="text" placeholder="Başlık" value={item.title||''} onChange={(e) => handleItemChange(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-md bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700"/>
+                <input type="text" placeholder="URL" value={item.url||'/'} onChange={(e) => handleItemChange(index, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-md bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700"/>
+                <input type="number" placeholder="Sıra" value={item.order||0} onChange={(e) => handleItemChange(index, 'order', e.target.value)} className="w-24 px-3 py-2 border rounded-md bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700"/>
+                <button onClick={() => deleteItem(index)} className="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600">&times;</button>
               </div>
             ))}
           </div>
+          <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button onClick={addNewItem} className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">Yeni Eleman Ekle</button>
+            <button onClick={saveChanges} disabled={loading} className="bg-gray-800 text-white py-2 px-6 rounded-lg hover:bg-gray-900 transition disabled:bg-gray-400">
+              {loading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+            </button>
+          </div>
+        </div>
+      );
+    };
 
-          <label className="block"><span className="text-sm text-gray-600">Hız (saniye)</span>
-            <input type="number" min="5" className="mt-1 w-full border rounded-lg p-2" value={cfg.speedSec}
-                   onChange={e=>setCfg({...cfg, speedSec:parseInt(e.target.value||40,10)})}/>
-          </label>
+    /* ================== Kayan Banner (Marquee) Ayarları ================== */
+    const ScrollingBannerSettings = ({ t }) => {
+      const [cfg, setCfg] = React.useState({
+        items: [
+          { textKey: 'summerSale' },
+          { textKey: 'newArrivals' },
+          { textKey: 'raysDiscount' },
+          { textKey: 'discoverThisWeeksHighlights' },
+          { textKey: 'freeShipping' }
+        ],
+        speedSec: 40,
+        fontFamily: "Helvetica, Arial, sans-serif",
+        fontSize: 14,
+        fontWeight: 300,
+        textColor: "#222222",
+        bgColor: "#f2f4f7",
+        pauseOnHover: true,
+        letterSpacing: 0
+      });
+      const [feedback, setFeedback] = React.useState('');
+      const [loading, setLoading] = React.useState(true);
 
-          <div className="space-y-2">
-            <div className="text-sm text-gray-600">Yazı Tipi (Hitbox) & Ağırlık</div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {FONT_OPTIONS.map(opt => opt.weights.map(w => (
-                <button key={opt.label+'-'+w}
-                  onClick={()=>pickFont(opt.family,w)}
-                  className={"border rounded-xl px-3 py-3 text-left hover:bg-gray-50 transition " + ((cfg.fontFamily===opt.family && cfg.fontWeight===w) ? "ring-2 ring-gray-900" : "")}
-                  style={{fontFamily:opt.family, fontWeight:w}}>
-                  <div className="text-sm">{opt.label}</div>
-                  <div className="text-xs opacity-70">{w===300?'Light (300)':'Bold (700)'}</div>
-                  <div className="mt-1 text-base">Aa Bb Cc 123</div>
-                </button>
-              )))}
+      React.useEffect(()=>{
+        (async()=>{
+          try{
+            const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner');
+            const snap = await window.getDoc(ref);
+            if (snap.exists()) {
+              const data = snap.data()||{};
+              setCfg(prev=>({...prev, ...data, items: (data.items && data.items.length? data.items : prev.items)}));
+            }
+          } catch(e) { console.warn(e); }
+          finally { setLoading(false); }
+        })();
+      },[]);
+
+      const itemsResolved = (cfg.items||[]).map(it => it.textKey ? (t(it.textKey) || it.textKey) : (it.text || ''));
+      const updateItem=(i,f,v)=>{ const n=[...(cfg.items||[])]; n[i]={...n[i],[f]:v}; setCfg({...cfg,items:n}); };
+      const addItem=()=>setCfg({...cfg,items:[...(cfg.items||[]),{textKey:'',text:'',href:''}]});
+      const removeItem=i=>setCfg({...cfg,items:(cfg.items||[]).filter((_,x)=>x!==i)});
+
+      const save=async()=>{
+        try{
+          const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner');
+          await window.setDoc(ref, cfg, { merge:true });
+          setFeedback('Kaydedildi.');
+          setTimeout(()=>setFeedback(''),2000);
+        }catch(e){
+          console.error(e);
+          setFeedback('Kaydedilemedi: '+e.message);
+        }
+      };
+
+      const FONT_OPTIONS=[
+        {label:'Inter', family:"'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif", weights:[300,700]},
+        {label:'Jost', family:"'Jost', Helvetica, Arial, sans-serif", weights:[300,700]},
+        {label:'Roboto', family:"'Roboto', Helvetica, Arial, sans-serif", weights:[300,700]},
+        {label:'IBM Plex Sans', family:"'IBM Plex Sans', Helvetica, Arial, sans-serif", weights:[300,700]},
+        {label:'Helvetica/Arial', family:"Helvetica, Arial, sans-serif", weights:[300,700]},
+        {label:'Georgia', family:"Georgia, 'Times New Roman', serif", weights:[300,700]},
+        {label:'Playfair Display', family:"'Playfair Display', Georgia, serif", weights:[300,700]}
+      ];
+
+      const pickFont=(family, weight)=> setCfg({...cfg, fontFamily: family, fontWeight: weight});
+
+      const liveContainer={backgroundColor:cfg.bgColor,color:cfg.textColor,fontFamily:cfg.fontFamily,fontSize:cfg.fontSize+'px',fontWeight:cfg.fontWeight,letterSpacing:(cfg.letterSpacing||0)+'px',borderRadius:'12px',overflow:'hidden',border:'1px solid #e5e7eb'};
+      const liveTrack={display:'flex',whiteSpace:'nowrap',padding:'8px 0',animation:`scroll-left ${cfg.speedSec||40}s linear infinite`};
+
+      return (
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">İçerikler</span>
+                <button onClick={addItem} className="px-3 py-1.5 rounded-lg border bg-gray-50 hover:bg-gray-100 dark:bg-[#0b0f14] dark:hover:bg-[#0f172a]">+ Ekle</button>
+              </div>
+              <div className="space-y-3">
+                {(cfg.items||[]).map((it, idx)=>(
+                  <div key={idx} className="border rounded-lg p-3 grid md:grid-cols-3 gap-3 bg-white dark:bg-[#111827] border-gray-100 dark:border-gray-700">
+                    <input className="border rounded p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" placeholder="textKey (örn: summerSale)"
+                           value={it.textKey||''} onChange={e=>updateItem(idx,'textKey',e.target.value)}/>
+                    <input className="border rounded p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" placeholder="Serbest metin (opsiyonel)"
+                           value={it.text||''} onChange={e=>updateItem(idx,'text',e.target.value)}/>
+                    <div className="flex gap-2">
+                      <input className="border rounded p-2 flex-1 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" placeholder="Bağlantı (opsiyonel)"
+                             value={it.href||''} onChange={e=>updateItem(idx,'href',e.target.value)}/>
+                      <button onClick={()=>removeItem(idx)} className="px-2 border rounded hover:bg-red-50 dark:border-gray-700 dark:hover:bg-red-900/20">Sil</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <label className="block"><span className="text-sm text-gray-600">Hız (saniye)</span>
+                <input type="number" min="5" className="mt-1 w-full border rounded-lg p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" value={cfg.speedSec}
+                       onChange={e=>setCfg({...cfg, speedSec:parseInt(e.target.value||40,10)})}/>
+              </label>
+
+              <div className="space-y-2">
+                <div className="text-sm text-gray-600">Yazı Tipi (Hitbox) & Ağırlık</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {FONT_OPTIONS.map(opt => opt.weights.map(w => (
+                    <button key={opt.label+'-'+w}
+                      onClick={()=>pickFont(opt.family,w)}
+                      className={"border rounded-xl px-3 py-3 text-left hover:bg-gray-50 dark:hover:bg-[#0f172a] transition " + ((cfg.fontFamily===opt.family && cfg.fontWeight===w) ? "ring-2 ring-gray-900" : "")}
+                      style={{fontFamily:opt.family, fontWeight:w}}>
+                      <div className="text-sm">{opt.label}</div>
+                      <div className="text-xs opacity-70">{w===300?'Light (300)':'Bold (700)'}</div>
+                      <div className="mt-1 text-base">Aa Bb Cc 123</div>
+                    </button>
+                  )))}
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <label className="block"><span className="text-sm text-gray-600">Punto (px)</span>
+                    <input type="number" min="10" className="mt-1 w-full border rounded-lg p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" value={cfg.fontSize}
+                           onChange={e=>setCfg({...cfg, fontSize:parseInt(e.target.value||14,10)})}/>
+                  </label>
+                  <label className="block"><span className="text-sm text-gray-600">Harf Aralığı (px)</span>
+                    <input type="number" step="0.5" className="mt-1 w-full border rounded-lg p-2 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" value={cfg.letterSpacing}
+                           onChange={e=>setCfg({...cfg, letterSpacing:parseFloat(e.target.value||0)})}/>
+                  </label>
+                  <div className="block"><span className="text-sm text-gray-600">Ağırlık</span>
+                    <input type="number" readOnly className="mt-1 w-full border rounded-lg p-2 bg-gray-50 dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" value={cfg.fontWeight}/>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block"><span className="text-sm text-gray-600">Metin Rengi</span>
+                  <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" value={cfg.textColor}
+                         onChange={e=>setCfg({...cfg, textColor:e.target.value})}/>
+                </label>
+                <label className="block"><span className="text-sm text-gray-600">Arka Plan</span>
+                  <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1 bg-white dark:bg-[#0b0f14] border-gray-200 dark:border-gray-700" value={cfg.bgColor}
+                         onChange={e=>setCfg({...cfg, bgColor:e.target.value})}/>
+                </label>
+              </div>
+
+              <label className="inline-flex items-center gap-2 mt-2">
+                <input type="checkbox" className="border rounded" checked={!!cfg.pauseOnHover}
+                       onChange={e=>setCfg({...cfg, pauseOnHover:e.target.checked})}/>
+                <span>Üzerine gelince duraklat</span>
+              </label>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <label className="block"><span className="text-sm text-gray-600">Punto (px)</span>
-                <input type="number" min="10" className="mt-1 w-full border rounded-lg p-2" value={cfg.fontSize}
-                       onChange={e=>setCfg({...cfg, fontSize:parseInt(e.target.value||14,10)})}/>
-              </label>
-              <label className="block"><span className="text-sm text-gray-600">Harf Aralığı (px)</span>
-                <input type="number" step="0.5" className="mt-1 w-full border rounded-lg p-2" value={cfg.letterSpacing}
-                       onChange={e=>setCfg({...cfg, letterSpacing:parseFloat(e.target.value||0)})}/>
-              </label>
-              <div className="block"><span className="text-sm text-gray-600">Ağırlık</span>
-                <input type="number" readOnly className="mt-1 w-full border rounded-lg p-2 bg-gray-50" value={cfg.fontWeight}/>
+
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">Önizleme</div>
+              <div style={liveContainer}>
+                <div style={liveTrack}
+                     onMouseEnter={(e)=>{ if(cfg.pauseOnHover) e.currentTarget.style.animationPlayState='paused'; }}
+                     onMouseLeave={(e)=>{ if(cfg.pauseOnHover) e.currentTarget.style.animationPlayState='running'; }}>
+                  {itemsResolved.map((txt,i)=>(<span key={i} className="px-8 flex-shrink-0">{txt}</span>))}
+                  {itemsResolved.map((txt,i)=>(<span key={'dup-'+i} className="px-8 flex-shrink-0">{txt}</span>))}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <label className="block"><span className="text-sm text-gray-600">Metin Rengi</span>
-              <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1" value={cfg.textColor}
-                     onChange={e=>setCfg({...cfg, textColor:e.target.value})}/>
-            </label>
-            <label className="block"><span className="text-sm text-gray-600">Arka Plan</span>
-              <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1" value={cfg.bgColor}
-                     onChange={e=>setCfg({...cfg, bgColor:e.target.value})}/>
-            </label>
-          </div>
-
-          <label className="inline-flex items-center gap-2 mt-2">
-            <input type="checkbox" className="border rounded" checked={!!cfg.pauseOnHover}
-                   onChange={e=>setCfg({...cfg, pauseOnHover:e.target.checked})}/>
-            <span>Üzerine gelince duraklat</span>
-          </label>
-        </div>
-
-        <div className="space-y-2">
-          <div className="text-sm text-gray-600">Önizleme</div>
-          <div style={liveContainer}>
-            <div style={liveTrack}
-                 onMouseEnter={(e)=>{ if(cfg.pauseOnHover) e.currentTarget.style.animationPlayState='paused'; }}
-                 onMouseLeave={(e)=>{ if(cfg.pauseOnHover) e.currentTarget.style.animationPlayState='running'; }}>
-              {itemsResolved.map((txt,i)=>(<span key={i} className="px-8 flex-shrink-0">{txt}</span>))}
-              {itemsResolved.map((txt,i)=>(<span key={'dup-'+i} className="px-8 flex-shrink-0">{txt}</span>))}
-            </div>
+          <div className="mt-6 flex items-center gap-3">
+            <button onClick={save} className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">Kaydet</button>
+            {feedback && <span className="text-sm text-gray-600">{feedback}</span>}
           </div>
         </div>
-      </div>
+      );
+    };
 
-      <div className="mt-6 flex items-center gap-3">
-        <button onClick={save} className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">Kaydet</button>
-        {feedback && <span className="text-sm text-gray-600">{feedback}</span>}
-      </div>
-    </div>
-  );
-};
+    /* ================== Admin Dashboard ================== */
+    const AdminDashboard = ({ isLoggedIn, userType, setIsLoggedIn, setUserType, t, currentUser }) => {
+      const [activeTab, setActiveTab] = React.useState('overview');
+      const [users, setUsers] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
 
-
-        const App = () => {
-            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-            const [userType, setUserType] = React.useState(null);
-            const [language, setLanguage] = React.useState('Türkçe');
-            const [currentUser, setCurrentUser] = React.useState(null);
-
-            React.useEffect(() => {
-                const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-                    if (user) {
-                        setCurrentUser(user);
-                        setIsLoggedIn(true);
-                        const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                        const userDocSnap = await window.getDoc(userDocRef);
-                        if (userDocSnap.exists()) {
-                            const role = userDocSnap.data().role;
-                            setUserType(role);
-                            if (role !== 'admin') {
-                                window.location.href = 'index.html';
-                            }
-                        } else {
-                            window.location.href = 'index.html';
-                        }
-                    } else {
-                        setCurrentUser(null);
-                        setIsLoggedIn(false);
-                        setUserType(null);
-                        window.location.href = 'index.html';
-                    }
-                });
-                return () => unsubscribe();
-            }, []);
-
-            const t = (key) => translations[language][key] || key;
-            
-            if (!isLoggedIn || userType !== 'admin') {
-                return <p>Yükleniyor veya yetkiniz yok...</p>;
+      React.useEffect(() => {
+        if (activeTab === 'userManagement') {
+          const fetchUsers = async () => {
+            setLoading(true);
+            try {
+              const usersCollection = window.collection(window.firebaseFirestore, 'users');
+              const usersSnapshot = await window.getDocs(usersCollection);
+              const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setUsers(usersList);
+            } catch (error) {
+              console.error("Kullanıcılar çekilirken hata oluştu: ", error);
             }
-            
+            setLoading(false);
+          };
+          fetchUsers();
+        }
+      }, [activeTab]);
+
+      const handleApprove = async (userId) => {
+        try {
+          const userRef = window.doc(window.firebaseFirestore, 'users', userId);
+          await window.updateDoc(userRef, { status: 'approved' });
+          setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: 'approved' } : u));
+          alert('Kullanıcı başarıyla onaylandı.');
+        } catch (error) {
+          console.error("Kullanıcı onaylanırken hata oluştu: ", error);
+          alert('Kullanıcı onaylanamadı.');
+        }
+      };
+
+      const handleView = (userId) => alert(`Kullanıcı ID: ${userId} detayları gösteriliyor.`);
+
+      const renderContent = () => {
+        switch (activeTab) {
+          case 'overview':
             return (
-                <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
-                    <Navbar isLoggedIn={isLoggedIn} userType={userType} t={t} />
-                    <main className="container mx-auto p-6 md:p-10">
-                        <AdminDashboard isLoggedIn={isLoggedIn} userType={userType} t={t} currentUser={currentUser} />
-                    </main>
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('overview')}</h3>
+                {currentUser && <p className="text-gray-600 dark:text-gray-300">Kullanıcı ID: {currentUser.uid}</p>}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <MetricCard title={t('totalEarnings')} value="₺250,000" description={t('last30Days')}
+                              icon={<DollarSignIcon size={24} className="text-green-600" />} />
+                  <MetricCard title={t('mostPopularProduct')} value="Ayşe Yılmaz Tasarım" description={`₺50,000 ${t('sales')}`}
+                              icon={<StoreIcon size={24} className="text-purple-500" />} />
+                  <MetricCard title={t('mostPopularCategory')} value="Mobilya" description={`80 ${t('unitsSold')}`}
+                              icon={<BoxIcon size={24} className="text-blue-500" />} />
                 </div>
+              </div>
             );
-        };
-        
-        // Ana uygulama render ediliyor
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-    </script>
+          case 'userManagement':
+            return (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('userManager')}</h3>
+                {loading && <p>Kullanıcılar yükleniyor...</p>}
+                {!loading && (
+                  <>
+                    <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                      <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('designerApplications')}</h4>
+                      <ul className="space-y-4">
+                        {users.filter(u => u.role === 'seller' && u.status === 'pending').map(user => (
+                          <UserListItem key={user.id} user={user} t={t} onApprove={handleApprove} onView={handleView} />
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                      <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('allUsers')}</h4>
+                      <ul className="space-y-4">
+                        {users.map(user => (
+                          <UserListItem key={user.id} user={user} t={t} onApprove={handleApprove} onView={handleView} />
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          case 'productManagement':
+            return (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('productManagement')}</h3>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('allUsers')}</h4>
+                  <ul className="space-y-4">
+                    <ProductListItem name="Modern Ahşap Sandalye" status={t('active')} price="₺1,200" />
+                    <ProductListItem name="Soyut Yağlıboya Tablo" status={t('active')} price="₺3,500" />
+                    <ProductListItem name="Endüstriyel Tarz Lamba" status={t('passive')} price="₺850" />
+                  </ul>
+                </div>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('featuredProducts')}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{t('manageFeaturedProducts')}</p>
+                  <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                    {t('manageFeaturedProducts')}
+                  </button>
+                </div>
+              </div>
+            );
+          case 'financeManagement':
+            return (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('financeManagement')}</h3>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('commissionRates')}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{t('currentCommissionRate')} <span className="font-semibold"> %15</span></p>
+                  <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                    {t('setCommissionRate')}
+                  </button>
+                </div>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('designerPayments')}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{t('managePayments')}</p>
+                  <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                    {t('managePayments')}
+                  </button>
+                </div>
+              </div>
+            );
+          case 'contentManagement':
+            return (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('contentManagement')}</h3>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('homePageBanners')}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{t('manageBanners')}</p>
+                  <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                    {t('manageBanners')}
+                  </button>
+                </div>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('specialCollectionPages')}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{t('manageCollections')}</p>
+                  <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                    {t('manageCollections')}
+                  </button>
+                </div>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('blogPosts')}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{t('manageBlogPosts')}</p>
+                  <button className="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">
+                    {t('manageBlogPosts')}
+                  </button>
+                </div>
+              </div>
+            );
+          case 'marqueeManagement':
+            return (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Kayan Banner (Marquee) Ayarları</h3>
+                <ScrollingBannerSettings t={t} />
+              </div>
+            );
+          case 'categoryManagement':
+            return (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('categoryManagement')}</h3>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('mainCategories')}</h4>
+                  <ul className="space-y-2">
+                    <CategoryListItem name="Mobilya" />
+                    <CategoryListItem name="Aydınlatma" />
+                    <CategoryListItem name="Dekorasyon" />
+                  </ul>
+                </div>
+                <div className="bg-white dark:bg-[#111827] p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                  <h4 className="text-xl font-medium text-gray-700 dark:text-gray-200 mb-4">{t('addCategory')}</h4>
+                  <form className="space-y-4">
+                    <Input label={t('categoryName')} placeholder="Kategori Adı" />
+                    <Select label={t('parentCategory')} options={['Yok', 'Mobilya', 'Aydınlatma', 'Dekorasyon']} />
+                    <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">{t('saveCategory')}</button>
+                  </form>
+                </div>
+              </div>
+            );
+          case 'headerManagement':
+            return <HeaderManagement t={t} />;
+          default:
+            return null;
+        }
+      };
+
+      return (
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="md:w-1/4 bg-white dark:bg-[#111827] p-6 rounded-xl shadow-sm h-fit border border-gray-100 dark:border-gray-700">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">{t('adminPanel')}</h2>
+            <ul className="space-y-3">
+              <li>
+                <button onClick={() => setActiveTab('overview')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'overview' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <LayoutDashboardIcon size={20} />
+                  <span>{t('overview')}</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('userManagement')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'userManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <UsersIcon size={20} />
+                  <span>{t('userManager')}</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('productManagement')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'productManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <BoxIcon size={20} />
+                  <span>{t('productManagement')}</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('financeManagement')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'financeManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <DollarSignIcon size={20} />
+                  <span>{t('financeManagement')}</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('contentManagement')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'contentManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <FileTextIcon size={20} />
+                  <span>{t('contentManagement')}</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('categoryManagement')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'categoryManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <TagsIcon size={20} />
+                  <span>{t('categoryManagement')}</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('headerManagement')}
+                        className={`flex items-center space-x-3 w-full text-left py-3 px-4 rounded-lg transition duration-200 ease-in-out ${activeTab === 'headerManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-800 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <SettingsIcon size={20} />
+                  <span>Header Yönetimi</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveTab('marqueeManagement')}
+                        className={`flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'marqueeManagement' ? 'bg-gray-100 dark:bg-[#0f172a] text-gray-900 dark:text-gray-100 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#0f172a]'}`}>
+                  <MegaphoneIcon size={20} />
+                  <span>Kayan Banner (Marquee) Ayarları</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="md:w-3/4 bg-white dark:bg-[#111827] p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            {renderContent()}
+          </div>
+        </div>
+      );
+    };
+
+    /* ================== App ================== */
+    const App = () => {
+      const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+      const [userType, setUserType] = React.useState(null);
+      const [language, setLanguage] = React.useState('Türkçe');
+      const [currentUser, setCurrentUser] = React.useState(null);
+
+      React.useEffect(() => {
+        const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+          if (user) {
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+            const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
+            const userDocSnap = await window.getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+              const role = userDocSnap.data().role;
+              setUserType(role);
+              if (role !== 'admin') {
+                window.location.href = 'index.html';
+              }
+            } else {
+              window.location.href = 'index.html';
+            }
+          } else {
+            setCurrentUser(null);
+            setIsLoggedIn(false);
+            setUserType(null);
+            window.location.href = 'index.html';
+          }
+        });
+        return () => unsubscribe();
+      }, []);
+
+      const t = (key) => translations[language][key] || key;
+
+      if (!isLoggedIn || userType !== 'admin') {
+        return <p className="p-6">Yükleniyor veya yetkiniz yok...</p>;
+      }
+
+      return (
+        <div className="min-h-screen bg-neutral-50 dark:bg-[#0b0f14] font-['Helvetica'] text-gray-800 dark:text-gray-100">
+          <Navbar isLoggedIn={isLoggedIn} userType={userType} t={t} />
+          <main className="container mx-auto p-6 md:p-10">
+            <AdminDashboard isLoggedIn={isLoggedIn} userType={userType} t={t} currentUser={currentUser} />
+          </main>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
 </body>
 </html>
