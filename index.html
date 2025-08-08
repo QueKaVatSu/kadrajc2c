@@ -12,7 +12,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -35,6 +35,7 @@
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.signOut = signOut;
         window.onAuthStateChanged = onAuthStateChanged;
+        window.signInAnonymously = signInAnonymously;
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
@@ -2140,21 +2141,19 @@
 <!-- Injected: Cart & Favorites & Category Listing logic -->
 <script type="text/babel">
 /** UTIL **/
-const ensureAnonUid = () => {
-  let uid = localStorage.getItem('anonUid');
-  if (!uid) { uid = 'anon_' + Math.random().toString(36).slice(2) + Date.now(); localStorage.setItem('anonUid', uid); }
-  return uid;
-};
-
 const getActiveUid = () => {
   const user = window.firebaseAuth?.currentUser;
-  return user?.uid || ensureAnonUid();
+  return user?.uid || null;
 };
 
 /** SERVICES **/
 const CartService = {
   async getDocRef() {
-    const uid = getActiveUid();
+    let uid = getActiveUid();
+    if (!uid && window.firebaseAuth) {
+      try { await window.signInAnonymously(window.firebaseAuth); uid = getActiveUid(); } catch(e){}
+    }
+    if (!uid) throw new Error('No auth uid');
     return window.doc(window.firebaseFirestore, 'carts', uid);
   },
   async get() {
@@ -2200,7 +2199,11 @@ const CartService = {
 
 const FavoriteService = {
   async getDocRef() {
-    const uid = getActiveUid();
+    let uid = getActiveUid();
+    if (!uid && window.firebaseAuth) {
+      try { await window.signInAnonymously(window.firebaseAuth); uid = getActiveUid(); } catch(e){}
+    }
+    if (!uid) throw new Error('No auth uid');
     return window.doc(window.firebaseFirestore, 'favorites', uid);
   },
   async get() {
