@@ -13,7 +13,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
@@ -40,6 +40,12 @@
         window.getDoc = getDoc;
         window.collection = collection;
         window.getDocs = getDocs;
+        window.updateDoc = updateDoc;
+        window.arrayUnion = arrayUnion;
+        window.arrayRemove = arrayRemove;
+        window.query = query;
+        window.where = where;
+
     </script>
 
     <style>
@@ -103,71 +109,6 @@
             }
         }
     </style>
-
-<!-- ===== Entegre HEAD: kadraj_index_integrated.html ===== -->
-<meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KADRAJ L'ATELIER — Entegre Kart/Favori/Ödeme</title>
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- React 18 UMD -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Firebase init (modules) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
-      authDomain: "kadrajatelier-7e02a.firebaseapp.com",
-      projectId: "kadrajatelier-7e02a",
-      storageBucket: "kadrajatelier-7e02a.firebasestorage.app",
-      messagingSenderId: "4259035875263",
-      appId: "1:4259035875263:web:d1002c3816e86b4be52a0a"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Expose for Babel script
-    window.__fb = { app, auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut, collection, getDocs, doc, getDoc };
-  </script>
-
-  <style>
-    /* Small helpers */
-    .line-clamp-2 {
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .no-scrollbar::-webkit-scrollbar{display:none} .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
-  </style>
-<!-- ===== /Entegre HEAD ===== -->
-
-<!-- Kadraj Glue: Firebase -> __fb (ek satır; mevcut satırlara dokunulmadı) -->
-<script type="module">
-  const ready = () => typeof window.firebaseFirestore !== 'undefined'
-                   && typeof window.collection !== 'undefined'
-                   && typeof window.getDocs !== 'undefined';
-  if (!window.__fb) {
-    if (ready()) {
-      window.__fb = { db: window.firebaseFirestore, collection: window.collection, getDocs: window.getDocs };
-    } else {
-      const iv = setInterval(() => {
-        if (ready()) {
-          window.__fb = { db: window.firebaseFirestore, collection: window.collection, getDocs: window.getDocs };
-          clearInterval(iv);
-        }
-      }, 30);
-      setTimeout(() => clearInterval(iv), 10000);
-    }
-  }
-</script>
 </head>
 
 <body>
@@ -2033,19 +1974,17 @@
                         </div>
 
                         {/* SAĞ TARAF: ÜRÜN BİLGİLERİ (TÜM ALANLAR GÜNCELLENDİ) */}
-                        <div className="w-full md:w-1/2">
+                        <div className="w-full md:w-1/2" data-product-id={product.id}>
                             <p className="text-sm font-semibold text-gray-500 uppercase">{product.category}</p>
                             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 my-3">{product.productName}</h1>
                             <p className="text-3xl text-gray-800 mb-6">{product.price} {currency}</p>
                             
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                                <button className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 font-bold">
+                                <button data-add-to-cart="true" className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 font-bold">
                                     <ShoppingBagIcon size={20} />
                                     Sepete Ekle
                                 </button>
-                                <button className="w-full sm:w-auto border border-gray-300 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-100 transition">
-                                    <HeartIcon size={20} />
-                                </button>
+                                <button data-toggle-favorite="true" className="w-full sm:w-auto border border-gray-300 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-100 transition"><HeartIcon size={20} /></button>
                             </div>
 
                             {/* Detay Sekmeleri */}
@@ -2193,440 +2132,296 @@
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 
-<!-- ===== Entegre BODY: kadraj_index_integrated.html ===== -->
-<div id="app"></div>
+<!-- Injected: Cart & Favorites & Category Listing logic -->
+<script type="text/babel">
+/** UTIL **/
+const ensureAnonUid = () => {
+  let uid = localStorage.getItem('anonUid');
+  if (!uid) { uid = 'anon_' + Math.random().toString(36).slice(2) + Date.now(); localStorage.setItem('anonUid', uid); }
+  return uid;
+};
 
-  <script type="text/babel">
-    const { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext } = React;
+const getActiveUid = () => {
+  const user = window.firebaseAuth?.currentUser;
+  return user?.uid || ensureAnonUid();
+};
 
-    /********** Utilities **********/
-    const storage = {
-      get(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback }catch{ return fallback }},
-      set(key, val){ localStorage.setItem(key, JSON.stringify(val)) },
-      del(key){ localStorage.removeItem(key) }
-    };
+/** SERVICES **/
+const CartService = {
+  async getDocRef() {
+    const uid = getActiveUid();
+    return window.doc(window.firebaseFirestore, 'carts', uid);
+  },
+  async get() {
+    try {
+      const ref = await this.getDocRef();
+      const snap = await window.getDoc(ref);
+      return snap.exists() ? (snap.data().items || []) : [];
+    } catch(e){ console.error('get cart error', e); return []; }
+  },
+  async add(item) {
+    const ref = await this.getDocRef();
+    const base = { productId: item.productId, qty: item.qty || 1, price: item.price || 0, title: item.title || '', image: item.image || '' };
+    try {
+      const snap = await window.getDoc(ref);
+      if (!snap.exists()) {
+        await window.setDoc(ref, { items: [base], updatedAt: Date.now() });
+      } else {
+        const items = snap.data().items || [];
+        const idx = items.findIndex(i => i.productId === base.productId);
+        if (idx >= 0) { items[idx].qty += base.qty; } else { items.push(base); }
+        await window.updateDoc(ref, { items, updatedAt: Date.now() });
+      }
+    } catch(e){
+      console.error('add to cart error', e);
+      // fallback create
+      await window.setDoc(ref, { items: [base], updatedAt: Date.now() }, { merge: True });
+    }
+  },
+  async remove(productId) {
+    const ref = await this.getDocRef();
+    try {
+      const snap = await window.getDoc(ref);
+      if (!snap.exists()) return;
+      const items = (snap.data().items || []).filter(i => i.productId !== productId);
+      await window.updateDoc(ref, { items, updatedAt: Date.now() });
+    } catch(e){ console.error('remove from cart error', e); }
+  },
+  async clear() {
+    const ref = await this.getDocRef();
+    try { await window.updateDoc(ref, { items: [], updatedAt: Date.now() }); } catch(e){ await window.setDoc(ref, { items: [], updatedAt: Date.now() }); }
+  }
+};
 
-    const useHashLocation = () => {
-      const [hash, setHash] = useState(window.location.hash || "#/");
-      useEffect(() => {
-        const onHash = () => setHash(window.location.hash || "#/");
-        window.addEventListener("hashchange", onHash);
-        return () => window.removeEventListener("hashchange", onHash);
-      }, []);
-      return [hash, (h) => window.location.hash = h];
-    };
+const FavoriteService = {
+  async getDocRef() {
+    const uid = getActiveUid();
+    return window.doc(window.firebaseFirestore, 'favorites', uid);
+  },
+  async get() {
+    const ref = await this.getDocRef();
+    const snap = await window.getDoc(ref);
+    return snap.exists() ? (snap.data().items || []) : [];
+  },
+  async toggle(item) {
+    const ref = await this.getDocRef();
+    const snap = await window.getDoc(ref);
+    let items = [];
+    if (!snap.exists()) {
+      items = [item];
+      await window.setDoc(ref, { items, updatedAt: Date.now() });
+      return true;
+    } else {
+      items = snap.data().items || [];
+      const exists = items.find(i => i.productId === item.productId);
+      if (exists) {
+        items = items.filter(i => i.productId !== item.productId);
+        await window.updateDoc(ref, { items, updatedAt: Date.now() });
+        return false;
+      } else {
+        items.push(item);
+        await window.updateDoc(ref, { items, updatedAt: Date.now() });
+        return true;
+      }
+    }
+  }
+};
 
-    const toMoney = (n) => new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(Number(n||0));
+/** OVERLAYS **/
+const OverlayRoot = (() => {
+  const hostId = 'kadraj-overlays-host';
+  let root = document.getElementById(hostId);
+  if (!root) {
+    root = document.createElement('div');
+    root.id = hostId;
+    document.body.appendChild(root);
+  }
+  const reactRoot = ReactDOM.createRoot(root);
+  return { render: (node) => reactRoot.render(node) };
+})();
 
-    const getUid = () => window.__authUser?.uid || "guest";
+const Modal = ({ title, onClose, children }) => (
+  <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+    <div className="absolute inset-0 bg-black/40" onClick={onClose}></div>
+    <div className="relative bg-white w-[92%] md:w-[800px] max-h-[80vh] overflow-auto rounded-2xl shadow-xl p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      {children}
+    </div>
+  </div>
+);
 
-    /********** Data hooks **********/
-    const useProducts = () => {
-      const [items, setItems] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-
-      useEffect(() => {
-        (async () => {
-          setLoading(true);
-          try {
-            const { db, collection, getDocs } = window.__fb;
-            const snap = await getDocs(collection(db, "products"));
-            const arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            // Normalize common fields
-            arr.forEach(p => {
-              p.imageUrls = p.imageUrls || p.images || [];
-              p.price = p.price ?? p.fiyat ?? 0;
-              p.productName = p.productName || p.name || "İsimsiz";
-              p.category = p.category || "genel";
-              p.collections = p.collections || p.collection || []; // string or array allowed
-              if (typeof p.collections === "string") p.collections = [p.collections];
-            });
-            setItems(arr);
-          } catch (e) {
-            console.error(e);
-            setError("Ürünler yüklenemedi.");
-          } finally {
-            setLoading(false);
-          }
-        })();
-      }, []);
-
-      return { items, loading, error };
-    };
-
-    const useProduct = (id) => {
-      const [item, setItem] = useState(null);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-      useEffect(() => {
-        if(!id) return;
-        (async () => {
-          setLoading(true);
-          try {
-            const { db, doc, getDoc } = window.__fb;
-            const ref = doc(db, "products", id);
-            const snap = await getDoc(ref);
-            if (snap.exists()) {
-              const p = { id: snap.id, ...snap.data() };
-              p.imageUrls = p.imageUrls || p.images || [];
-              p.price = p.price ?? p.fiyat ?? 0;
-              p.productName = p.productName || p.name || "İsimsiz";
-              p.category = p.category || "genel";
-              p.collections = p.collections || p.collection || [];
-              if (typeof p.collections === "string") p.collections = [p.collections];
-              setItem(p);
-            } else {
-              setError("Ürün bulunamadı.");
-            }
-          } catch(e){
-            console.error(e);
-            setError("Ürün yüklenemedi.");
-          } finally {
-            setLoading(false);
-          }
-        })();
-      }, [id]);
-      return { item, loading, error };
-    };
-
-    /********** Cart & Favorites (per user, localStorage) **********/
-    const CartCtx = createContext();
-    const FavsCtx = createContext();
-
-    const CartProvider = ({ children }) => {
-      const uid = getUid();
-      const key = `kadraj_cart_${uid}`;
-      const [cart, setCart] = useState(() => storage.get(key, []));
-      useEffect(() => storage.set(key, cart), [cart]);
-
-      const add = (product, qty=1) => {
-        setCart(prev => {
-          const idx = prev.findIndex(x => x.id === product.id);
-          if (idx >= 0) {
-            const copy = [...prev];
-            copy[idx] = { ...copy[idx], qty: copy[idx].qty + qty };
-            return copy;
-          }
-          return [...prev, { id: product.id, product, qty }];
-        });
-      };
-      const remove = (id) => setCart(prev => prev.filter(x => x.id !== id));
-      const setQty = (id, qty) => setCart(prev => prev.map(x => x.id === id ? { ...x, qty: Math.max(1, qty|0) } : x));
-      const clear = () => setCart([]);
-
-      const total = useMemo(() => cart.reduce((s, i) => s + (Number(i.product?.price||0) * i.qty), 0), [cart]);
-
-      return <CartCtx.Provider value={{ cart, add, remove, setQty, clear, total }}>{children}</CartCtx.Provider>;
-    };
-    const useCart = () => useContext(CartCtx);
-
-    const FavsProvider = ({ children }) => {
-      const uid = getUid();
-      const key = `kadraj_favs_${uid}`;
-      const [ids, setIds] = useState(() => storage.get(key, []));
-      useEffect(() => storage.set(key, ids), [ids]);
-      const toggle = (id) => setIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-      const has = (id) => ids.includes(id);
-      return <FavsCtx.Provider value={{ ids, toggle, has }}>{children}</FavsCtx.Provider>;
-    };
-    const useFavs = () => useContext(FavsCtx);
-
-    /********** UI **********/
-    const Navbar = () => {
-      const { cart } = useCart();
-      return (
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-            <a href="#/" className="font-light tracking-widest text-xl">KADRAJ L'ATELIER</a>
-            <div className="ml-auto flex items-center gap-3">
-              <a className="px-3 py-1 text-sm hover:underline" href="#/favorites">Favoriler</a>
-              <a className="px-3 py-1 text-sm hover:underline" href="#/cart">Sepet ({cart.length})</a>
+const CartOverlay = ({ onClose }) => {
+  const [items, setItems] = React.useState([]);
+  React.useEffect(() => { CartService.get().then(setItems); }, []);
+  const total = items.reduce((s, it) => s + (it.price||0) * (it.qty||1), 0);
+  return (
+    <Modal title="Sepetim" onClose={onClose}>
+      <div className="space-y-3">
+        {items.length === 0 && <p className="text-sm text-gray-500">Sepetiniz boş.</p>}
+        {items.map(it => (
+          <div key={it.productId} className="flex items-center gap-3 border rounded-lg p-2">
+            <img src={it.image || 'https://via.placeholder.com/80'} className="w-16 h-16 object-cover rounded" />
+            <div className="flex-1">
+              <p className="font-medium">{it.title || it.productId}</p>
+              <p className="text-sm text-gray-500">Adet: {it.qty} • Fiyat: {it.price}</p>
             </div>
+            <button onClick={async ()=>{ await CartService.remove(it.productId); setItems(await CartService.get()); }} className="text-sm px-3 py-1 border rounded hover:bg-gray-50">Kaldır</button>
           </div>
-        </header>
-      );
-    };
-
-    const SectionTitle = ({ children }) => (
-      <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-3">{children}</h2>
-    );
-
-    const ProductCard = ({ p, onOpen }) => {
-      const { add } = useCart();
-      const { has, toggle } = useFavs();
-      return (
-        <div className="group border rounded-xl overflow-hidden hover:shadow transition bg-white">
-          <div className="relative aspect-[4/3] bg-gray-50">
-            <img src={(p.imageUrls && p.imageUrls[0]) || 'https://via.placeholder.com/800x600?text=No+Image'} alt={p.productName} className="absolute inset-0 w-full h-full object-cover"/>
-            <button title="Favori" onClick={() => toggle(p.id)} className={`absolute top-2 right-2 rounded-full p-2 text-sm ${has(p.id) ? 'bg-rose-600 text-white' : 'bg-white text-gray-700'} shadow`}>♥</button>
-          </div>
-          <div className="p-3">
-            <a onClick={onOpen} className="block font-medium cursor-pointer hover:underline line-clamp-2">{p.productName}</a>
-            <div className="text-sm text-gray-500 mt-0.5">{p.category}</div>
-            <div className="font-semibold mt-1">{toMoney(p.price)}</div>
-            <div className="mt-3 flex gap-2">
-              <button onClick={() => add(p, 1)} className="flex-1 border rounded-lg px-3 py-2 text-sm hover:bg-gray-50">Sepete Ekle</button>
-              <a href={`#/products/${p.id}`} className="border rounded-lg px-3 py-2 text-sm">İncele</a>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    const CollectionsBar = ({ collections, active }) => (
-      <div className="flex gap-2 overflow-x-auto no-scrollbar py-2">
-        <a href="#/" className={"px-3 py-1 rounded-full border text-sm " + (!active ? "bg-black text-white" : "")}>Tümü</a>
-        {collections.map(slug => (
-          <a key={slug} href={`#/collections/${encodeURIComponent(slug)}`} className={"px-3 py-1 rounded-full border text-sm " + (active === slug ? "bg-black text-white" : "")}>
-            {slug}
-          </a>
         ))}
       </div>
-    );
-
-    const Home = ({ hash }) => {
-      const { items, loading, error } = useProducts();
-      const activeCollection = decodeURIComponent(hash.split("/")[2] || "") || null;
-
-      const collections = useMemo(() => {
-        const set = new Set();
-        items.forEach(p => (p.collections?.length ? p.collections : [p.category]).forEach(c => set.add(c)));
-        return Array.from(set);
-      }, [items]);
-
-      const filtered = useMemo(() => {
-        if (!activeCollection) return items;
-        return items.filter(p => (p.collections?.length ? p.collections : [p.category]).includes(activeCollection));
-      }, [items, activeCollection]);
-
-      return (
-        <main className="max-w-6xl mx-auto px-4 py-6">
-          <SectionTitle>Öne Çıkanlar</SectionTitle>
-          <CollectionsBar collections={collections} active={activeCollection} />
-          {loading && <div className="py-10 text-center">Yükleniyor…</div>}
-          {error && <div className="py-10 text-center text-red-600">{error}</div>}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-3">
-            {filtered.map(p => <ProductCard key={p.id} p={p} onOpen={() => (window.location.hash = `#/products/${p.id}`)} />)}
-          </div>
-        </main>
-      );
-    };
-
-    const Tabs = ({ tabs }) => {
-      const [active, setActive] = useState(Object.keys(tabs)[0]);
-      return (
-        <div className="mt-6">
-          <div className="flex gap-4 border-b">
-            {Object.keys(tabs).map(k => (
-              <button key={k} onClick={() => setActive(k)} className={`px-2 py-2 -mb-[1px] border-b-2 ${active===k ? 'border-black' : 'border-transparent text-gray-500'}`}>{k}</button>
-            ))}
-          </div>
-          <div className="py-4 text-sm text-gray-700 leading-relaxed whitespace-pre-line">{tabs[active]}</div>
+      <div className="mt-4 flex items-center justify-between">
+        <span className="font-semibold">Toplam: {total.toFixed(2)}</span>
+        <div className="flex gap-2">
+          <button onClick={async()=>{ await CartService.clear(); setItems([]); }} className="px-3 py-2 border rounded hover:bg-gray-50">Temizle</button>
+          <button className="px-4 py-2 bg-black text-white rounded">Ödeme Adımına Geç</button>
         </div>
-      );
-    };
+      </div>
+    </Modal>
+  );
+};
 
-    const ProductDetail = ({ id }) => {
-      const { item: p, loading, error } = useProduct(id);
-      const { add } = useCart();
-      const { has, toggle } = useFavs();
-
-      if (loading) return <main className="max-w-6xl mx-auto px-4 py-10">Yükleniyor…</main>;
-      if (error || !p) return <main className="max-w-6xl mx-auto px-4 py-10 text-red-600">{error || "Ürün bulunamadı."}</main>;
-
-      return (
-        <main className="max-w-6xl mx-auto px-4 py-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <div className="aspect-[4/3] bg-gray-50 rounded-xl overflow-hidden">
-                <img src={(p.imageUrls && p.imageUrls[0]) || 'https://via.placeholder.com/800x600?text=No+Image'} className="w-full h-full object-cover" />
-              </div>
-              {p.imageUrls?.length > 1 && (
-                <div className="mt-2 grid grid-cols-5 gap-2">
-                  {p.imageUrls.slice(1, 6).map((u, i) => (
-                    <img key={i} src={u} className="aspect-square object-cover rounded-lg border" />
-                  ))}
-                </div>
-              )}
+const FavoritesOverlay = ({ onClose }) => {
+  const [items, setItems] = React.useState([]);
+  React.useEffect(() => { FavoriteService.get().then(setItems); }, []);
+  return (
+    <Modal title="Favorilerim" onClose={onClose}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {items.length === 0 && <p className="text-sm text-gray-500">Henüz favori eklenmedi.</p>}
+        {items.map(it => (
+          <div key={it.productId} className="flex items-center gap-3 border rounded-lg p-2">
+            <img src={it.image || 'https://via.placeholder.com/80'} className="w-16 h-16 object-cover rounded" />
+            <div className="flex-1">
+              <p className="font-medium">{it.title || it.productId}</p>
+              <p className="text-sm text-gray-500">{it.price ? (it.price + ' ₺') : ''}</p>
             </div>
-            <div>
-              <div className="text-sm uppercase tracking-wide text-gray-500">{p.category}</div>
-              <h1 className="text-2xl md:text-3xl font-semibold">{p.productName}</h1>
-              <div className="text-xl md:text-2xl font-bold mt-2">{toMoney(p.price)}</div>
+            <button onClick={async ()=>{ await FavoriteService.toggle({productId: it.productId}); setItems(await FavoriteService.get()); }} className="text-sm px-3 py-1 border rounded hover:bg-gray-50">Kaldır</button>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+};
 
-              <div className="flex gap-3 mt-4">
-                <button onClick={() => add(p, 1)} className="flex-1 bg-black text-white rounded-lg px-4 py-3">Sepete Ekle</button>
-                <button onClick={() => toggle(p.id)} className={"rounded-lg px-4 py-3 border " + (has(p.id) ? "bg-rose-600 text-white" : "")}>
-                  {has(p.id) ? "Favoride" : "Favoriye Ekle"}
-                </button>
+const CategoryOverlay = ({ slug, onClose }) => {
+  const [items, setItems] = React.useState([]);
+  React.useEffect(() => {
+    (async ()=>{
+      try {
+        const productsRef = window.collection(window.firebaseFirestore, 'products');
+        const qs = await window.getDocs(productsRef);
+        const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+        const lower = slug.toLowerCase();
+        const filtered = all.filter(p => (p.category||'').toLowerCase().includes(lower));
+        setItems(filtered);
+      } catch(e){ console.error(e); }
+    })();
+  }, [slug]);
+  return (
+    <Modal title={"Kategori: " + slug} onClose={onClose}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {items.map(p => (
+          <div key={p.id} className="border rounded-lg overflow-hidden">
+            <img src={(p.imageUrls && p.imageUrls[0]) || 'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
+            <div className="p-2">
+              <p className="font-medium line-clamp-2">{p.productName || p.id}</p>
+              <p className="text-sm text-gray-500">{p.price ? (p.price + ' ₺') : ''}</p>
+              <div className="mt-2 flex gap-2">
+                <button className="flex-1 px-2 py-1 border rounded text-sm hover:bg-gray-50" data-quick-add data-product-id={p.id}>Sepete Ekle</button>
+                <button className="px-2 py-1 border rounded text-sm hover:bg-gray-50" data-quick-fav data-product-id={p.id}>❤</button>
               </div>
-
-              <Tabs tabs={{
-                "Ürün Açıklaması": p.description || "—",
-                "Ürünün Hikayesi": p.productStory || "—",
-                "Materyal Bilgisi": p.material || p.materialInfo || "—",
-                "Boyutlar": p.dimensions || p.dimensionsCm || "—",
-                "Kargo Bilgileri": p.shippingInfo || "—"
-              }} />
-
-              {p.collections?.length > 0 && (
-                <div className="mt-6 text-sm">
-                  <div className="font-medium mb-1">Koleksiyonlar:</div>
-                  <div className="flex gap-2 flex-wrap">
-                    {p.collections.map(c => (
-                      <a key={c} href={`#/collections/${encodeURIComponent(c)}`} className="px-2 py-1 rounded-full bg-gray-100 border text-xs hover:bg-gray-200">{c}</a>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        </main>
-      );
-    };
+        ))}
+      </div>
+    </Modal>
+  );
+};
 
-    const CartPage = () => {
-      const { cart, setQty, remove, total } = useCart();
-      return (
-        <main className="max-w-5xl mx-auto px-4 py-6">
-          <SectionTitle>Sepetim</SectionTitle>
-          {cart.length === 0 ? (
-            <div className="py-10 text-gray-600">Sepetiniz boş.</div>
-          ) : (
-            <>
-              <div className="divide-y border rounded-xl">
-                {cart.map(item => (
-                  <div key={item.id} className="p-3 flex items-center gap-3">
-                    <img src={(item.product?.imageUrls?.[0]) || 'https://via.placeholder.com/100'} className="w-16 h-16 object-cover rounded-md border" />
-                    <div className="flex-1">
-                      <div className="font-medium">{item.product?.productName}</div>
-                      <div className="text-sm text-gray-500">{toMoney(item.product?.price)}</div>
-                    </div>
-                    <input type="number" min="1" value={item.qty} onChange={(e)=>setQty(item.id, +e.target.value)} className="w-16 border rounded px-2 py-1" />
-                    <div className="w-28 text-right font-semibold">{toMoney((item.product?.price||0)*item.qty)}</div>
-                    <button onClick={()=>remove(item.id)} className="ml-2 text-sm text-red-600">Sil</button>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex justify-between items-center">
-                <div className="text-lg">Toplam: <strong>{toMoney(total)}</strong></div>
-                <a href="#/checkout" className="bg-black text-white rounded-lg px-4 py-2">Ödemeye Geç</a>
-              </div>
-            </>
-          )}
-        </main>
-      );
-    };
+/** GLOBAL HELPERS **/
+window.openCart = () => OverlayRoot.render(<CartOverlay onClose={()=>OverlayRoot.render(null)} />);
+window.openFavorites = () => OverlayRoot.render(<FavoritesOverlay onClose={()=>OverlayRoot.render(null)} />);
+window.openCategory = (slug) => OverlayRoot.render(<CategoryOverlay slug={slug} onClose={()=>OverlayRoot.render(null)} />);
 
-    const FavoritesPage = () => {
-      const { ids, toggle } = useFavs();
-      const { items } = useProducts();
-      const favs = items.filter(p => ids.includes(p.id));
-      return (
-        <main className="max-w-6xl mx-auto px-4 py-6">
-          <SectionTitle>Favorilerim</SectionTitle>
-          {favs.length === 0 ? <div className="py-10 text-gray-600">Henüz favori yok.</div> :
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {favs.map(p => <ProductCard key={p.id} p={p} onOpen={() => (window.location.hash = `#/products/${p.id}`)} />)}
-            </div>
-          }
-        </main>
-      );
-    };
+/** EVENT DELEGATION **/
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-add-to-cart],[data-toggle-favorite],[data-open-cart],[data-open-favorites],[data-category],[data-quick-add],[data-quick-fav]');
+  if (!el) return;
 
-    const CheckoutPage = () => {
-      const { cart, total, clear } = useCart();
-      const [submitting, setSubmitting] = useState(false);
-      const handlePay = async (e) => {
-        e.preventDefault();
-        if (cart.length === 0) return alert("Sepet boş.");
-        setSubmitting(true);
-        // Placeholder — Iyzico integration point
-        setTimeout(() => {
-          alert("Ödeme aşaması için iyzico entegrasyonu burada çalışacak.\nŞu an test amaçlı sipariş tamamlandı varsayılıyor.");
-          clear();
-          window.location.hash = "#/";
-        }, 1000);
-      };
-      return (
-        <main className="max-w-5xl mx-auto px-4 py-6">
-          <SectionTitle>Ödeme</SectionTitle>
-          <form onSubmit={handlePay} className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <div className="font-medium">Teslimat Adresi</div>
-              <input required placeholder="Ad Soyad" className="w-full border rounded-lg px-3 py-2"/>
-              <input required placeholder="Telefon" className="w-full border rounded-lg px-3 py-2"/>
-              <input required placeholder="İl / İlçe" className="w-full border rounded-lg px-3 py-2"/>
-              <textarea required placeholder="Adres" className="w-full border rounded-lg px-3 py-2 h-24"></textarea>
-            </div>
-            <div className="space-y-3">
-              <div className="font-medium">Kart Bilgileri (İyzico)</div>
-              <input required placeholder="Kart Üzerindeki İsim" className="w-full border rounded-lg px-3 py-2"/>
-              <input required placeholder="Kart Numarası" className="w-full border rounded-lg px-3 py-2"/>
-              <div className="flex gap-3">
-                <input required placeholder="AA/YY" className="w-1/2 border rounded-lg px-3 py-2"/>
-                <input required placeholder="CVV" className="w-1/2 border rounded-lg px-3 py-2"/>
-              </div>
-              <div className="flex justify-between items-center pt-2">
-                <div>Ödenecek Tutar: <strong>{toMoney(total)}</strong></div>
-                <button disabled={submitting} className="bg-black text-white rounded-lg px-4 py-2 disabled:opacity-50">
-                  {submitting ? "İşleniyor…" : "Ödemeyi Tamamla"}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500">Not: Bu bir yer tutucu akıştır. İyzico token/iframe entegrasyonu burada uygulanacaktır.</p>
-            </div>
-          </form>
-        </main>
-      );
-    };
+  // Openers
+  if (el.hasAttribute('data-open-cart')) { e.preventDefault(); window.openCart(); return; }
+  if (el.hasAttribute('data-open-favorites')) { e.preventDefault(); window.openFavorites(); return; }
 
-    /********** Router **********/
-    const Router = ({ hash }) => {
-      // patterns: #/ , #/collections/:slug , #/products/:id , #/cart , #/favorites , #/checkout
-      const [, path, a, b] = (hash || "#/").split("/"); // ["#", "", "products", "id"]
-      if (path === "" || path === undefined) return <Home hash={hash} />;
-      if (path === "collections") return <Home hash={hash} />;
-      if (path === "products" && a) return <ProductDetail id={a} />;
-      if (path === "cart") return <CartPage />;
-      if (path === "favorites") return <FavoritesPage />;
-      if (path === "checkout") return <CheckoutPage />;
-      return <main className="max-w-6xl mx-auto px-4 py-10">Sayfa bulunamadı.</main>;
-    };
+  // Category open
+  if (el.hasAttribute('data-category')) {
+    e.preventDefault();
+    const slug = el.getAttribute('data-category');
+    window.openCategory(slug);
+    return;
+  }
 
-    /********** App **********/
-    const App = () => {
-      const [hash] = useHashLocation();
-      const [authReady, setAuthReady] = useState(false);
+  // Quick actions from category grid
+  if (el.hasAttribute('data-quick-add') || el.hasAttribute('data-quick-fav')) {
+    e.preventDefault();
+    const productId = el.getAttribute('data-product-id');
+    // fetch product
+    try {
+      const ref = window.doc(window.firebaseFirestore, 'products', productId);
+      const snap = await window.getDoc(ref);
+      const data = snap.exists() ? snap.data() : {};
+      const payload = { productId, qty: 1, price: data.price || 0, title: data.productName || '', image: (data.imageUrls && data.imageUrls[0]) || '' };
+      if (el.hasAttribute('data-quick-add')) { await CartService.add(payload); }
+      if (el.hasAttribute('data-quick-fav')) { await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image }); }
+    } catch(err){ console.error(err); }
+    return;
+  }
 
-      useEffect(() => {
-        const { auth, onAuthStateChanged } = window.__fb;
-        return onAuthStateChanged(auth, (user) => {
-          window.__authUser = user || null;
-          setAuthReady(true);
-        });
-      }, []);
+  // Product detail buttons
+  if (el.hasAttribute('data-add-to-cart') || el.hasAttribute('data-toggle-favorite')) {
+    e.preventDefault();
+    // try to get productId from nearest container
+    const container = el.closest('[data-product-id]');
+    const productId = container ? container.getAttribute('data-product-id') : null;
+    if (!productId) { console.warn('productId not found in DOM'); return; }
+    try {
+      const ref = window.doc(window.firebaseFirestore, 'products', productId);
+      const snap = await window.getDoc(ref);
+      const data = snap.exists() ? snap.data() : {};
+      const payload = { productId, qty: 1, price: data.price || 0, title: data.productName || '', image: (data.imageUrls && data.imageUrls[0]) || '' };
+      if (el.hasAttribute('data-add-to-cart')) await CartService.add(payload);
+      if (el.hasAttribute('data-toggle-favorite')) await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image });
+    } catch(err){ console.error(err); }
+    return;
+  }
+});
 
-      if (!authReady) return <div className="p-10 text-center">Yükleniyor…</div>;
+/** NAVBAR / BOTTOM BAR HOOKS **/
+const tryAttachBarButtons = () => {
+  // Add data-open attributes to ShoppingBag and Heart icons in bottom bar if exist
+  document.querySelectorAll('span').forEach(sp => {
+    if (sp.textContent.trim() === 'Sepetim' || sp.textContent.trim().toLowerCase() === 'my cart') {
+      const a = sp.closest('a'); if (a) a.setAttribute('data-open-cart','true');
+    }
+    if (sp.textContent.trim() === 'Favoriler' || sp.textContent.trim().toLowerCase() === 'favorites') {
+      const a = sp.closest('a'); if (a) a.setAttribute('data-open-favorites','true');
+    }
+  });
 
-      return (
-        <FavsProvider>
-          <CartProvider>
-            <Navbar />
-            <Router hash={hash} />
-            <footer className="border-t mt-10">
-              <div className="max-w-6xl mx-auto px-4 py-8 text-xs text-gray-500">
-                © Kadraj L'Atelier — Kart, Favori, Koleksiyon filtreleme ve İyzico yer tutucu ödeme entegre edildi.
-              </div>
-            </footer>
-          </CartProvider>
-        </FavsProvider>
-      );
-    };
+  // Header menu items: intercept /category/<slug>
+  document.querySelectorAll('nav a[href^="/category/"], a[data-category]').forEach(a => {
+    const href = a.getAttribute('href');
+    const slug = href.split('/category/')[1];
+    if (slug) a.setAttribute('data-category', slug);
+  });
+};
+const mo = new MutationObserver(() => tryAttachBarButtons());
+mo.observe(document.documentElement, { childList: true, subtree: true });
+window.addEventListener('load', tryAttachBarButtons);
+</script>
 
-    const root = ReactDOM.createRoot(document.getElementById("app"));
-    root.render(<App />);
-  </script>
-<!-- ===== /Entegre BODY ===== -->
 </body>
 </html>
