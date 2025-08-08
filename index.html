@@ -1980,7 +1980,7 @@
 
                         {/* SAĞ TARAF: ÜRÜN BİLGİLERİ (TÜM ALANLAR GÜNCELLENDİ) */}
                         <div className="w-full md:w-1/2" data-product-id={product.id}>
-                            <p className="text-sm font-semibold text-gray-500 uppercase">{product.category}</p>
+                            <a href={`\/category\/${(product.categorySlug || product.category || "").toLowerCase()}`} data-category={(product.categorySlug || product.category)} className="text-sm font-semibold text-gray-500 uppercase underline underline-offset-4 hover:text-gray-700 transition">{product.category}</a>
                             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 my-3">{product.productName}</h1>
                             <p className="text-3xl text-gray-800 mb-6">{product.price} {currency}</p>
                             
@@ -2353,6 +2353,20 @@ window.openFavorites = () => OverlayRoot.render(<FavoritesOverlay onClose={()=>O
 window.openCategory = (slug) => OverlayRoot.render(<CategoryOverlay slug={slug} onClose={()=>OverlayRoot.render(null)} />);
 
 /** EVENT DELEGATION **/
+const getProductIdFromUrl = () => {
+  try {
+    const path = window.location.pathname.toLowerCase();
+    const parts = path.split('/').filter(Boolean);
+    const idx = Math.max(parts.indexOf('product'), parts.indexOf('products'));
+    if (idx >= 0 && parts[idx+1]) return parts[idx+1];
+    // also try ?id=
+    const url = new URL(window.location.href);
+    const idParam = url.searchParams.get('id');
+    if (idParam) return idParam;
+  } catch(e){}
+  return null;
+};
+
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-add-to-cart],[data-toggle-favorite],[data-open-cart],[data-open-favorites],[data-category],[data-quick-add],[data-quick-fav],a[href^="/category/"]');
   if (!el) return;
@@ -2398,7 +2412,8 @@ document.addEventListener('click', async (e) => {
     e.preventDefault();
     // try to get productId from nearest container
     const container = el.closest('[data-product-id]');
-    const productId = container ? container.getAttribute('data-product-id') : null;
+    let productId = container ? container.getAttribute('data-product-id') : null;
+    if (!productId) { productId = getProductIdFromUrl(); }
     if (!productId) { console.warn('productId not found in DOM'); return; }
     try {
       const ref = window.doc(window.firebaseFirestore, 'products', productId);
@@ -2414,6 +2429,19 @@ document.addEventListener('click', async (e) => {
 
 /** NAVBAR / BOTTOM BAR HOOKS **/
 const tryAttachBarButtons = () => {
+  // Auto-tag product detail buttons if data-* not present
+  document.querySelectorAll('button').forEach(btn => {
+    const t = (btn.textContent || '').trim().toLowerCase();
+    if (!btn.hasAttribute('data-add-to-cart') && (t === 'sepete ekle' || t === 'add to cart')) {
+      btn.setAttribute('data-add-to-cart','true');
+    }
+    // heart-only button heuristic: contains an SVG with stroke set and no text
+    if (!btn.hasAttribute('data-toggle-favorite')) {
+      const hasHeart = btn.querySelector('svg') && (btn.innerText.trim() === '' || btn.innerText.trim() === '❤');
+      if (hasHeart) btn.setAttribute('data-toggle-favorite','true');
+    }
+  });
+
   // Add data-open attributes to ShoppingBag and Heart icons in bottom bar if exist
   document.querySelectorAll('span').forEach(sp => {
     const t = sp.textContent.trim().toLowerCase();
