@@ -13,7 +13,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, getDocs, query, where, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // AÇIKLAMA: Firestore'dan koleksiyonları çekmek için collection ve getDocs eklendi.
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
@@ -38,10 +39,9 @@
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
-        window.getDocs = getDocs;
-        window.query = query;
-        window.where = where;
-        window.collection = collection;
+        // AÇIKLAMA: Eklenen fonksiyonlar window nesnesine atanıyor.
+        window.collection = collection;
+        window.getDocs = getDocs;
     </script>
 
     <style>
@@ -285,6 +285,8 @@
                 parentCategory: 'Üst Kategori',
                 saveCategory: 'Kategoriyi Kaydet',
                 searchProduct: 'Ürün, marka, içerik ara',
+                noResults: 'Aramanızla eşleşen sonuç bulunamadı.',
+                searching: 'Aranıyor...',
                 new: 'Yeni',
                 woman: 'Kadın',
                 man: 'Erkek',
@@ -344,8 +346,6 @@
                 laclaud: 'Laclaud',
                 inspiringBrands: 'İlham Veren Markalar',
                 dekoriGroup: 'Dekori Grup',
-                perfectLiving: 'MÜKEMMEL YAŞAM',
-                iconicTables: 'İkonik Masalar',
                 summerSale: "Yaz İndirimi! %50'ye Varan İndirimler",
                 newArrivals: "Yeni Gelenler Stokta!",
                 raysDiscount: "RAYS Tüm Ürünlerde %30'a Varan İndirim",
@@ -484,7 +484,7 @@
                 cancelled: 'Cancelled',
                 financialStatus: 'Financial Status',
                 withdrawableBalance: 'Withdrawable Balance',
-                currentBalance: 'Current balance',
+  _              currentBalance: 'Current balance',
                 totalEarnings: 'Total Earnings',
                 allTime: 'All time',
                 withdrawBalance: 'Withdraw Balance',
@@ -532,71 +532,335 @@
                 blogPosts: 'Blog Posts',
                 manageBlogPosts: 'Manage Blog Posts',
                 orderId: 'Order ID:',
-                product: 'Ürün:',
-                date: 'Tarih:',
-                categoryManagement: 'Kategori Yönetimi',
-                mainCategories: 'Ana Kategoriler',
-                subCategories: 'Alt Kategoriler',
-                addCategory: 'Kategori Ekle',
-                editCategory: 'Kategoriyi Düzenle',
-                deleteCategory: 'Kategoriyi Sil',
-                categoryName: 'Kategori Adı',
-                parentCategory: 'Üst Kategori',
-                saveCategory: 'Kategoriyi Kaydet',
-                searchProduct: 'Ürün, marka, içerik ara',
-                new: 'Yeni',
-                woman: 'Kadın',
-                man: 'Erkek',
-                child: 'Çocuk',
-                life: 'Yaşam',
-                brands: 'Markalar',
-                discount: 'İndirim',
+                product: 'Product:',
+                date: 'Date:',
+                categoryManagement: 'Category Management',
+                mainCategories: 'Main Categories',
+                subCategories: 'Sub Categories',
+                addCategory: 'Add Category',
+                editCategory: 'Edit Category',
+                deleteCategory: 'Delete Category',
+                categoryName: 'Category Name',
+                parentCategory: 'Parent Category',
+                saveCategory: 'Save Category',
+                searchProduct: 'Search product, brand, content',
+                noResults: 'No results found matching your search.',
+                searching: 'Searching...',
+                new: 'New',
+                woman: 'Woman',
+                man: 'Man',
+                child: 'Child',
+                life: 'Life',
+                brands: 'Brands',
+                discount: 'Discount',
                 mag: 'MAG',
                 rewards: 'Rewards',
-                stores: 'Mağazalar',
+                stores: 'Stores',
                 forGood: 'for good',
-                edit: 'Düzenle',
-                delete: 'Sil',
-                sales: 'satış',
-                unitsSold: 'adet satış',
-                platformWide: 'Platform genelinde',
-                artPiece: 'Sanat Eseri',
-                lastViewedProduct: 'Son Görüntülenen Ürün',
-                today: 'Bugün',
-                modernScandinavianDesigns: 'Modern İskandinav Tasarımları',
-                naturalWoodCollection: 'Doğal Ahşap Koleksiyonu',
+                edit: 'Edit',
+                delete: 'Delete',
+                sales: 'sales',
+                unitsSold: 'units sold',
+                platformWide: 'Platform wide',
+                artPiece: 'Art Piece',
+                lastViewedProduct: 'Last Viewed Product',
+              _ today: 'Today',
+                modernScandinavianDesigns: 'Modern Scandinavian Designs',
+                naturalWoodCollection: 'Natural Wood Collection',
                 shopBy: 'SHOP BY',
                 décor: 'DÉCOR',
                 gifts: 'GIFTS',
                 services: 'SERVICES',
-                appointmentBooking: 'RANDEVU AL',
-                tradeProgram: 'TİCARİ PROGRAM',
-                internationalDeliveries: 'ULUSLARARASI TESLİMAT',
-                paymentMethods: 'ÖDEME YÖNTEMLERİ',
-                returnsPolicy: 'İADE POLİTİKASI',
-                followUs: 'BİZİ TAKİP EDİN',
+                appointmentBooking: 'APPOINTMENT BOOKING',
+                tradeProgram: 'TRADE PROGRAM',
+                internationalDeliveries: 'INTERNATIONAL DELIVERIES',
+                paymentMethods: 'PAYMENT METHODS',
+                returnsPolicy: 'RETURNS POLICY',
+                followUs: 'FOLLOW US',
                 pinterest: 'PINTEREST',
                 instagram: 'INSTAGRAM',
                 linkedin: 'LINKEDIN',
                 youtube: 'YOUTUBE',
-                about: 'HAKKINDA',
-                aboutUs: 'HAKKIMIZDA',
-                theTeam: 'EKİP',
-                ourValues: 'DEĞERLERİMİZ',
-                catalogs: 'KATALOGLAR',
+                about: 'ABOUT',
+                aboutUs: 'ABOUT US',
+                theTeam: 'THE TEAM',
+                ourValues: 'OUR VALUES',
+                catalogs: 'CATALOGS',
                 bCorp: 'B CORP',
-                inspirations: 'İNSPIRATIONS',
-                press: 'BASIN',
+                inspirations: 'INSPIRATIONS',
+                press: 'PRESS',
                 podcast: 'PODCAST',
-                howTo: 'NASIL YAPILIR',
-                careers: 'KARİYER',
-                legalNotice: 'YASAL UYARI',
-                privacyPolicy: 'GİZLİLİK POLİTİKASI',
-                subscribeToNewsletter: 'Bültenimize Abone Olun',
-                subscribe: 'ABONE OL',
-                proudToBeBCorp: 'Sertifikalı B Corporation™ olmaktan gurur duyuyoruz',
-                bCorpDescription: 'Bu şirket, en yüksek doğrulanmış sosyal ve çevresel performans, şeffaflık ve hesap verebilirlik standartlarını karşılamaktadır.',
-                allRightsReserved: 'Tüm hakları saklıdır.',
+                howTo: 'HOW-TO',
+                careers: 'CAREERS',
+                legalNotice: 'LEGAL NOTICE',
+                privacyPolicy: 'PRIVACY POLICY',
+                subscribeToNewsletter: 'Subscribe to our Newsletter',
+                subscribe: 'SUBSCRIBE',
+                proudToBeBCorp: 'Proud to be Certified B Corporation™',
+                bCorpDescription: 'This company meets the highest verified standards of social and environmental performance, transparency, and accountability.',
+                allRightsReserved: 'All rights reserved.',
+                editorSelection: 'Editor\'s ',
+                summer: 'Summer',
+                selection: ' Selection',
+                laclaud: 'Laclaud',
+                inspiringBrands: 'Inspiring Brands',
+                dekoriGroup: 'Dekori Group',
+                perfectLiving: 'PERFECT LIVING',
+                iconicTables: 'Iconic Tables',
+                summerSale: "Summer Sale! Up to 50% Off",
+                newArrivals: "New Arrivals in Stock!",
+                raysDiscount: "RAYS Up to 30% Off All Products",
+                discoverThisWeeksHighlights: "Discover This Week's Highlights!",
+                freeShipping: "Don't Miss Free Shipping!",
+                joinNow: 'JOIN NOW',
+                worldwideDeliveries: 'Worldwide Deliveries',
+                worldwideDeliveriesDesc: 'All our shipments are insured and processed by specialized carriers',
+                securePayment: 'Secure Payment',
+                securePaymentDesc: 'You can pay by credit card, PayPal or bank transfer in complete security and privacy',
+                teamOfSpecialistAdvisers: 'Team of Specialist Advisers',
+                teamOfSpecialistAdvisersDesc: 'Our team of design specialists are here to help and will answer all your questions and personalized requests',
+                certificateOfAuthenticity: 'Certificate Of Authenticity',
+                certificateOfAuthenticityDesc: 'Each piece is authentic and certified',
+                curatedSelections: 'Curated Selections',
+                curatedSelectionsDesc: 'Each product is selected not only for its aesthetics but for the idea it carries. At Kadraj, you will find designs that are not just visible but meaningful.',
+                directArtistSupport: 'Direct Artist Support',
+                directArtistSupportDesc: 'Every piece you purchase directly contributes to the creator\'s livelihood. Our commission system is fair, transparent, and artist-friendly.',
+                securePaymentProcess: 'We uphold high standards in payment, delivery, and return processes. All your purchases are insured, protected, and trackable.',
+                expertAdviserTeam: 'Expert Adviser Team',
+                expertAdviserTeamDesc: 'Our design specialists are here to answer all your questions and personal requests.',
+                homeBar: "Home",
+                favoritesBar: "Favorites",
+                sepetimBar: "My Cart",
+                hesabimBar: "My Account",
+                Menu: 'Menu',
+                elbiseler: 'Dresses',
+                abiyeler: 'Evening Gowns',
+                deriKoleksiyonu: 'Leather Collection',
+                kabanlar: 'Coats',
+                sweatshirt: 'Sweatshirt',
+                takimlar: 'Suits',
+                outlet: 'Outlet',
+                kadrajSociety: 'Kadraj Society',
+                hakkimizda: 'About Us',
+                sss: 'FAQ',
+                iletisim: 'Contact',
+                noAccount: "Don't have an account?",
+                signUp: "Sign Up",
+                userRegistration: "User Registration",
+                createAccount: "Create Account",
+                registrationSuccess: "Your registration is complete!",
+                canNowLogin: "You can now log in.",
+            },
+            'Deutsch': {
+                discover: 'ENTDECKEN',
+                newIn: 'NEUHEITEN',
+                newInDesc: 'Entdecken Sie unsere neuesten Stücke, die jede Woche eintreffen.',
+                shopNewIn: 'NEUHEITEN KAUFEN',
+                decor: 'Dekor',
+                lighting: 'Beleuchtung',
+                rugs: 'Teppiche',
+                armchairs: 'Sessel',
+                tables: 'Tische',
+                storage: 'Lagerung',
+                allCategories: 'ALLE KATEGORIEN',
+                designers: 'DESIGNER',
+                seating: 'SITZMÖBEL',
+                masters: 'MEISTER',
+                shopByRoom: 'SHOP NACH ZIMMER',
+                ourGalleries: 'UNSERE GALERIEN',
+                home: 'Startseite',
+                collectorPanel: 'Sammler-Panel',
+                atelierPanel: 'Atelier-Panel',
+                adminPanel: 'Admin-Panel',
+                login: 'Anmelden',
+                logout: 'Abmelden',
+                newAddress: 'Neue Adresse',
+                contact: 'Kontakt',
+                faq: 'Häufig gestellte Fragen',
+                turkce: 'Türkçe',
+                english: 'English',
+                deutsch: 'Deutsch',
+                tagline1: 'Die neue Adresse des Designs.',
+                tagline2: 'Verleihen Sie Ihren Wohnräumen Wert. Entdecken Sie sorgfältig ausgewählte Möbel, Beleuchtung und Heimdekorationsprodukte.',
+                exploreLogin: 'Jetzt entdecken / Anmelden',
+                furniture: 'Möbel',
+                decoration: 'Dekoration',
+                furnitureDesc: 'Spezielle Designermöbel, die das Herzstück Ihres Zuhauses bilden.',
+                genelHata: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+                lightingDesc: 'Designs, die Ihren Räumen Licht und Ästhetik verleihen.',
+                decorationDesc: 'Einzigartige Dekorationsgegenstände, die mit Details den Unterschied machen.',
+                collectorLogin: 'Sammler-Login',
+                email: 'E-Mail',
+                password: 'Passwort',
+                invalidCredentials: 'Ungültige E-Mail oder Passwort. Bitte versuchen Sie es erneut.',
+                sampleAccounts: 'Beispielkonten:',
+                collector: 'Sammler',
+                atelier: 'Atelier',
+                admin: 'Admin',
+                wantToBeDesigner: 'Möchten Sie Designpartner werden?',
+                atelierPartnerschaftsantrag: 'Atelier-Partnerschaftsantrag',
+                applicationReceived: 'Ihr Antrag wurde erfolgreich empfangen!',
+                contactSoon: 'Wir werden uns so schnell wie möglich mit Ihnen in Verbindung setzen.',
+                backToLogin: 'Zur Anmeldeseite zurückkehren',
+                atelierName: 'Atelier-Name',
+                fullName: 'Vollständiger Name',
+                confirmPassword: 'Passwort bestätigen',
+                portfolioLink: 'Portfolio-Link (Optional)',
+                shortDescription: 'Kurze Beschreibung (Optional)',
+                passwordsMismatch: 'Passwörter stimmen nicht überein. Bitte überprüfen Sie.',
+                submitApplication: 'Antrag absenden',
+                alreadyHaveAccount: 'Haben Sie bereits ein Konto?',
+                overview: 'Übersicht',
+                productManagement: 'Produktverwaltung',
+                ordersFinance: 'Bestellungen & Finanzen',
+                atelierReview: 'Atelier-Bewertung',
+                last30Days: 'Letzte 30 Tage',
+                mostPopularProduct: 'Beliebtestes Produkt',
+                views: 'Ansichten',
+                productViews: 'Produktansichtszahl',
+                totalViews: 'Gesamtansichten',
+                addToFavoritesRate: 'Zu Favoriten hinzufügen Rate',
+                averageRate: 'Durchschnittliche Rate',
+                addProductManage: 'Produkt hinzufügen/verwalten',
+                addNewProduct: 'Neues Produkt hinzufügen',
+                productName: 'Produktname',
+                productDescription: 'Produktbeschreibung',
+                productStory: 'Produktgeschichte',
+                price: 'Preis',
+                category: 'Kategorie',
+                materialInfo: 'Materialinformationen',
+                dimensionsCm: 'Abmessungen (cm)',
+                weightKg: 'Gewicht (kg)',
+                shippingInfo: 'Versandinformationen',
+                professionalPhotoGallery: 'Professionelle Fotogalerie',
+  _            uploadPhotos: 'Laden Sie mindestens 3, maximal 10 Fotos hoch.',
+                saveProduct: 'Produkt speichern',
+                currentProducts: 'Aktuelle Produkte',
+                active: 'Aktiv',
+                passive: 'Pasiv',
+                orders: 'Bestellungen',
+                lastOrders: 'Letzte Bestellungen',
+                completed: 'Abgeschlossen',
+                inTransit: 'Unterwegs',
+                cancelled: 'Storniert',
+                financialStatus: 'Finanzstatus',
+                withdrawableBalance: 'Auszahlbarer Saldo',
+                currentBalance: 'Aktueller Saldo',
+                totalEarnings: 'Gesamteinnahmen',
+                allTime: 'Gesamtzeit',
+                withdrawBalance: 'Saldo abheben',
+                myOrders: 'Meine Bestellungen',
+                messageDesigner: 'Designer benachrichtigen',
+                favorites: 'Favoriten',
+                favoriteDesigns: 'Lieblingsdesigns',
+                favoriteAteliers: 'Lieblingsateliers',
+                profileManagement: 'Profilverwaltung',
+                deliveryAddresses: 'Lieferadressen',
+                addressTitle: 'Adressbezeichnung',
+                addressLine1: 'Adresszeile 1',
+                addressLine2: 'Adresszeile 2 (Optional)',
+                city: 'Stadt',
+                district: 'Bezirk',
+                zipCode: 'Postleitzahl',
+                saveAddress: 'Adresse speichern',
+                billingInformation: 'Rechnungsinformationen',
+                nameSurnameCompanyName: 'Name Nachname / Firmenname',
+                tcIdTaxNo: 'TR ID-Nr. / Steuernummer',
+                saveBillingInfo: 'Rechnungsinformationen speichern',
+                galleryManagerPanel: 'Galerie-Manager-Panel',
+                userManager: 'Benutzerverwaltung',
+                designerApplications: 'Designer-Anträge',
+                pending: 'Ausstehend',
+                approved: 'Genehmigt',
+                allUsers: 'Alle Benutzer',
+                view: 'Anzeigen',
+                approve: 'Genehmigen',
+                allListedProducts: 'Alle gelisteten Produkte',
+                featuredProducts: 'Ausgewählte Produkte',
+                manageFeaturedProducts: 'Ausgewählte Produkte verwalten',
+                financeManagement: 'Finanzverwaltung',
+                commissionRates: 'Provisionssätze',
+                currentCommissionRate: 'Aktueller Provisionssatz:',
+                setCommissionRate: 'Provisionssatz festlegen',
+                designerPayments: 'Designer-Zahlungen',
+                managePayments: 'Zahlungen verwalten',
+                incomeExpenseReports: 'Einnahmen- und Ausgabenberichte',
+                viewReports: 'Berichte anzeigen',
+                contentManagement: 'Inhaltsverwaltung',
+                homePageBanners: 'Startseiten-Banner',
+                manageBanners: 'Banner verwalten',
+                specialCollectionPages: 'Spezielle Kollektionsseiten',
+                manageCollections: 'Kollektionen verwalten',
+                blogPosts: 'Blogbeiträge',
+                manageBlogPosts: 'Blogbeiträge verwalten',
+                orderId: 'Bestell-ID:',
+                product: 'Produkt:',
+                date: 'Datum:',
+                categoryManagement: 'Kategorienverwaltung',
+                mainCategories: 'Hauptkategorien',
+                subCategories: 'Unterkategorien',
+                addCategory: 'Kategorie hinzufügen',
+                editCategory: 'Kategorie bearbeiten',
+                deleteCategory: 'Kategorie löschen',
+                categoryName: 'Kategoriename',
+                parentCategory: 'Übergeordnete Kategorie',
+                saveCategory: 'Kategorie speichern',
+                searchProduct: 'Produkt, Marke, Inhalt suchen',
+                noResults: 'Es wurden keine Ergebnisse gefunden, die Ihrer Suche entsprechen.',
+                searching: 'Suchen...',
+                new: 'Neu',
+                woman: 'Frau',
+                man: 'Mann',
+                child: 'Kind',
+                life: 'Leben',
+                brands: 'Marken',
+                discount: 'Rabatt',
+                mag: 'MAG',
+                rewards: 'Rewards',
+                stores: 'Geschäfte',
+                forGood: 'for good',
+                edit: 'Bearbeiten',
+                delete: 'Löschen',
+                sales: 'Verkäufe',
+                unitsSold: 'verkaufte Einheiten',
+                platformWide: 'Plattformweit',
+                artPiece: 'Kunstwerk',
+                lastViewedProduct: 'Zuletzt angesehenes Produkt',
+                today: 'Heute',
+                modernScandinavianDesigns: 'Moderne skandinavische Designs',
+                naturalWoodCollection: 'Naturholz-Kollektion',
+                shopBy: 'KAUFEN NACH',
+                décor: 'DEKOR',
+                gifts: 'GESCHENKE',
+                services: 'DIENSTLEISTUNGEN',
+                appointmentBooking: 'TERMINBUCHUNG',
+                tradeProgram: 'HANDELSPROGRAMM',
+                internationalDeliveries: 'INTERNATIONALE LIEFERUNGEN',
+                paymentMethods: 'ZAHLUNGSMETHODEN',
+                returnsPolicy: 'RÜCKGABERECHT',
+                followUs: 'FOLGEN SIE UNS',
+                pinterest: 'PINTEREST',
+                instagram: 'INSTAGRAM',
+                linkedin: 'LINKEDIN',
+                youtube: 'YOUTUBE',
+                about: 'ÜBER UNS',
+                aboutUs: 'ÜBER UNS',
+                theTeam: 'DAS TEAM',
+                ourValues: 'UNSERE WERTE',
+                catalogs: 'KATALOGE',
+                bCorp: 'B CORP',
+                inspirations: 'INSPIRATIONEN',
+                press: 'PRESSE',
+                podcast: 'PODCAST',
+                howTo: 'ANLEITUNGEN',
+                careers: 'KARRIERE',
+                legalNotice: 'IMPRESSUM',
+                privacyPolicy: 'DATENSCHUTZRICHTLINIE',
+                subscribeToNewsletter: 'Abonnieren Sie unseren Newsletter',
+                subscribe: 'ABONNIEREN',
+                proudToBeBCorp: 'Stolz darauf, Certified B Corporation™ zu sein',
+                bCorpDescription: 'Dieses Unternehmen erfüllt die höchsten geprüften Standards für soziale und ökologische Leistung, Transparenz und Rechenschaftspflicht.',
+                allRightsReserved: 'Alle Rechte vorbehalten.',
                 editorSelection: 'Auswahl des Herausgebers ',
                 summer: 'Sommer',
                 selection: '',
@@ -652,7 +916,7 @@
         };
 
         // Helper components
-        const Input = ({ label, type = 'text', placeholder, value, onChange }) => (
+        const Input = ({ label, type = 'text', placeholder, value, onChange, disabled = false }) => (
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
                 <input
@@ -660,8 +924,9 @@
                     placeholder={placeholder}
                     value={value}
                     onChange={onChange}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out"
-                    required
+                    disabled={disabled}
+                    className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-gray-300 focus:border-gray-300 transition duration-200 ease-in-out ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    required={!disabled}
                 />
             </div>
         );
@@ -756,19 +1021,25 @@
                                 <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><UserIcon size={24} /></button>
                                 <button className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><HeartIcon size={24} /></button>
                                 <button className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><ShoppingBagIcon size={24} /></button>
-                        </div>
+                            </div>
                         </div>
                     </nav>
-                    <CategoriesMobile t={t} />
+                    {/* Mobil menüye de props olarak yolla */}
+                    <CategoriesMobile t={t} menuItems={menuItems} loading={loading} />
                     <nav className="hidden md:block py-2">
                         <ul className="flex justify-center space-x-8 text-gray-700 text-sm">
-                            {menuItems.map((item, index) => (
-                                <li key={index}>
-                                    <a href="#" className="font-normal hover:text-gray-900 transition duration-300 text-[13px]">
-                                        {t(item)}
-                                    </a>
-                                </li>
-                            ))}
+                            {loading ? (
+                                <li>Yükleniyor...</li>
+                            ) : (
+                                menuItems.map((item, index) => (
+                                    <li key={index}>
+                                        <a href={item.url} className="font-normal hover:text-gray-900 transition duration-300 text-[13px]">
+                                            {item.title}
+                                        </a>
+                                    </li>
+                                ))
+                            )}
+                            {/* Kadraj Society'i dinamik menüden ayrı tutabiliriz */}
                             <li><a href="#" className="font-bold text-[#590219] hover:text-gray-900 transition duration-300 text-[13px]">{t('kadrajSociety')}</a></li>
                         </ul>
                     </nav>
@@ -786,7 +1057,7 @@
                 { key: 'sweatshirt', path: '#' },
                 { key: 'takimlar', path: '#' },
                 { key: 'outlet', path: '#' }
-            ];
+      _      ];
             const utilityLinks = [
                 { key: 'home', icon: HomeIcon, path: '/' },
                 { key: 'hakkimizda', icon: TrophyIcon, path: '#' },
@@ -881,63 +1152,69 @@
                 </div>
             );
         };
+
+        // AÇIKLAMA: SearchPanel komponenti tamamen güncellendi.
         const SearchPanel = ({ t, setIsSearchOpen }) => {
+            // Arama terimini, tüm ürünleri, filtrelenmiş ürünleri ve yüklenme durumunu tutmak için state'ler.
             const [searchTerm, setSearchTerm] = React.useState('');
-            const [searchResults, setSearchResults] = React.useState([]);
-            const [loading, setLoading] = React.useState(false);
-        
+            const [allProducts, setAllProducts] = React.useState([]);
+            const [filteredProducts, setFilteredProducts] = React.useState([]);
+            const [loading, setLoading] = React.useState(true); // Başlangıçta tüm ürünler yüklenirken true.
+            const [hasSearched, setHasSearched] = React.useState(false);
+
+            // AÇIKLAMA: Bu useEffect, komponent yüklendiğinde Firestore'dan 'products' koleksiyonundaki tüm ürünleri çeker.
+            // Sadece bir kez çalışır.
             React.useEffect(() => {
-                if (searchTerm.length > 2) { // En az 3 harf girildiğinde arama yap
-                    const fetchResults = async () => {
-                        setLoading(true);
-                        try {
-                            const productsCollection = window.collection(window.firebaseFirestore, 'products');
-                            const q = window.query(
-                                productsCollection,
-                                window.where('productName', '>=', searchTerm),
-                                window.where('productName', '<=', searchTerm + '\uf8ff')
-                            );
-                            const querySnapshot = await window.getDocs(q);
-                            const results = querySnapshot.docs.map(doc => ({
-                                id: doc.id,
-                                ...doc.data()
-                            }));
-                            setSearchResults(results);
-                        } catch (error) {
-                            console.error("Arama yapılırken hata oluştu:", error);
-                            setSearchResults([]);
-                        } finally {
-                            setLoading(false);
-                        }
-                    };
-                    const debounceSearch = setTimeout(fetchResults, 500);
-                    return () => clearTimeout(debounceSearch);
-                } else {
-                    setSearchResults([]);
+                const fetchProducts = async () => {
+                    try {
+                        // 'products' koleksiyonuna referans oluştur. Koleksiyon adınız farklıysa burayı değiştirin.
+                        const productsCollectionRef = window.collection(window.firebaseFirestore, 'products');
+                        const productsSnapshot = await window.getDocs(productsCollectionRef);
+                        const productsList = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        setAllProducts(productsList);
+                    } catch (error) {
+                        console.error("Arama için ürünler çekilirken hata oluştu:", error);
+                    } finally {
+                        setLoading(false); // Yükleme tamamlandı.
+                    }
+                };
+                fetchProducts();
+            }, []); // Boş dependency array, sadece bir kez çalışmasını sağlar.
+
+            // AÇIKLAMA: Bu useEffect, kullanıcı arama kutusuna bir şeyler yazdığında çalışır.
+            React.useEffect(() => {
+                if (searchTerm.trim() === '') {
+                    setFilteredProducts([]);
+                    setHasSearched(false);
+                    return;
                 }
-            }, [searchTerm]);
-        
+                
+                setHasSearched(true);
+                const lowercasedTerm = searchTerm.toLowerCase();
+                const results = allProducts.filter(product =>
+                    // Ürün adı veya açıklaması arama terimini içeriyor mu diye kontrol et.
+                    (product.productName && product.productName.toLowerCase().includes(lowercasedTerm)) ||
+                    (product.productDescription && product.productDescription.toLowerCase().includes(lowercasedTerm)) ||
+                    (product.category && product.category.toLowerCase().includes(lowercasedTerm))
+                );
+                setFilteredProducts(results);
+            }, [searchTerm, allProducts]); // Bu effect, searchTerm veya allProducts değiştiğinde yeniden çalışır.
+
             return (
-                <div className="fixed top-0 left-0 w-full h-full bg-white z-50 flex flex-col items-center justify-start pt-16 md:pt-24 animate-fade-in-down">
-                    <video 
-                        src="search1.mp4" 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline 
-                        className="absolute inset-0 w-full h-full object-cover z-0 opacity-20"
-                    ></video>
-                    <div className="container mx-auto px-6 md:px-10 relative z-10 w-full max-w-4xl">
-                        <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-10 md:top-8 md:right-10 text-gray-500 hover:text-gray-900 transition-colors duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <div className="fixed top-0 left-0 w-full h-full bg-white z-50 flex flex-col items-center animate-fade-in-down p-4">
+                    <video src="search1.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover z-0 opacity-20"></video>
+                    <div className="w-full max-w-4xl mx-auto px-2 md:px-10 relative z-10 flex-grow flex flex-col">
+                        <button onClick={() => setIsSearchOpen(false)} className="absolute top-2 right-2 md:top-4 md:right-4 text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                            <XIcon size={30} />
                         </button>
-                        <div className="flex flex-col items-center w-full">
+                        <div className="flex flex-col items-center w-full mt-20 md:mt-24">
                             <input
                                 type="text"
-                                placeholder={t('searchProduct')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full text-center text-lg md:text-4xl border-b-2 border-gray-400 focus:border-gray-800 bg-transparent py-4 outline-none placeholder-gray-400 font-serif-new-roman"
+                                placeholder={t('searchProduct')}
+                                autoFocus
+                                className="w-full max-w-2xl text-center text-lg md:text-4xl border-b-2 border-gray-400 focus:border-gray-800 bg-transparent py-4 outline-none placeholder-gray-400 font-serif-new-roman"
                             />
                             <div className="mt-4 flex space-x-2 md:mt-8 md:space-x-4">
                                 <a href="#" className="text-sm md:text-lg font-bold text-gray-900 hover:underline">{t('new')}</a>
@@ -948,30 +1225,37 @@
                                 <a href="#" className="text-sm md:text-lg font-bold text-gray-900 hover:underline">{t('brands')}</a>
                             </div>
                         </div>
-                    </div>
-                    {searchTerm.length > 2 && (
-                        <div className="relative z-10 w-full max-w-4xl mt-8 overflow-y-auto max-h-[60vh] p-4 bg-white bg-opacity-90 rounded-lg shadow-xl">
-                            {loading ? (
-                                <p className="text-center text-gray-500">Aranıyor...</p>
-                            ) : searchResults.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {searchResults.map((product) => (
-                                        <div key={product.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center text-center">
-                                            <img src={product.imageUrls[0]} alt={product.productName} className="w-full h-40 object-cover rounded-md mb-2" />
-                                            <p className="font-semibold text-lg text-gray-800">{product.productName}</p>
-                                            <p className="text-sm text-gray-500">{product.category}</p>
-                                            <p className="text-xl font-bold mt-2">{product.price} TL</p>
-                                        </div>
+                            
+                            {/* Arama Sonuçları Alanı */}
+                        <div className="mt-8 w-full flex-grow overflow-y-auto no-scrollbar">
+                            {loading && <p className="text-center text-gray-500">{t('searching')}</p>}
+                            {!loading && hasSearched && filteredProducts.length === 0 && (
+                                <p className="text-center text-gray-500">{t('noResults')}</p>
+                            )}
+                            {!loading && filteredProducts.length > 0 && (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    {filteredProducts.map(product => (
+                                        <a href="#" key={product.id} className="group text-center">
+                                            <div className="w-full aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden mb-2">
+                                                {/* Ürün resmi varsa göster, yoksa placeholder göster. 'image' alanı ürün verinizde olmalı. */}
+                                                <img 
+                                                        src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/300'} 
+                                                        alt={product.productName} 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                                    />
+                                            </div>
+                                            <h4 className="text-sm font-semibold text-gray-800 truncate group-hover:underline">{product.productName}</h4>
+                                            <p className="text-xs text-gray-500">{product.category}</p>
+                                        </a>
                                     ))}
                                 </div>
-                            ) : (
-                                <p className="text-center text-gray-500">Sonuç bulunamadı.</p>
                             )}
                         </div>
-                    )}
+                    </div>
                 </div>
             );
         };
+
         const MobileBottomBar = ({ t, handleUserIconClick }) => {
             return (
                 <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg md:hidden z-40">
@@ -1236,249 +1520,3 @@
                                         </div>
                                         <img src="b-corp-logo.png" alt="Certified B Corporation" className="h-16 md:h-20" />
                                     </div>
-                                    <div className="flex items-center justify-end">
-                                        <img src="monocle-logo.png" alt="Monocle" className="h-8 md:h-10" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                            <div className="text-center md:text-left mb-4 md:mb-0">
-                                &copy; 2025 The Invisible Collection Ltd.<br/>{t('allRightsReserved')}
-                            </div>
-                            <div className="flex space-x-4 items-center flex-wrap justify-center">
-                                <img src="visa-logo.png" alt="Visa" className="h-4 md:h-6" />
-                                <img src="amex-logo.png" alt="American Express" className="h-4 md:h-6" />
-                                <img src="apple-pay-logo.png" alt="Apple Pay" className="h-4 md:h-6" />
-                                <img src="paypal-logo.png" alt="PayPal" className="h-4 md:h-6" />
-                                <img src="klarna-logo.png" alt="Klarna" className="h-4 md:h-6" />
-                                <img src="b-pay-logo.png" alt="B-Pay" className="h-4 md:h-6" />
-                            </div>
-                        </div>
-                    </div>
-                </footer>
-            );
-        };
-
-        // Page Components
-        const HomePage = ({ setCurrentPath, t }) => {
-            const images = [ "kadraj-slide1.png", "kadraj-slide2.png", "kadraj-slide3.png" ];
-            const [currentSlide, setCurrentSlide] = React.useState(0);
-            const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % images.length);
-            const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
-            React.useEffect(() => {
-                const slideInterval = setInterval(nextSlide, 7000);
-                return () => clearInterval(slideInterval);
-            }, []);
-            return (
-                <>
-                    <div className="flex flex-col md:flex-row mt-0 gap-0 border-0">
-                        <div className="relative w-full md:w-1/3 aspect-[9/10] overflow-hidden">
-                            <video src="loop1.mp4" autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
-                            <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-start justify-end p-8 text-white">
-                                <p className="text-xs font-normal tracking-widest mb-2">{t('editorSelection')}<span className="italic font-bold">{t('summer')}</span>{t('selection')}</p>
-                                <h3 className="text-4xl font-bold mb-4">{t('laclaud')}</h3>
-                                <a href="#" className="flex items-center text-sm font-bold tracking-wider">
-                                    {t('discover')}
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </a>
-                            </div>
-                        </div>
-                        <div className="relative w-full md:w-2/3 aspect-[16/9] overflow-hidden">
-                            <div className="absolute top-0 left-0 w-[300%] h-full flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentSlide * 100 / images.length}%)` }}>
-                                {images.map((image, index) => (
-                                    <div key={index} className="w-1/3 h-full flex-shrink-0">
-                                        <img src={image} alt={`Slide ${index}`} className="w-full h-full object-cover" />
-                                    </div>
-                                ))}
-                            </div>
-                            <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                            </button>
-                            <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                            </button>
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
-                                {images.map((_, index) => (
-                                    <button key={index} onClick={() => setCurrentSlide(index)} className={`h-2 w-2 rounded-full transition-colors duration-300 ${currentSlide === index ? 'bg-black' : 'bg-gray-300'}`}></button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <CategoryHighlightSection t={t} />
-                    <HighlightsSection t={t} />
-                    <NewInSection t={t} />
-                    <TradeProgramSection t={t} setCurrentPath={setCurrentPath} />
-                </>
-            );
-        };
-        const LoginPage = ({ setCurrentPath, t }) => {
-             const [email, setEmail] = React.useState('');
-            const [password, setPassword] = React.useState('');
-            const [loginError, setLoginError] = React.useState('');
-            const handleLogin = async (e) => {
-                e.preventDefault();
-                setLoginError('');
-                try {
-                    const userCredential = await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
-                    const user = userCredential.user;
-                    const userDocRef = window.doc(window.firebaseFirestore, 'users', user.uid);
-                    const userDocSnap = await window.getDoc(userDocRef);
-                    if (userDocSnap.exists()) {
-                        const userData = userDocSnap.data();
-                        if (userData.role === 'seller') {
-                            window.location.href = 'seller-dashboard.html';
-                        } else if (userData.role === 'admin') {
-                            window.location.href = 'admin-dashboard.html';
-                        } else {
-                            setCurrentPath('/user-dashboard');
-                        }
-                    } else {
-                        setCurrentPath('/user-dashboard');
-                    }
-                } catch (error) {
-                    console.error("Login error:", error);
-                    setLoginError(t('invalidCredentials'));
-                }
-            };
-            return (
-                <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
-                    <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('login')}</h2>
-                        <form onSubmit={handleLogin} className="space-y-5">
-                            <Input label={t('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@mail.com" />
-                            <Input label={t('password')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********" />
-                            {loginError && (<p className="text-red-500 text-sm text-center">{loginError}</p>)}
-                            <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg">{t('login')}</button>
-                        </form>
-                        <div className="mt-8 text-center space-y-4">
-                            <p className="text-gray-600 text-sm">
-                                {t('noAccount')}{' '}
-                                <button onClick={() => setCurrentPath('/register')} className="text-blue-600 hover:underline font-semibold">{t('signUp')}</button>
-                            </p>
-                            <p className="text-gray-700">
-                                <button onClick={() => setCurrentPath('/seller-register')} className="text-gray-700 hover:underline font-semibold">{t('wantToBeDesigner')}</button>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-        const UserRegisterPage = ({ setCurrentPath, t }) => {
-            const [fullName, setFullName] = React.useState('');
-            const [email, setEmail] = React.useState('');
-            const [password, setPassword] = React.useState('');
-            const [confirmPassword, setConfirmPassword] = React.useState('');
-            const [registerError, setRegisterError] = React.useState('');
-            const [registerSuccess, setRegisterSuccess] = React.useState(false);
-            const handleRegister = async (e) => {
-                e.preventDefault();
-                setRegisterError('');
-                if (password !== confirmPassword) {
-                    setRegisterError(t('passwordsMismatch'));
-                    return;
-                }
-                try {
-                    const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-                    const user = userCredential.user;
-                    await window.setDoc(window.doc(window.firebaseFirestore, 'users', user.uid), {
-                        role: 'user', email: email, fullName: fullName
-                    });
-                    setRegisterSuccess(true);
-                } catch (error) {
-                    console.error("Registration error:", error);
-                    if (error.code === 'auth/email-already-in-use') {
-                        setRegisterError("Bu e-posta adresi zaten kullanımda.");
-                    } else if (error.code === 'auth/weak-password') {
-                        setRegisterError("Şifre en az 6 karakter olmalıdır.");
-                    } else {
-                        setRegisterError(t('genelHata'));
-                    }
-                }
-            };
-            return (
-                <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
-                    <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-lg">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('userRegistration')}</h2>
-                        {registerSuccess ? (
-                            <div className="text-center text-green-600 font-semibold text-xl py-8">
-                                <p>{t('registrationSuccess')}</p>
-                                <p className="text-base font-normal text-gray-600 mt-2">{t('canNowLogin')}</p>
-                                <button onClick={() => setCurrentPath('/login')} className="mt-6 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">{t('backToLogin')}</button>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleRegister} className="space-y-5">
-                                <Input label={t('fullName')} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('fullName')} />
-                                <Input label={t('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@mail.com" />
-                                <Input label={t('password')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="********" />
-                                <Input label={t('confirmPassword')} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="********" />
-                                {registerError && (<p className="text-red-500 text-sm text-center">{registerError}</p>)}
-                                <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg">{t('createAccount')}</button>
-                            </form>
-                        )}
-                        <div className="mt-6 text-center">
-                            <p className="text-gray-700 text-sm">
-                                {t('alreadyHaveAccount')}{' '}
-                                <button onClick={() => setCurrentPath('/login')} className="text-blue-600 hover:underline font-semibold">{t('login')}</button>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-        const SellerRegisterPage = ({ setCurrentPath, t }) => {
-            const [atelierName, setAtelierName] = React.useState('');
-            const [fullName, setFullName] = React.useState('');
-            const [email, setEmail] = React.useState('');
-            const [password, setPassword] = React.useState('');
-            const [confirmPassword, setConfirmPassword] = React.useState('');
-            const [portfolioLink, setPortfolioLink] = React.useState('');
-            const [shortDescription, setShortDescription] = React.useState('');
-            const [registerError, setRegisterError] = React.useState('');
-            const [registerSuccess, setRegisterSuccess] = React.useState(false);
-            const handleRegister = async (e) => {
-                e.preventDefault();
-                setRegisterError('');
-                if (password !== confirmPassword) {
-                    setRegisterError(t('passwordsMismatch')); return;
-                }
-                try {
-                    const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-                    const user = userCredential.user;
-                    await window.setDoc(window.doc(window.firebaseFirestore, 'users', user.uid), {
-                        role: 'seller', email, atelierName, fullName, portfolioLink, shortDescription, status: 'pending'
-                    });
-                    setRegisterSuccess(true);
-                } catch (error) {
-                    console.error("Registration error:", error);
-                    if (error.code === 'auth/email-already-in-use') {
-                        setRegisterError("Bu e-posta adresi zaten kullanımda.");
-                    } else if (error.code === 'auth/weak-password') {
-                        setRegisterError("Şifre en az 6 karakter olmalıdır.");
-                    } else {
-                        setRegisterError(t('genelHata'));
-                    }
-                }
-            };
-            return (
-                <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
-                    <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-lg">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('atelierPartnershipApplication')}</h2>
-                        {registerSuccess ? (
-                            <div className="text-center text-green-600 font-semibold text-xl py-8">
-                                <p>{t('applicationReceived')}</p>
-                                <p className="text-base font-normal text-gray-600 mt-2">{t('contactSoon')}</p>
-                                <button onClick={() => setCurrentPath('/login')} className="mt-6 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md">{t('backToLogin')}</button>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleRegister} className="space-y-5">
-                                <Input label={t('atelierName')} value={atelierName} onChange={(e) => setAtelierName(e.target.value)} />
-                                <Input label={t('fullName')} value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                                <Input label={t('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                                <Input label={t('password')} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                                <Input label={t('confirmPassword')} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                                <Input label={t('portfolioLink')} value={portfolioLink} onChange={(e) => setPortfolioLink(e.target.value)} />
-                                <TextArea label={t('shortDescription')} value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} />
-                                {registerError && (<p className="text-red-500 text-sm text-center">{registerError}</p>)}
-                                <button type="submit" className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md text-lg">{t('submitApplication')}</button>
-                            </form>
