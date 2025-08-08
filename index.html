@@ -45,6 +45,11 @@
         window.arrayRemove = arrayRemove;
         window.query = query;
         window.where = where;
+        window.updateDoc = updateDoc;
+        window.arrayUnion = arrayUnion;
+        window.arrayRemove = arrayRemove;
+        window.query = query;
+        window.where = where;
 
     </script>
 
@@ -2175,7 +2180,7 @@ const CartService = {
     } catch(e){
       console.error('add to cart error', e);
       // fallback create
-      await window.setDoc(ref, { items: [base], updatedAt: Date.now() }, { merge: True });
+      await window.setDoc(ref, { items: [base], updatedAt: Date.now() }, { merge: true });
     }
   },
   async remove(productId) {
@@ -2349,7 +2354,7 @@ window.openCategory = (slug) => OverlayRoot.render(<CategoryOverlay slug={slug} 
 
 /** EVENT DELEGATION **/
 document.addEventListener('click', async (e) => {
-  const el = e.target.closest('[data-add-to-cart],[data-toggle-favorite],[data-open-cart],[data-open-favorites],[data-category],[data-quick-add],[data-quick-fav]');
+  const el = e.target.closest('[data-add-to-cart],[data-toggle-favorite],[data-open-cart],[data-open-favorites],[data-category],[data-quick-add],[data-quick-fav],a[href^="/category/"]');
   if (!el) return;
 
   // Openers
@@ -2357,6 +2362,14 @@ document.addEventListener('click', async (e) => {
   if (el.hasAttribute('data-open-favorites')) { e.preventDefault(); window.openFavorites(); return; }
 
   // Category open
+  if (el.matches && el.matches('a[href^="/category/"]')) {
+    e.preventDefault();
+    const href = el.getAttribute('href');
+    const slug = href.split('/category/')[1] || '';
+    if (slug) { window.openCategory(slug); }
+    return;
+  }
+
   if (el.hasAttribute('data-category')) {
     e.preventDefault();
     const slug = el.getAttribute('data-category');
@@ -2403,10 +2416,12 @@ document.addEventListener('click', async (e) => {
 const tryAttachBarButtons = () => {
   // Add data-open attributes to ShoppingBag and Heart icons in bottom bar if exist
   document.querySelectorAll('span').forEach(sp => {
-    if (sp.textContent.trim() === 'Sepetim' || sp.textContent.trim().toLowerCase() === 'my cart') {
+    const t = sp.textContent.trim().toLowerCase();
+    if (t === 'sepet' || t === 'sepetim' || t === 'my cart') {
       const a = sp.closest('a'); if (a) a.setAttribute('data-open-cart','true');
     }
-    if (sp.textContent.trim() === 'Favoriler' || sp.textContent.trim().toLowerCase() === 'favorites') {
+    const f = sp.textContent.trim().toLowerCase();
+    if (f === 'favoriler' || f === 'favorites') {
       const a = sp.closest('a'); if (a) a.setAttribute('data-open-favorites','true');
     }
   });
