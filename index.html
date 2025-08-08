@@ -103,30 +103,6 @@
 
 <body>
     <div id="root"></div>
-
-    <!-- Upload testi -->
-    <input id="file" type="file" />
-    <img id="preview" style="max-width:300px; display:block; margin-top:12px;" />
-
-    <script type="module">
-      import { uploadAndGetUrl } from "./js/upload.js";
-
-      const fileInput = document.getElementById("file");
-      const preview = document.getElementById("preview");
-
-      fileInput.addEventListener("change", async (e) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        try {
-          const url = await uploadAndGetUrl(f);
-          console.log("URL:", url);
-          preview.src = url;
-        } catch (err) {
-          console.error("UPLOAD ERROR:", err);
-          alert("Yükleme hatası (detay için konsola bak).");
-        }
-      });
-    </script>
     <script type="text/babel">
         // ICON COMPONENTS (No changes here, they remain the same)
         const HomeIcon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
@@ -1999,4 +1975,3 @@
     </script>
 </body>
 </html>
-
