@@ -340,7 +340,7 @@
 
             return (
                 <div className="space-y-6">
-                    <h3 className="text-2xl font-semibold text-gray-800">Header Yönetimi</h3>
+                    <div id="section-header"></div><h3 className="text-2xl font-semibold text-gray-800">Header Yönetimi</h3>
                     {feedback && <p className={`p-3 rounded-lg ${feedback.includes('hata') || feedback.includes('bulunamadı') ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{feedback}</p>}
                     <div className="space-y-4">
                         {menuItems.map((item, index) => (
@@ -690,198 +690,164 @@
             return (
                 <div className="min-h-screen bg-neutral-50 font-['Helvetica'] text-gray-800">
                     <Navbar isLoggedIn={isLoggedIn} userType={userType} t={t} />
-                    <main className="container mx-auto p-6 md:p-10">
+                    <main className="container mx-auto p-6 md:p-10"><div className="flex gap-6"><AdminSidebar t={t} /><div className="flex-1 min-w-0">
                         <AdminDashboard isLoggedIn={isLoggedIn} userType={userType} t={t} currentUser={currentUser} />
-                    <ScrollingBannerSettings t={t} />
-                    </main>
+                        <ScrollingBannerSettings t={t} />
+                    </div></div></main>
                 </div>
             );
         };
         
-        // --- Kayan Banner (Marquee) Ayarları + Canlı Önizleme ---
+        
+// --- Kayan Banner (Marquee) Ayarları (Temel) ---
 const ScrollingBannerSettings = ({ t }) => {
-    const [cfg, setCfg] = React.useState({
-        items: [
-            { textKey: 'summerSale' },
-            { textKey: 'newArrivals' },
-            { textKey: 'raysDiscount' },
-            { textKey: 'discoverThisWeeksHighlights' },
-            { textKey: 'freeShipping' }
-        ],
-        speedSec: 40,
-        fontFamily: "Helvetica, Arial, sans-serif",
-        fontSize: 14,
-        fontWeight: 300,
-        textColor: "#222222",
-        bgColor: "#f2f4f7",
-        pauseOnHover: true,
-        letterSpacing: 0
-    });
-    const [loading, setLoading] = React.useState(true);
-    const [feedback, setFeedback] = React.useState('');
+  const [cfg, setCfg] = React.useState({
+    items: [{ textKey: 'summerSale' },{ textKey: 'newArrivals' },{ textKey: 'raysDiscount' },{ textKey: 'discoverThisWeeksHighlights' },{ textKey: 'freeShipping' }],
+    speedSec: 40, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 14, fontWeight: 300,
+    textColor: "#222222", bgColor: "#f2f4f7", pauseOnHover: true, letterSpacing: 0
+  });
+  const [loading, setLoading] = React.useState(true);
+  const [feedback, setFeedback] = React.useState('');
+  React.useEffect(()=>{(async()=>{
+    try{ const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner'); const snap = await window.getDoc(ref);
+      if(snap.exists()){ const d=snap.data()||{}; setCfg(p=>({...p, ...d, items:(d.items&&d.items.length?d.items:p.items)})); }
+    }catch(e){} finally{ setLoading(false); }
+  })();},[]);
 
-    React.useEffect(()=>{
-        (async()=>{
-            try{
-                const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner');
-                const snap = await window.getDoc(ref);
-                if (snap.exists()) {
-                    const data = snap.data() || {};
-                    const base = {...cfg, ...data};
-                    if (!Array.isArray(base.items) || base.items.length === 0) {
-                        base.items = cfg.items;
-                    }
-                    setCfg(base);
-                }
-            } catch(e){ console.warn(e); }
-            finally{ setLoading(false); }
-        })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[]);
+  const itemsResolved = (cfg.items||[]).map(it => it.textKey ? (t(it.textKey) || it.textKey) : (it.text || ''));
+  const updateItem=(i,f,v)=>{const n=[...(cfg.items||[])]; n[i]={...n[i],[f]:v}; setCfg({...cfg,items:n});};
+  const addItem=()=>setCfg({...cfg,items:[...(cfg.items||[]),{textKey:'',text:'',href:''}]}); 
+  const removeItem=i=>setCfg({...cfg,items:(cfg.items||[]).filter((_,x)=>x!==i)});
 
-    const itemsResolved = (cfg.items||[]).map(it => it.textKey ? (t(it.textKey) || it.textKey) : (it.text || ''));
+  const save=async()=>{ try{ const ref=window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner'); await window.setDoc(ref,cfg,{merge:true}); setFeedback('Kaydedildi.'); setTimeout(()=>setFeedback(''),2000);}catch(e){setFeedback('Kaydedilemedi: '+e.message);} };
 
-    const save = async () => {
-        setFeedback('');
-        try{
-            const ref = window.doc(window.firebaseFirestore,'siteConfiguration','scrollingBanner');
-            await window.setDoc(ref, cfg, { merge: true });
-            setFeedback('Kaydedildi.');
-            setTimeout(()=>setFeedback(''),2000);
-        }catch(e){
-            console.error(e);
-            setFeedback('Kaydedilemedi: '+e.message);
-        }
-    };
+  // --- Font Hitbox Options ---
+  const FONT_OPTIONS=[
+    {label:'Inter', family:"'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif", weights:[300,700]},
+    {label:'Jost', family:"'Jost', Helvetica, Arial, sans-serif", weights:[300,700]},
+    {label:'Roboto', family:"'Roboto', Helvetica, Arial, sans-serif", weights:[300,700]},
+    {label:'IBM Plex Sans', family:"'IBM Plex Sans', Helvetica, Arial, sans-serif", weights:[300,700]},
+    {label:'Helvetica/Arial', family:"Helvetica, Arial, sans-serif", weights:[300,700]},
+    {label:'Georgia', family:"Georgia, 'Times New Roman', serif", weights:[300,700]},
+    {label:'Playfair Display', family:"'Playfair Display', Georgia, serif", weights:[300,700]}
+  ];
+  const pickFont=(family, weight)=>{ setCfg({...cfg, fontFamily: family, fontWeight: weight}); };
 
-    const updateItem = (idx, field, value) => {
-        const next = [...cfg.items];
-        next[idx] = { ...next[idx], [field]: value };
-        setCfg({ ...cfg, items: next });
-    };
-    const addItem = () => setCfg({ ...cfg, items: [...(cfg.items||[]), { textKey:'', text:'', href:'' }] });
-    const removeItem = (idx) => setCfg({ ...cfg, items: (cfg.items||[]).filter((_,i)=>i!==idx) });
+  const liveContainer={backgroundColor:cfg.bgColor,color:cfg.textColor,fontFamily:cfg.fontFamily,fontSize:cfg.fontSize+'px',fontWeight:cfg.fontWeight,letterSpacing:(cfg.letterSpacing||0)+'px',borderRadius:'12px',overflow:'hidden',border:'1px solid #e5e7eb'};
+  const liveTrack={display:'flex',whiteSpace:'nowrap',padding:'8px 0',animation:`scroll-left ${cfg.speedSec||40}s linear infinite`};
 
-    const liveContainer = {
-        backgroundColor: cfg.bgColor,
-        color: cfg.textColor,
-        fontFamily: cfg.fontFamily,
-        fontSize: cfg.fontSize+'px',
-        fontWeight: cfg.fontWeight,
-        letterSpacing: (cfg.letterSpacing||0)+'px',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        border: '1px solid #e5e7eb'
-    };
-    const liveTrack = {
-        display: 'flex',
-        whiteSpace: 'nowrap',
-        padding: '8px 0',
-        animation: `scroll-left ${cfg.speedSec||40}s linear infinite`
-    };
-
-    return (
-        <section className="container mx-auto mt-8 px-6 md:px-10">
-            <div className="bg-white rounded-xl shadow p-6 md:p-8 border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4">Kayan Banner (Marquee) Ayarları</h2>
-
-                {loading && <p>Yükleniyor...</p>}
-
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">İçerikler</span>
-                            <button onClick={addItem} className="px-3 py-1.5 rounded-lg border bg-gray-50 hover:bg-gray-100">+ Ekle</button>
-                        </div>
-                        <div className="space-y-3">
-                            {(cfg.items||[]).map((it, idx)=>(
-                                <div key={idx} className="border rounded-lg p-3 grid md:grid-cols-3 gap-3">
-                                    <input className="border rounded p-2" placeholder="textKey (örn: summerSale)"
-                                           value={it.textKey||''} onChange={e=>updateItem(idx,'textKey',e.target.value)}/>
-                                    <input className="border rounded p-2" placeholder="Serbest metin (opsiyonel)"
-                                           value={it.text||''} onChange={e=>updateItem(idx,'text',e.target.value)}/>
-                                    <div className="flex gap-2">
-                                        <input className="border rounded p-2 flex-1" placeholder="Bağlantı (opsiyonel)"
-                                               value={it.href||''} onChange={e=>updateItem(idx,'href',e.target.value)}/>
-                                        <button onClick={()=>removeItem(idx)} className="px-2 border rounded hover:bg-red-50">Sil</button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <label className="block">
-                            <span className="text-sm text-gray-600">Hız (saniye)</span>
-                            <input type="number" min="5" className="mt-1 w-full border rounded-lg p-2"
-                                   value={cfg.speedSec} onChange={e=>setCfg({...cfg, speedSec: parseInt(e.target.value||40,10)})}/>
-                        </label>
-
-                        <label className="block">
-                            <span className="text-sm text-gray-600">Yazı Tipi (font-family)</span>
-                            <input type="text" className="mt-1 w-full border rounded-lg p-2"
-                                   value={cfg.fontFamily} onChange={e=>setCfg({...cfg, fontFamily: e.target.value})}/>
-                        </label>
-
-                        <div className="grid grid-cols-3 gap-4">
-                            <label className="block">
-                                <span className="text-sm text-gray-600">Punto (px)</span>
-                                <input type="number" min="10" className="mt-1 w-full border rounded-lg p-2"
-                                       value={cfg.fontSize} onChange={e=>setCfg({...cfg, fontSize: parseInt(e.target.value||14,10)})}/>
-                            </label>
-                            <label className="block">
-                                <span className="text-sm text-gray-600">Ağırlık</span>
-                                <input type="number" step="100" min="100" max="900" className="mt-1 w-full border rounded-lg p-2"
-                                       value={cfg.fontWeight} onChange={e=>setCfg({...cfg, fontWeight: parseInt(e.target.value||300,10)})}/>
-                            </label>
-                            <label className="block">
-                                <span className="text-sm text-gray-600">Harf Aralığı (px)</span>
-                                <input type="number" step="0.5" className="mt-1 w-full border rounded-lg p-2"
-                                       value={cfg.letterSpacing} onChange={e=>setCfg({...cfg, letterSpacing: parseFloat(e.target.value||0)})}/>
-                            </label>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <label className="block">
-                                <span className="text-sm text-gray-600">Metin Rengi</span>
-                                <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1"
-                                       value={cfg.textColor} onChange={e=>setCfg({...cfg, textColor: e.target.value})}/>
-                            </label>
-                            <label className="block">
-                                <span className="text-sm text-gray-600">Arka Plan</span>
-                                <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1"
-                                       value={cfg.bgColor} onChange={e=>setCfg({...cfg, bgColor: e.target.value})}/>
-                            </label>
-                        </div>
-
-                        <label className="inline-flex items-center gap-2 mt-2">
-                            <input type="checkbox" className="border rounded" checked={!!cfg.pauseOnHover}
-                                   onChange={e=>setCfg({...cfg, pauseOnHover: e.target.checked})}/>
-                            <span>Üzerine gelince duraklat</span>
-                        </label>
-                    </div>
-
-                    {/* CANLI ÖNİZLEME */}
-                    <div className="space-y-2">
-                        <div className="text-sm text-gray-600">Önizleme</div>
-                        <div style={liveContainer}>
-                            <div style={liveTrack}
-                                 onMouseEnter={(e)=>{ if (cfg.pauseOnHover) e.currentTarget.style.animationPlayState='paused'; }}
-                                 onMouseLeave={(e)=>{ if (cfg.pauseOnHover) e.currentTarget.style.animationPlayState='running'; }}>
-                                {itemsResolved.map((txt,i)=>(<span key={i} className="px-8 flex-shrink-0">{txt}</span>))}
-                                {itemsResolved.map((txt,i)=>(<span key={'dup-'+i} className="px-8 flex-shrink-0">{txt}</span>))}
-                            </div>
-                        </div>
-                        <p className="text-xs text-gray-500">Metinler çeviri anahtarı (textKey) ile bulunur; yoksa serbest “text” alanı kullanılır.</p>
-                    </div>
-                </div>
-
-                <div className="mt-6 flex items-center gap-3">
-                    <button onClick={save} className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">Kaydet</button>
-                    {feedback && <span className="text-sm text-gray-600">{feedback}</span>}
-                </div>
+  return (
+    <section id="section-marquee" className="container mx-auto mt-8 px-6 md:px-10">
+      <div className="bg-white rounded-xl shadow p-6 md:p-8 border border-gray-200">
+        <h2 className="text-xl font-semibold mb-4">Kayan Banner (Marquee) Ayarları</h2>
+        {loading && <p>Yükleniyor...</p>}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">İçerikler</span>
+              <button onClick={addItem} className="px-3 py-1.5 rounded-lg border bg-gray-50 hover:bg-gray-100">+ Ekle</button>
             </div>
-        </section>
-    );
+            <div className="space-y-3">
+              {(cfg.items||[]).map((it, idx)=>(
+                <div key={idx} className="border rounded-lg p-3 grid md:grid-cols-3 gap-3">
+                  <input className="border rounded p-2" placeholder="textKey (örn: summerSale)" value={it.textKey||''} onChange={e=>updateItem(idx,'textKey',e.target.value)}/>
+                  <input className="border rounded p-2" placeholder="Serbest metin (opsiyonel)" value={it.text||''} onChange={e=>updateItem(idx,'text',e.target.value)}/>
+                  <div className="flex gap-2">
+                    <input className="border rounded p-2 flex-1" placeholder="Bağlantı (opsiyonel)" value={it.href||''} onChange={e=>updateItem(idx,'href',e.target.value)}/>
+                    <button onClick={()=>removeItem(idx)} className="px-2 border rounded hover:bg-red-50">Sil</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <label className="block"><span className="text-sm text-gray-600">Hız (saniye)</span>
+              <input type="number" min="5" className="mt-1 w-full border rounded-lg p-2" value={cfg.speedSec} onChange={e=>setCfg({...cfg, speedSec:parseInt(e.target.value||40,10)})}/>
+            </label>
+
+            {/* FONT HITBOX SEÇİMİ */}
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">Yazı Tipi (Hitbox) & Ağırlık</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {FONT_OPTIONS.map(opt => opt.weights.map(w => (
+                  <button key={opt.label+'-'+w}
+                    onClick={()=>pickFont(opt.family, w)}
+                    className={"border rounded-xl px-3 py-3 text-left hover:bg-gray-50 transition " + ((cfg.fontFamily===opt.family && cfg.fontWeight===w) ? "ring-2 ring-gray-900" : "")}
+                    style={{fontFamily:opt.family, fontWeight:w}}>
+                    <div className="text-sm">{opt.label}</div>
+                    <div className="text-xs opacity-70">{w===300?'Light (300)':'Bold (700)'}</div>
+                    <div className="mt-1 text-base">Aa Bb Cc 123</div>
+                  </button>
+                )))}
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <label className="block"><span className="text-sm text-gray-600">Punto (px)</span>
+                  <input type="number" min="10" className="mt-1 w-full border rounded-lg p-2" value={cfg.fontSize} onChange={e=>setCfg({...cfg, fontSize:parseInt(e.target.value||14,10)})}/>
+                </label>
+                <label className="block"><span className="text-sm text-gray-600">Harf Aralığı (px)</span>
+                  <input type="number" step="0.5" className="mt-1 w-full border rounded-lg p-2" value={cfg.letterSpacing} onChange={e=>setCfg({...cfg, letterSpacing:parseFloat(e.target.value||0)})}/>
+                </label>
+                <div className="block"><span className="text-sm text-gray-600">Ağırlık</span>
+                  <input type="number" readOnly className="mt-1 w-full border rounded-lg p-2 bg-gray-50" value={cfg.fontWeight}/>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <label className="block"><span className="text-sm text-gray-600">Metin Rengi</span>
+                <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1" value={cfg.textColor} onChange={e=>setCfg({...cfg, textColor:e.target.value})}/>
+              </label>
+              <label className="block"><span className="text-sm text-gray-600">Arka Plan</span>
+                <input type="color" className="mt-1 w-full h-10 border rounded-lg p-1" value={cfg.bgColor} onChange={e=>setCfg({...cfg, bgColor:e.target.value})}/>
+              </label>
+            </div>
+
+            <label className="inline-flex items-center gap-2 mt-2">
+              <input type="checkbox" className="border rounded" checked={!!cfg.pauseOnHover} onChange={e=>setCfg({...cfg, pauseOnHover:e.target.checked})}/>
+              <span>Üzerine gelince duraklat</span>
+            </label>
+          </div>
+
+          {/* CANLI ÖNİZLEME */}
+          <div className="space-y-2">
+            <div className="text-sm text-gray-600">Önizleme</div>
+            <div style={liveContainer}>
+              <div style={liveTrack}
+                onMouseEnter={(e)=>{ if(cfg.pauseOnHover) e.currentTarget.style.animationPlayState='paused'; }}
+                onMouseLeave={(e)=>{ if(cfg.pauseOnHover) e.currentTarget.style.animationPlayState='running'; }}>
+                {itemsResolved.map((txt,i)=>(<span key={i} className="px-8 flex-shrink-0">{txt}</span>))}
+                {itemsResolved.map((txt,i)=>(<span key={'dup-'+i} className="px-8 flex-shrink-0">{txt}</span>))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 flex items-center gap-3">
+          <button onClick={save} className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">Kaydet</button>
+          {feedback && <span className="text-sm text-gray-600">{feedback}</span>}
+        </div>
+      </div>
+    </section>
+  );
 };
+
+
+// --- Sol Menü ---
+const AdminSidebar = ({ t }) => {
+  const Item = ({ href, label }) => (
+    <a href={href} className="block px-3 py-2 rounded-lg hover:bg-gray-100 transition text-sm">{label}</a>
+  );
+  return (
+    <aside className="hidden md:block w-64 shrink-0">
+      <div className="sticky top-6 bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+        <div className="px-2 py-2 text-xs uppercase tracking-wide text-gray-500">Bölümler</div>
+        <nav className="space-y-1">
+          <Item href="#section-header" label="Header Ayarları" />
+          <Item href="#section-marquee" label="Kayan Banner (Marquee) Ayarları" />
+        </nav>
+      </div>
+    </aside>
+  );
+};
+
 
 // Ana uygulama render ediliyor
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
