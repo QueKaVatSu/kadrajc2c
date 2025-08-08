@@ -13,7 +13,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         const firebaseConfig = {
@@ -48,6 +48,7 @@
         window.query = query;
         window.where = where;
         window.deleteDoc = deleteDoc;
+        window.updateDoc = updateDoc;
     </script>
     <style>
         .progress-bar {
@@ -591,11 +592,13 @@
        
         // --- Main SellerDashboard Component ---
         const SellerDashboard = ({ currentUser, t }) => {
-            const [activeTab, setActiveTab] = React.useState('overview');
+            const [activeTab, setActiveTab] = React.useState('productManagement');
             const [products, setProducts] = React.useState([]);
             const [loadingProducts, setLoadingProducts] = React.useState(true);
+            const [isEditing, setIsEditing] = React.useState(false);
+            const [currentProduct, setCurrentProduct] = React.useState(null);
 
-            // Form state (mevcut haliyle kalacak)
+            // Form state
             const [productName, setProductName] = React.useState('');
             const [description, setDescription] = React.useState('');
             const [story, setStory] = React.useState('');
@@ -630,7 +633,6 @@
                 }
             };
 
-            // Component yüklendiğinde ve tab değiştiğinde ürünleri çek
             React.useEffect(() => {
                 if (activeTab === 'productManagement') {
                     fetchProducts();
@@ -642,6 +644,8 @@
                 setCategory(''); setMaterial(''); setDimensions(''); setWeight('');
                 setShippingInfo(''); setFiles([]);
                 document.getElementById('file-input').value = null;
+                setIsEditing(false);
+                setCurrentProduct(null);
             };
 
             const handleSaveProduct = async (e) => {
@@ -660,13 +664,8 @@
                 const imageFiles = allFiles.filter(file => file.type.startsWith('image/'));
                 const videoFiles = allFiles.filter(file => file.type.startsWith('video/'));
 
-                if (imageFiles.length === 0) {
+                if (imageFiles.length === 0 && !isEditing) {
                     setFeedback('Hata: Lütfen en az bir ürün fotoğrafı yükleyin.');
-                    setIsUploading(false);
-                    return;
-                }
-                if (videoFiles.length > 1) {
-                    setFeedback('Hata: Sadece bir adet video yükleyebilirsiniz.');
                     setIsUploading(false);
                     return;
                 }
@@ -706,16 +705,24 @@
                         category, material, dimensions,
                         weight: Number(weight),
                         shippingInfo,
-                        imageUrls: imageUrls,
-                        videoUrl: videoUrls.length > 0 ? videoUrls[0] : null,
-                        createdAt: window.serverTimestamp()
+                        imageUrls: isEditing ? (imageUrls.length > 0 ? imageUrls : currentProduct.imageUrls) : imageUrls,
+                        videoUrl: videoUrls.length > 0 ? videoUrls[0] : (isEditing ? currentProduct.videoUrl : null),
+                        updatedAt: window.serverTimestamp()
                     };
-                   
-                    await window.addDoc(window.collection(window.firebaseFirestore, 'products'), productData);
 
-                    setFeedback('Ürün başarıyla kaydedildi!');
+                    if (isEditing) {
+                        const productDocRef = window.doc(window.firebaseFirestore, 'products', currentProduct.id);
+                        await window.updateDoc(productDocRef, productData);
+                        setFeedback('Ürün başarıyla güncellendi!');
+                    } else {
+                        productData.createdAt = window.serverTimestamp();
+                        await window.addDoc(window.collection(window.firebaseFirestore, 'products'), productData);
+                        setFeedback('Ürün başarıyla kaydedildi!');
+                    }
+
                     resetForm();
                     fetchProducts();
+
                 } catch (error) {
                     console.error("Yükleme veya kaydetme hatası:", error);
                     setFeedback('Ürün kaydedilirken bir hata oluştu: ' + error.message);
@@ -724,9 +731,19 @@
                 }
             };
            
-            const handleEditProduct = (productId) => {
-                // Düzenleme mantığı buraya eklenecek
-                console.log("Ürün düzenle:", productId);
+            const handleEditProduct = (product) => {
+                setIsEditing(true);
+                setCurrentProduct(product);
+                setProductName(product.productName);
+                setDescription(product.description);
+                setStory(product.story);
+                setPrice(product.price);
+                setCategory(product.category);
+                setMaterial(product.material);
+                setDimensions(product.dimensions);
+                setWeight(product.weight);
+                setShippingInfo(product.shippingInfo);
+                setActiveTab('productManagement');
             };
 
             const handleDeleteProduct = async (productId) => {
@@ -734,7 +751,7 @@
                     try {
                         const productDocRef = window.doc(window.firebaseFirestore, 'products', productId);
                         await window.deleteDoc(productDocRef);
-                        
+                       
                         setProducts(products.filter(p => p.id !== productId));
                         setFeedback('Ürün başarıyla silindi!');
                     } catch (error) {
@@ -752,28 +769,24 @@
                 return <p>Henüz yüklenmiş bir ürününüz bulunmamaktadır.</p>;
               }
               return (
-                <ul className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {products.map((product) => (
-                    <li key={product.id} className="flex flex-col md:flex-row items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm">
-                        <div className="flex items-center space-x-4 mb-4 md:mb-0 w-full md:w-auto">
-                            {product.imageUrls && product.imageUrls.length > 0 && (
-                                <img src={product.imageUrls[0]} alt={product.productName} className="w-16 h-16 object-cover rounded-md" />
-                            )}
-                            <div className="flex-grow">
-                                <p className="font-semibold text-gray-800">{product.productName}</p>
-                                <p className="text-sm text-gray-500">Kategori: {product.category}</p>
+                    <div key={product.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col space-y-4">
+                        <img src={product.imageUrls[0]} alt={product.productName} className="w-full h-40 object-cover rounded-md" />
+                        <div className="flex flex-col flex-grow">
+                            <p className="font-semibold text-lg text-gray-800">{product.productName}</p>
+                            <p className="text-sm text-gray-500 mb-2">Kategori: {product.category}</p>
+                            <div className="mt-auto flex items-center justify-between">
+                                <span className="text-xl font-bold text-gray-900">{product.price} TL</span>
+                                <div className="flex space-x-2">
+                                    <button onClick={() => handleEditProduct(product)} className="text-sm px-3 py-1 rounded-full text-blue-600 bg-blue-50 hover:bg-blue-100 transition">{t('edit')}</button>
+                                    <button onClick={() => handleDeleteProduct(product.id)} className="text-sm px-3 py-1 rounded-full text-red-600 bg-red-50 hover:bg-red-100 transition">{t('delete')}</button>
+                                </div>
                             </div>
                         </div>
-                        <div className="text-right flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
-                            <div className="text-lg font-bold text-gray-800">{product.price} TL</div>
-                            <div className="flex space-x-2">
-                                <button onClick={() => handleEditProduct(product.id)} className="text-sm text-blue-600 hover:underline">{t('edit')}</button>
-                                <button onClick={() => handleDeleteProduct(product.id)} className="text-sm text-red-600 hover:underline">{t('delete')}</button>
-                            </div>
-                        </div>
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               );
             };
 
@@ -786,7 +799,7 @@
                         <div className="space-y-6">
                             <h3 className="text-2xl font-semibold text-gray-800">{t('addProductManage')}</h3>
                             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                                <h4 className="text-xl font-medium text-gray-700 mb-4">{t('addNewProduct')}</h4>
+                                <h4 className="text-xl font-medium text-gray-700 mb-4">{isEditing ? `Ürünü Düzenle: ${currentProduct.productName}` : t('addNewProduct')}</h4>
                                 <form className="space-y-4" onSubmit={handleSaveProduct}>
                                     <Input label={t('productName')} placeholder="Örn: El Yapımı Seramik Vazo" value={productName} onChange={e => setProductName(e.target.value)} />
                                     <TextArea label={t('productDescription')} placeholder={t('productDescription')} value={description} onChange={e => setDescription(e.target.value)} />
@@ -811,15 +824,25 @@
                                         />
                                         <p className="mt-1 text-sm text-gray-500">{t('uploadPhotos')} (Max. 1 video)</p>
                                     </div>
+                                    {isEditing && (
+                                        <p className="text-sm text-gray-500">Mevcut fotoğrafları korumak için yeni dosya seçmeyin.</p>
+                                    )}
                                     {isUploading && (
                                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                                             <div className="bg-blue-600 h-2.5 rounded-full progress-bar" style={{ width: `${uploadProgress}%` }}></div>
                                         </div>
                                     )}
                                     {feedback && <p className={`text-sm font-medium ${feedback.includes('Hata') ? 'text-red-600' : 'text-green-600'}`}>{feedback}</p>}
-                                    <button type="submit" disabled={isUploading} className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md disabled:bg-gray-400">
-                                        {isUploading ? 'Yükleniyor...' : t('saveProduct')}
-                                    </button>
+                                    <div className="flex space-x-4">
+                                        <button type="submit" disabled={isUploading} className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 transition duration-300 ease-in-out shadow-md disabled:bg-gray-400">
+                                            {isUploading ? 'Yükleniyor...' : (isEditing ? 'Güncelle' : t('saveProduct'))}
+                                        </button>
+                                        {isEditing && (
+                                            <button type="button" onClick={resetForm} className="w-full bg-gray-300 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-400 transition duration-300 ease-in-out shadow-md">
+                                                İptal
+                                            </button>
+                                        )}
+                                    </div>
                                 </form>
                             </div>
                             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mt-6">
