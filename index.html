@@ -115,6 +115,22 @@
             }
         }
     </style>
+
+<style>
+/* Soft filled heart when user has favorites */
+.fav-indicator-on svg { fill: rgba(239,68,68,0.15); stroke: #ef4444; }
+
+/* Added animations */
+@keyframes pop-in { 0%{ transform: scale(0.9); opacity: .6;} 60%{ transform: scale(1.04); opacity: 1;} 100%{ transform: scale(1); } }
+@keyframes pulse-ring { 0%{ box-shadow: 0 0 0 0 rgba(0,0,0,0.08);} 70% { box-shadow: 0 0 0 8px rgba(0,0,0,0);} 100%{ box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
+.btn-added { animation: pop-in .35s ease; }
+.btn-ring { animation: pulse-ring .6s ease; }
+
+/* Floating dot to fly towards target icon */
+.fly-dot { position: fixed; width: 12px; height: 12px; border-radius: 9999px; background: #111; pointer-events: none; z-index: 1100; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
+.fly-dot.fav { background: #ef4444; }
+</style>
+
 </head>
 
 <body>
@@ -2141,6 +2157,25 @@
 <!-- Injected: Cart & Favorites & Category Listing logic -->
 <script type="text/babel">
 /** UTIL **/
+
+// Create a small flying dot animation from srcEl to target (CSS selector)
+const flyTo = (srcEl, targetSelector, isFav=false) => {
+  try {
+    const tgt = document.querySelector(targetSelector);
+    if (!srcEl || !tgt) return;
+    const a = srcEl.getBoundingClientRect();
+    const b = tgt.getBoundingClientRect();
+    const dot = document.createElement('div');
+    dot.className = 'fly-dot' + (isFav ? ' fav' : '');
+    dot.style.transform = `translate(${a.left + a.width/2}px, ${a.top + a.height/2}px)`;
+    document.body.appendChild(dot);
+    requestAnimationFrame(()=>{
+      dot.style.transform = `translate(${b.left + b.width/2}px, ${b.top + b.height/2}px)`;
+    });
+    setTimeout(()=>{ dot.remove(); }, 700);
+  } catch(e){}
+};
+
 const getActiveUid = () => {
   const user = window.firebaseAuth?.currentUser;
   return user?.uid || null;
@@ -2526,8 +2561,8 @@ document.addEventListener('click', async (e) => {
       const snap = await window.getDoc(ref);
       const data = snap.exists() ? snap.data() : {};
       const payload = { productId, qty: 1, price: data.price || 0, title: data.productName || '', image: (data.imageUrls && data.imageUrls[0]) || '' };
-      if (el.hasAttribute('data-quick-add')) { await CartService.add(payload); }
-      if (el.hasAttribute('data-quick-fav')) { await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image }); }
+      if (el.hasAttribute('data-quick-add')) { await CartService.add(payload); window.dispatchEvent(new CustomEvent('cart:changed')); el.classList.add('btn-added','btn-ring'); setTimeout(()=>{ el.classList.remove('btn-added','btn-ring'); }, 650); flyTo(el, '[data-open-cart]'); }
+      if (el.hasAttribute('data-quick-fav')) { await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image }); window.dispatchEvent(new CustomEvent('favorites:changed')); el.classList.add('btn-added'); setTimeout(()=>{ el.classList.remove('btn-added'); }, 550); flyTo(el, '[data-open-favorites]', true); }
     } catch(err){ console.error(err); }
     return;
   }
@@ -2546,7 +2581,7 @@ document.addEventListener('click', async (e) => {
       const data = snap.exists() ? snap.data() : {};
       const payload = { productId, qty: 1, price: data.price || 0, title: data.productName || '', image: (data.imageUrls && data.imageUrls[0]) || '' };
       if (el.hasAttribute('data-add-to-cart')) await CartService.add(payload);
-      if (el.hasAttribute('data-toggle-favorite')) await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image });
+      if (el.hasAttribute('data-toggle-favorite')) { const added = await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image }); window.dispatchEvent(new CustomEvent('favorites:changed')); el.classList.add('btn-added'); setTimeout(()=>{ el.classList.remove('btn-added'); }, 550); flyTo(el, '[data-open-favorites]', true); }
     } catch(err){ console.error(err); }
     return;
   }
