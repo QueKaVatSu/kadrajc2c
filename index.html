@@ -1974,10 +1974,10 @@
                             <p className="text-3xl text-gray-800 mb-6">{product.price} {currency}</p>
                             
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                                <button className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 font-bold" onClick={() => window.Cart.addToCart(product, 1)}>
+                                <button className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 font-bold">
                                     <ShoppingBagIcon size={20} />
                                     Sepete Ekle
-                                </button onClick={() => window.Favorites.toggle(product.id)}>
+                                </button>
                                 <button className="w-full sm:w-auto border border-gray-300 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-100 transition">
                                     <HeartIcon size={20} />
                                 </button>
@@ -2087,9 +2087,6 @@
             }
 
             const lowerCasePath = path.toLowerCase();
-            if (lowerCasePath === '/cart') return <CartPage t={t} setCurrentPath={navigate} currency={currency} />;
-            if (lowerCasePath === '/checkout') return <CheckoutPage t={t} setCurrentPath={navigate} currency={currency} />;
-
             if (lowerCasePath.includes('login')) return <LoginPage setCurrentPath={navigate} t={t} />;
             if (lowerCasePath.includes('register')) return <UserRegisterPage setCurrentPath={navigate} t={t} />;
             if (lowerCasePath.includes('seller-register')) return <SellerRegisterPage setCurrentPath={navigate} t={t} />;
@@ -2121,136 +2118,7 @@
                     <main className={`container mx-auto px-4 md:p-10 ${isSearchOpen || isMobileMenuOpen ? 'hidden' : ''}`}>
                         {renderMainContent()}
                     </main>
-                    {!isMobileMenuOpen && <MobileBottomBar t
-<!-- ==== ADDED: CART & FAVORITES + CART PAGE + CHECKOUT PLACEHOLDER ==== -->
-<script type="text/babel">
-(function () {
-  const LS_CART = 'kadraj_cart_v1';
-  const LS_FAVS = 'kadraj_favs_v1';
-  const readLS = (k, def) => { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch { return def; } };
-  const writeLS = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
-  const Favorites = {
-    _state: new Set(readLS(LS_FAVS, [])),
-    list() { return Array.from(this._state); },
-    has(id) { return this._state.has(id); },
-    toggle(id) {
-      if (this._state.has(id)) this._state.delete(id); else this._state.add(id);
-      writeLS(LS_FAVS, this.list());
-      try { alert(this._state.has(id) ? 'Favorilere eklendi' : 'Favorilerden çıkarıldı'); } catch {}
-    }
-  };
-
-  const Cart = {
-    _items: readLS(LS_CART, []), // [{id,name,price,qty,imageUrl}]
-    list() { return this._items; },
-    count() { return this._items.reduce((s,i)=>s+i.qty,0); },
-    total() { return this._items.reduce((s,i)=>s+(Number(i.price)||0)*i.qty,0); },
-    _persist() { writeLS(LS_CART, this._items); },
-    addToCart(product, qty=1) {
-      if (!product) return;
-      const id = product.id;
-      const i = this._items.findIndex(x=>x.id===id);
-      if (i>-1) this._items[i].qty += qty;
-      else this._items.push({ id, name: product.productName || product.name || 'Ürün', price: product.price || 0, qty, imageUrl: (product.imageUrls && product.imageUrls[0]) || '' });
-      this._persist();
-      try { alert('Ürün sepete eklendi'); } catch {}
-    },
-    updateQty(id, qty) {
-      const i = this._items.findIndex(x=>x.id===id);
-      if (i>-1) { this._items[i].qty = Math.max(1, Number(qty)||1); this._persist(); }
-    },
-    remove(id) { this._items = this._items.filter(x=>x.id!==id); this._persist(); },
-    clear() { this._items = []; this._persist(); }
-  };
-
-  window.Favorites = window.Favorites || Favorites;
-  window.Cart = window.Cart || Cart;
-})();
-
-const CartPage = ({ t, setCurrentPath, currency }) => {
-  const [items, setItems] = React.useState(window.Cart.list());
-  const onQty = (id, v) => { window.Cart.updateQty(id, v); setItems([...window.Cart.list()]); };
-  const onRemove = (id) => { window.Cart.remove(id); setItems([...window.Cart.list()]); };
-  const total = window.Cart.total();
-  return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Sepetim</h1>
-      {items.length===0 ? (
-        <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-          <p>Sepetiniz boş.</p>
-          <button onClick={()=>setCurrentPath('/')} className="mt-4 px-5 py-3 rounded-lg bg-gray-900 text-white">Alışverişe Devam Et</button>
-        </div>
-      ) : (
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            {items.map(it => (
-              <div key={it.id} className="bg-white p-4 rounded-lg shadow-sm flex gap-4 items-center">
-                <img src={it.imageUrl || 'https://via.placeholder.com/120'} className="w-24 h-24 object-cover rounded"/>
-                <div className="flex-1">
-                  <div className="font-semibold">{it.name}</div>
-                  <div className="text-sm text-gray-600">{it.price} {currency||'₺'}</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <label className="text-sm">Adet:</label>
-                    <input type="number" min="1" value={it.qty} onChange={e=>onQty(it.id, e.target.value)} className="w-20 border rounded px-2 py-1"/>
-                  </div>
-                </div>
-                <button onClick={()=>onRemove(it.id)} className="text-red-600 hover:underline">Kaldır</button>
-              </div>
-            ))}
-          </div>
-          <div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex justify-between mb-2"><span>Ara Toplam</span><span>{total.toFixed(2)} {currency||'₺'}</span></div>
-              <div className="flex justify-between mb-4 text-sm text-gray-500"><span>Kargo</span><span>Ödeme sayfasında</span></div>
-              <div className="flex justify-between font-bold text-lg border-t pt-4"><span>Genel Toplam</span><span>{total.toFixed(2)} {currency||'₺'}</span></div>
-              <button onClick={()=> setCurrentPath('/checkout')} className="w-full mt-6 px-5 py-3 rounded-lg bg-gray-900 text-white">Ödemeye Geç</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const CheckoutPage = ({ t, setCurrentPath, currency }) => {
-  const items = window.Cart.list();
-  const total = window.Cart.total();
-  return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Ödeme (İyzico - Placeholder)</h1>
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <input className="border rounded px-3 py-2" placeholder="Ad Soyad"/>
-            <input className="border rounded px-3 py-2" placeholder="E-posta"/>
-            <input className="border rounded px-3 py-2" placeholder="Telefon"/>
-            <input className="border rounded px-3 py-2" placeholder="Şehir"/>
-          </div>
-          <input className="border rounded px-3 py-2 w-full" placeholder="Posta Kodu"/>
-          <textarea className="border rounded px-3 py-2 w-full h-24" placeholder="Adres" />
-          <button className="px-5 py-3 rounded-lg bg-gray-900 text-white">Ödeme Yap (Demo)</button>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="font-semibold mb-4">Sipariş Özeti</h2>
-          <div className="space-y-3 max-h-64 overflow-auto">
-            {items.map(i=>(
-              <div key={i.id} className="flex justify-between text-sm">
-                <span>{i.name} × {i.qty}</span>
-                <span>{(Number(i.price)*i.qty).toFixed(2)} {currency||'₺'}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between font-bold border-t pt-4 mt-4">
-            <span>Toplam</span><span>{total.toFixed(2)} {currency||'₺'}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-</script>
-={t} handleUserIconClick={handleUserIconClick} />}
+                    {!isMobileMenuOpen && <MobileBottomBar t={t} handleUserIconClick={handleUserIconClick} />}
                     {!currentPath.includes('dashboard') && !currentPath.includes('products') && <Footer t={t} />}
                 </div>
             );
