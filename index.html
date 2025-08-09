@@ -140,6 +140,15 @@
 .k-inlist{font-size:12px;color:#6b7280;margin-left:.5rem}
 </style>
 
+
+<style>
+/* injected: qty controls & heart fill */
+.k-qty { display:inline-flex; align-items:center; gap:.25rem; margin-left:.75rem; }
+.k-qty button { width:24px; height:24px; border:1px solid #d1d5db; border-radius:6px; line-height:22px; font-weight:600; }
+.k-qty .k-qty-num { min-width:20px; text-align:center; font-size:12px; color:#6b7280; }
+.k-heart-filled svg { fill: rgba(239,68,68,0.22); stroke: #ef4444; }
+</style>
+
 </head>
 
 <body>
@@ -2888,6 +2897,191 @@ window.addEventListener('cart:changed', refreshAll);
 window.addEventListener('favorites:changed', refreshAll);
 const mo = new MutationObserver(()=>{ ensureIconBadges(); });
 mo.observe(document.documentElement,{childList:true,subtree:true});
+</script>
+
+
+<script type="text/babel">
+/** ----- Qty helpers ----- */
+const CartPatch = {
+  async updateQty(productId, newQty){
+    try{
+      const uid = window.firebaseAuth?.currentUser?.uid; if(!uid) return;
+      const ref = window.doc(window.firebaseFirestore, 'carts', uid);
+      const snap = await window.getDoc(ref);
+      let items = snap.exists() ? (snap.data().items||[]) : [];
+      const i = items.findIndex(x => x.productId === productId);
+      if(i<0) return;
+      if(newQty<=0){ items.splice(i,1); }
+      else { items[i].qty = newQty; }
+      if(snap.exists()) await window.updateDoc(ref, { items, updatedAt: Date.now() });
+      else await window.setDoc(ref, { items, updatedAt: Date.now() });
+      window.dispatchEvent(new CustomEvent('cart:changed'));
+    }catch(e){ console.warn('qty update error', e); }
+  }
+};
+
+// augment existing updateProductDetailButton to show +/-
+const enhanceDetailQtyUI = async () => {
+  try{
+    const btn = document.querySelector('[data-add-to-cart]') || Array.from(document.querySelectorAll('button')).find(b => (b.textContent||'').toLowerCase().includes('sepete ekle'));
+    if(!btn) return;
+    // resolve product id
+    const getId = async () => {
+      const c = document.querySelector('[data-product-id]'); if (c) return c.getAttribute('data-product-id');
+      if (window.resolveProductFromPage) return await window.resolveProductFromPage();
+      return null;
+    };
+    const pid = await getId(); if(!pid) return;
+    const items = await (window.CartService?.get?.() || (async()=>{ const uid=window.firebaseAuth?.currentUser?.uid; if(!uid) return []; const ref=window.doc(window.firebaseFirestore,'carts',uid); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[]; })());
+    const it = items.find(x => x.productId === pid);
+    // clear old qty UI
+    btn.querySelectorAll('.k-qty').forEach(n=>n.remove());
+    if(it){
+      // add inline qty controls
+      const wrap = document.createElement('span'); wrap.className='k-qty';
+      const minus = document.createElement('button'); minus.type='button'; minus.textContent='-'; minus.setAttribute('data-qty-minus','true');
+      const num = document.createElement('span'); num.className='k-qty-num'; num.textContent = it.qty||1;
+      const plus = document.createElement('button'); plus.type='button'; plus.textContent='+'; plus.setAttribute('data-qty-plus','true');
+      wrap.appendChild(minus); wrap.appendChild(num); wrap.appendChild(plus);
+      btn.appendChild(wrap);
+      // events
+      minus.addEventListener('click', async (ev)=>{ ev.stopPropagation(); await CartPatch.updateQty(pid, (it.qty||1)-1); });
+      plus.addEventListener('click', async (ev)=>{ ev.stopPropagation(); await CartPatch.updateQty(pid, (it.qty||1)+1); });
+    }
+  }catch(e){}
+};
+
+window.addEventListener('cart:changed', enhanceDetailQtyUI);
+window.addEventListener('load', enhanceDetailQtyUI);
+
+/** ----- Fill heart if favorited ----- */
+const syncProductHeart = async () => {
+  try{
+    const heart = document.querySelector('[data-toggle-favorite]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg') && (b.textContent||'').trim()==='');
+    if(!heart) return;
+    const uid = window.firebaseAuth?.currentUser?.uid; if(!uid) return;
+    const pid = document.querySelector('[data-product-id]')?.getAttribute('data-product-id') || (window.resolveProductFromPage ? await window.resolveProductFromPage() : null);
+    if(!pid) return;
+    const ref = window.doc(window.firebaseFirestore, 'favorites', uid);
+    const snap = await window.getDoc(ref);
+    const items = snap.exists() ? (snap.data().items||[]) : [];
+    const has = !!items.find(x => x.productId === pid);
+    heart.classList.toggle('k-heart-filled', has);
+  }catch(e){}
+};
+window.addEventListener('favorites:changed', syncProductHeart);
+window.addEventListener('load', syncProductHeart);
+
+/** ----- Gallery switching (thumb -> main) ----- */
+const initGallerySwitch = () => {
+  const main = document.querySelector('figure img, .product-media img, .main-media img, figure video, .product-media video, .main-media video');
+  const thumbs = document.querySelectorAll('[data-thumbnail], .thumbnails img, .thumbs img, .swiper-slide img, [class*="thumb"] img');
+  if(!main || !thumbs.length) return;
+  thumbs.forEach(t => {
+    t.style.cursor = 'pointer';
+    t.addEventListener('click', () => {
+      if(main.tagName.toLowerCase()==='video'){
+        main.pause && main.pause();
+        main.src = t.src || t.getAttribute('data-full') || main.src;
+        main.load && main.load();
+        main.play && main.play();
+      } else {
+        main.src = t.src || t.getAttribute('data-full') || main.src;
+      }
+    });
+  });
+};
+window.addEventListener('load', initGallerySwitch);
+
+/** ----- Seller info & sections ----- */
+const mountSellerSections = async () => {
+  try{
+    // Resolve product
+    const pid = document.querySelector('[data-product-id]')?.getAttribute('data-product-id') || (window.resolveProductFromPage ? await window.resolveProductFromPage() : null);
+    if(!pid) return;
+    const pref = window.doc(window.firebaseFirestore, 'products', pid);
+    const psnap = await window.getDoc(pref);
+    if(!psnap.exists()) return;
+    const pdata = psnap.data();
+    const sellerId = pdata.sellerId;
+    if(!sellerId) return;
+
+    // 1) Seller line under title
+    const title = document.querySelector('h1');
+    if(title && !document.getElementById('k-seller-line')){
+      const p = document.createElement('div');
+      p.id = 'k-seller-line';
+      p.className = 'mt-2 text-sm text-gray-500';
+      const a = document.createElement('a');
+      a.href = `/seller/${sellerId}`;
+      a.textContent = pdata.sellerName || 'Satıcı';
+      a.className = 'underline underline-offset-4 hover:text-gray-700 transition';
+      p.textContent = 'Satıcı: ';
+      p.appendChild(a);
+      title.parentNode.insertBefore(p, title.nextSibling);
+    }
+
+    // Fetch seller profile
+    let seller = null;
+    try{
+      const sref = window.doc(window.firebaseFirestore, 'users', sellerId);
+      const ssnap = await window.getDoc(sref);
+      seller = ssnap.exists() ? ssnap.data() : null;
+    }catch(e){}
+
+    // Host container: after product detail tabs or description block
+    const host = document.querySelector('#k-seller-sections') || (()=>{
+      const div = document.createElement('div'); div.id='k-seller-sections'; div.className='mt-10 space-y-8';
+      const target = document.querySelector('[role="tablist"]') || document.querySelector('section') || document.body;
+      target.parentNode.insertBefore(div, target.nextSibling);
+      return div;
+    })();
+
+    // 2) Seller Story
+    if(!document.getElementById('k-seller-story')){
+      const story = document.createElement('div'); story.id='k-seller-story';
+      story.innerHTML = `<h3 class="text-lg font-semibold mb-2">Satıcının Hikayesi</h3>
+      <p class="text-sm text-gray-600">${(seller?.story || seller?.bio || 'Satıcının hikayesi burada yer alacak.')}</p>`;
+      host.appendChild(story);
+    }
+
+    // Fetch all products (client filter to avoid changing imports)
+    const allRef = window.collection(window.firebaseFirestore, 'products');
+    const qs = await window.getDocs(allRef);
+    const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // 3) Seller's other products
+    if(!document.getElementById('k-seller-more')){
+      const others = all.filter(p => p.sellerId === sellerId && p.id !== pid).slice(0,8);
+      const wrap = document.createElement('div'); wrap.id='k-seller-more';
+      wrap.innerHTML = `<h3 class="text-lg font-semibold mb-2">Satıcının Diğer Ürünleri</h3>`;
+      const grid = document.createElement('div'); grid.className='grid grid-cols-2 md:grid-cols-4 gap-4';
+      others.forEach(p => {
+        const card = document.createElement('a'); card.href=`/products/${p.id}`; card.className='block border rounded-lg overflow-hidden hover:shadow-sm transition';
+        card.innerHTML = `<img src="${(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}" class="w-full h-40 object-cover">
+          <div class="p-2"><p class="text-sm font-medium line-clamp-2">${p.productName||p.id}</p><p class="text-xs text-gray-500">${p.price? (p.price+' ₺') : ''}</p></div>`;
+        grid.appendChild(card);
+      });
+      wrap.appendChild(grid); host.appendChild(wrap);
+    }
+
+    // 4) Recommended from others (same category if possible)
+    if(!document.getElementById('k-recommended')){
+      const recs = all.filter(p => p.id !== pid && (pdata.category ? (p.category||'')===pdata.category : true)).slice(0,8);
+      const wrap = document.createElement('div'); wrap.id='k-recommended';
+      wrap.innerHTML = `<h3 class="text-lg font-semibold mb-2">Önerilen Ürünler</h3>`;
+      const grid = document.createElement('div'); grid.className='grid grid-cols-2 md:grid-cols-4 gap-4';
+      recs.forEach(p => {
+        const card = document.createElement('a'); card.href=`/products/${p.id}`; card.className='block border rounded-lg overflow-hidden hover:shadow-sm transition';
+        card.innerHTML = `<img src="${(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}" class="w-full h-40 object-cover">
+          <div class="p-2"><p class="text-sm font-medium line-clamp-2">${p.productName||p.id}</p><p class="text-xs text-gray-500">${p.price? (p.price+' ₺') : ''}</p></div>`;
+        grid.appendChild(card);
+      });
+      wrap.appendChild(grid); host.appendChild(wrap);
+    }
+  }catch(e){ console.warn('seller sections error', e); }
+};
+window.addEventListener('load', mountSellerSections);
 </script>
 
 </body>
