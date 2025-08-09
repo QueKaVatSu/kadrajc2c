@@ -131,19 +131,6 @@
 .fly-dot.fav { background: #ef4444; }
 </style>
 
-
-<!-- KADRAJ PATCH CSS -->
-<style>
-.k-icon-wrap{position:relative;display:inline-flex}
-.k-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:rgba(239,68,68,.15);color:#ef4444;font-size:11px;line-height:18px;text-align:center;font-weight:700;pointer-events:none;display:none}
-.fav-indicator-on svg{fill:rgba(239,68,68,.15);stroke:#ef4444}
-.k-inlist{font-size:12px;color:#6b7280;margin-left:.5rem}
-.k-qty{display:inline-flex;align-items:center;gap:.25rem;margin-left:.75rem}
-.k-qty button{width:24px;height:24px;border:1px solid #d1d5db;border-radius:6px;line-height:22px;font-weight:600}
-.k-qty .k-qty-num{min-width:20px;text-align:center;font-size:12px;color:#6b7280}
-.k-heart-filled svg{fill:rgba(239,68,68,.22);stroke:#ef4444}
-</style>
-
 </head>
 
 <body>
@@ -1053,8 +1040,8 @@
                             <div className="flex items-center space-x-4 md:space-x-6">
                                 <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="text-gray-700 hover:text-gray-300 transition duration-300"><SearchIcon size={24} /></button>
                                 <button onClick={handleUserIconClick} className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><UserIcon size={24} /></button>
-                                <button data-open-favorites="true" className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block" aria-label="Favoriler" title="Favoriler"><HeartIcon size={24} /></button>
-                                <button data-open-cart="true" className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block" aria-label="Sepet" title="Sepet"><ShoppingBagIcon size={24} /></button>
+                                <button className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><HeartIcon size={24} /></button>
+                                <button className="text-gray-700 hover:text-gray-300 transition duration-300 hidden md:block"><ShoppingBagIcon size={24} /></button>
                             </div>
                         </div>
                     </nav>
@@ -2692,163 +2679,45 @@ window.addEventListener('load', tryAttachBarButtons);
 </script>
 
 
-<!-- KADRAJ PATCH JS -->
-<script type="text/babel">
-/** ===== Utilities ===== */
-const getUid = () => window.firebaseAuth?.currentUser?.uid || null;
-
-// fallback services if your page hasn't defined them
-const CartService = window.CartService || {
-  async get(){ try{ const uid=getUid(); if(!uid) return []; const ref=window.doc(window.firebaseFirestore,'carts',uid); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[] }catch(e){ return [] } },
-  async add(item){ try{ const uid=getUid(); if(!uid) return; const ref=window.doc(window.firebaseFirestore,'carts',uid); const s=await window.getDoc(ref); let items=s.exists()?(s.data().items||[]):[]; const i=items.findIndex(x=>x.productId===item.productId); if(i>=0){ items[i].qty=(items[i].qty||1)+(item.qty||1); } else { items.push({productId:item.productId,qty:item.qty||1,price:item.price||0,title:item.title||'',image:item.image||''}); } if(s.exists()) await window.updateDoc(ref,{items,updatedAt:Date.now()}); else await window.setDoc(ref,{items,updatedAt:Date.now()}); }catch(e){} },
-  async set(items){ try{ const uid=getUid(); if(!uid) return; const ref=window.doc(window.firebaseFirestore,'carts',uid); await window.setDoc(ref,{items,updatedAt:Date.now()},{merge:true}); }catch(e){} }
-};
-const FavoriteService = window.FavoriteService || {
-  async get(){ try{ const uid=getUid(); if(!uid) return []; const ref=window.doc(window.firebaseFirestore,'favorites',uid); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[] }catch(e){ return [] } },
-  async toggle(item){ try{ const uid=getUid(); if(!uid) return false; const ref=window.doc(window.firebaseFirestore,'favorites',uid); const s=await window.getDoc(ref); let items=s.exists()?(s.data().items||[]):[]; const i=items.findIndex(x=>x.productId===item.productId); if(i>=0){ items.splice(i,1); } else { items.push(item); } if(s.exists()) await window.updateDoc(ref,{items,updatedAt:Date.now()}); else await window.setDoc(ref,{items,updatedAt:Date.now()}); return i<0; }catch(e){ return false } }
-};
-
-// ensure anonymous auth (for rules)
-(async()=>{ try{ if(window.firebaseAuth && !window.firebaseAuth.currentUser && window.signInAnonymously){ await window.signInAnonymously(window.firebaseAuth); } }catch(e){} })();
-
-/** ===== Header icons (desktop+mobile) ===== */
-const ensureIconBadges=()=>{ document.querySelectorAll('[data-open-cart],[data-open-favorites]').forEach(el=>{ el.classList.add('k-icon-wrap'); if(!el.querySelector('.k-badge')){ const b=document.createElement('span'); b.className='k-badge'; el.appendChild(b); } }); };
-const syncFavIndicator=async()=>{ const favs=await FavoriteService.get(); const has=favs.length>0; document.querySelectorAll('[data-open-favorites]').forEach(el=>el.classList.toggle('fav-indicator-on',has)); };
-const syncCartBadge=async()=>{ ensureIconBadges(); const items=await CartService.get(); const count=items.reduce((s,i)=>s+(i.qty||1),0); document.querySelectorAll('[data-open-cart] .k-badge').forEach(b=>{ b.textContent=count; b.style.display=count>0?'inline-block':'none'; }); };
-
-/** ===== Product id resolve ===== */
-const getProductIdFromUrl=()=>{ try{ const parts=location.pathname.toLowerCase().split('/').filter(Boolean); const i=Math.max(parts.indexOf('product'),parts.indexOf('products')); if(i>=0 && parts[i+1]) return parts[i+1]; const u=new URL(location.href); return u.searchParams.get('id'); }catch(e){ return null; } };
-const resolveProductFromPage=async()=>{
-  let pid=document.querySelector('[data-product-id]')?.getAttribute('data-product-id'); if(pid) return pid;
-  pid=getProductIdFromUrl(); if(pid) return pid;
-  // fallback by title/price
-  try{ const title=(document.querySelector('h1')?.textContent||'').trim().toLowerCase(); const priceText=(document.querySelector('[class*="price"],[data-price]')?.textContent||'').replace(/\./g,''); const ref=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(ref); const all=qs.docs.map(d=>({id:d.id,...d.data()})); if(title){ const ex=all.find(p=>(p.productName||'').toLowerCase()===title); if(ex) return ex.id; const inc=all.find(p=>(p.productName||'').toLowerCase().includes(title)); if(inc) return inc.id; } const m=(priceText||'').match(/(\d[\d\s]*)/); if(m){ const val=parseInt(m[1].replace(/\s/g,''),10); const list=all.filter(p=>(p.price|0)===val); if(list.length===1) return list[0].id; } }catch(e){} return null;
-};
-window.resolveProductFromPage = window.resolveProductFromPage || resolveProductFromPage;
-
-/** ===== Detail button: Sepette (adet) + qty +/- ===== */
-const refreshDetailQtyUI = async () => {
-  const btn = document.querySelector('[data-add-to-cart]') || Array.from(document.querySelectorAll('button')).find(b => (b.textContent||'').toLowerCase().includes('sepete ekle'));
-  if(!btn) return;
-  const pid = await resolveProductFromPage(); if(!pid) return;
-  const items = await CartService.get();
-  const it = items.find(x => x.productId === pid);
-  // clear old
-  btn.querySelectorAll('.k-inlist,.k-qty').forEach(n=>n.remove());
-  if(it){
-    const inl = document.createElement('span'); inl.className='k-inlist'; inl.textContent=`Sepette (${it.qty||1})`;
-    const wrap = document.createElement('span'); wrap.className='k-qty';
-    const minus=document.createElement('button'); minus.type='button'; minus.textContent='-';
-    const num=document.createElement('span'); num.className='k-qty-num'; num.textContent=it.qty||1;
-    const plus=document.createElement('button'); plus.type='button'; plus.textContent='+';
-    wrap.appendChild(minus); wrap.appendChild(num); wrap.appendChild(plus);
-    btn.appendChild(inl); btn.appendChild(wrap);
-    minus.addEventListener('click', async ev=>{ ev.stopPropagation(); const q=(it.qty||1)-1; const next = q<0?0:q; const newItems = items.map(x => x.productId===pid ? {...x, qty: next} : x).filter(x=>x.qty>0); await CartService.set(newItems); window.dispatchEvent(new CustomEvent('cart:changed')); });
-    plus.addEventListener('click', async ev=>{ ev.stopPropagation(); const q=(it.qty||1)+1; const newItems = items.map(x => x.productId===pid ? {...x, qty: q} : x); await CartService.set(newItems); window.dispatchEvent(new CustomEvent('cart:changed')); });
-  }
-};
-
-/** ===== Heart fill on detail if favorited ===== */
-const refreshDetailHeart = async () => {
-  const heart = document.querySelector('[data-toggle-favorite]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg') && (b.textContent||'').trim()==='');
-  if(!heart) return;
-  const pid = await resolveProductFromPage(); if(!pid) return;
-  const favs = await FavoriteService.get();
-  const has = !!favs.find(x => x.productId === pid);
-  heart.classList.toggle('k-heart-filled', has);
-};
-
-/** ===== Gallery switch (thumb -> main) ===== */
+<!-- DESKTOP ENFORCER PATCH -->
+<script>
+// Force desktop icons to be wired even if classes differ.
+// Runs repeatedly so SSR/React re-renders won't undo it.
 (function(){
-  const selectMain = () => document.querySelector('figure img, .product-media img, .main-media img, figure video, .product-media video, .main-media video, [data-main-media] img, [data-main-media] video');
-  const selectThumbs = () => Array.from(document.querySelectorAll('[data-thumbnail], .thumbnails img, .thumbs img, .swiper-slide img, [class*="thumb"] img, [aria-roledescription="slide"] img, [role="tab"] img'));
-  const swap = (t) => { const main=selectMain(); if(!main||!t) return; const src=t.getAttribute('data-full')||t.getAttribute('data-src')||t.currentSrc||t.src; if(!src) return; if(main.tagName.toLowerCase()==='video'){ try{ main.pause(); }catch(e){} if(main.src!==src){ main.src=src; try{ main.load(); main.play(); }catch(e){} } } else { if(main.src!==src) main.src=src; } };
-  const wire = (t)=>{ if(t.__wired) return; t.__wired=true; t.style.cursor='pointer'; t.addEventListener('click', e=>{ e.preventDefault(); swap(t); }); };
-  const init = ()=>{ selectThumbs().forEach(wire); };
-  const mo = new MutationObserver(init); mo.observe(document.documentElement,{childList:true,subtree:true}); window.addEventListener('load', init);
-})();
-
-/** ===== Seller sections (story, other products, recommended) ===== */
-(async function(){
-  const pid = await resolveProductFromPage(); if(!pid || !window.firebaseFirestore) return;
-  const pref = window.doc(window.firebaseFirestore,'products',pid); const ps=await window.getDoc(pref); if(!ps.exists()) return; const pd=ps.data();
-  const sellerId = pd.sellerId || pd.ownerId || pd.userId || null;
-  // host
-  let host=document.getElementById('k-seller-sections'); if(!host){ host=document.createElement('div'); host.id='k-seller-sections'; host.className='mt-10 space-y-8'; const shell=document.querySelector('main .container, main [class*="container"], main .grid, main')||document.querySelector('main')||document.body; shell.appendChild(host); }
-  // title line
-  const title=document.querySelector('h1'); if(title && !document.getElementById('k-seller-line')){ const p=document.createElement('div'); p.id='k-seller-line'; p.className='mt-2 text-sm text-gray-500'; const a=document.createElement('a'); if(sellerId) a.href=`/seller/${sellerId}`; a.textContent=pd.sellerName||pd.seller||'Satıcı'; a.className='underline underline-offset-4 hover:text-gray-700 transition'; p.textContent='Satıcı: '; p.appendChild(a); title.parentNode.insertBefore(p,title.nextSibling); }
-  // story
-  let seller=null; if(sellerId){ try{ const sref=window.doc(window.firebaseFirestore,'users',sellerId); const ss=await window.getDoc(sref); seller=ss.exists()? ss.data() : null; }catch(e){} }
-  if(!document.getElementById('k-seller-story')){ const d=document.createElement('div'); d.id='k-seller-story'; d.innerHTML=`<h3 class="text-lg font-semibold mb-2">Satıcının Hikayesi</h3><p class="text-sm text-gray-600">${(seller?.story||seller?.bio||'Satıcının hikayesi yakında eklenecek.')}</p>`; host.appendChild(d); }
-  // all products
-  const allRef=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(allRef); const all=qs.docs.map(x=>({id:x.id,...x.data()}));
-  // seller others
-  if(!document.getElementById('k-seller-more')){ const others=sellerId? all.filter(p=> (p.sellerId||p.ownerId||p.userId)===sellerId && p.id!==pid).slice(0,8) : []; if(others.length){ const w=document.createElement('div'); w.id='k-seller-more'; w.innerHTML=`<h3 class="text-lg font-semibold mb-2">Satıcının Diğer Ürünleri</h3>`; const g=document.createElement('div'); g.className='grid grid-cols-2 md:grid-cols-4 gap-4'; others.forEach(p=>{ const a=document.createElement('a'); a.href=`/products/${p.id}`; a.className='block border rounded-lg overflow-hidden hover:shadow-sm transition'; a.innerHTML=`<img src="${(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}" class="w-full h-40 object-cover"><div class="p-2"><p class="text-sm font-medium line-clamp-2">${p.productName||p.id}</p><p class="text-xs text-gray-500">${p.price? (p.price+' ₺') : ''}</p></div>`; g.appendChild(a); }); w.appendChild(g); host.appendChild(w); } }
-  // recommended
-  if(!document.getElementById('k-recommended')){ let recs=all.filter(p=>p.id!==pid); if(pd.category){ recs=recs.filter(p=>(p.category||'')===pd.category); } recs=recs.slice(0,8); if(recs.length){ const w=document.createElement('div'); w.id='k-recommended'; w.innerHTML=`<h3 class="text-lg font-semibold mb-2">Önerilen Ürünler</h3>`; const g=document.createElement('div'); g.className='grid grid-cols-2 md:grid-cols-4 gap-4'; recs.forEach(p=>{ const a=document.createElement('a'); a.href=`/products/${p.id}`; a.className='block border rounded-lg overflow-hidden hover:shadow-sm transition'; a.innerHTML=`<img src="${(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}" class="w-full h-40 object-cover"><div class="p-2"><p class="text-sm font-medium line-clamp-2">${p.productName||p.id}</p><p class="text-xs text-gray-500">${p.price? (p.price+' ₺') : ''}</p></div>`; g.appendChild(a); }); w.appendChild(g); host.appendChild(w); } }
-})();
-
-/** ===== Account > Favorilerim page grid & overlay click -> product ===== */
-(function(){
-  const mountAccountFavorites = () => {
-    const nodes = Array.from(document.querySelectorAll('div,section,main,p'));
-    const host = nodes.find(n => /Favori tasar(ı|i)mlar(ı)n(ı)z burada listelenecek\./i.test(n.textContent||''));
-    if (!host) return;
-    const mount = document.createElement('div'); host.replaceChildren(mount);
-    const Grid = () => {
-      const [items, setItems] = React.useState([]);
-      React.useEffect(()=>{ FavoriteService.get().then(setItems); },[]);
-      React.useEffect(()=>{ const h=()=>FavoriteService.get().then(setItems); window.addEventListener('favorites:changed',h); return ()=>window.removeEventListener('favorites:changed',h); },[]);
-      if (!items.length) return React.createElement('p',{className:'text-sm text-gray-500'},'Henüz favori eklenmemiş.');
-      return React.createElement('div',{className:'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'}, items.map(it =>
-        React.createElement('a',{key:it.productId, href:`/products/${it.productId}`, className:'border rounded-lg overflow-hidden block hover:shadow-sm transition'},
-          React.createElement('img',{src:it.image||'https://via.placeholder.com/400', className:'w-full h-40 object-cover'}),
-          React.createElement('div',{className:'p-2'},
-            React.createElement('p',{className:'font-medium line-clamp-2'}, it.title||it.productId),
-            React.createElement('p',{className:'text-sm text-gray-500'}, it.price? (it.price+' ₺') : '')
-          )
-        )
-      ));
-    };
-    ReactDOM.createRoot(mount).render(React.createElement(Grid));
+  const wireDesktopIcons = () => {
+    try {
+      // Find header icon candidates (buttons/links that contain an <svg>)
+      const header = document.querySelector('header') || document;
+      const icons = Array.from(header.querySelectorAll('a,button')).filter(el => el.querySelector('svg'));
+      if (icons.length >= 2) {
+        // Rightmost -> Cart, one-before-rightmost -> Favorites
+        const cartEl = icons[icons.length - 1];
+        const favEl  = icons[icons.length - 2];
+        cartEl.setAttribute('data-open-cart','true');
+        cartEl.setAttribute('aria-label','Sepet');
+        cartEl.setAttribute('title','Sepet');
+        favEl.setAttribute('data-open-favorites','true');
+        favEl.setAttribute('aria-label','Favoriler');
+        favEl.setAttribute('title','Favoriler');
+      }
+    } catch(e){}
   };
-  const mo=new MutationObserver(mountAccountFavorites); mo.observe(document.documentElement,{childList:true,subtree:true}); window.addEventListener('load', mountAccountFavorites);
 
-  // overlay navigation
-  const resolveProductIdByTitle = async (title) => {
-    try{ const ref=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(ref); const all=qs.docs.map(d=>({id:d.id,...d.data()})); const t=(title||'').trim().toLowerCase(); const ex=all.find(p=>(p.productName||'').toLowerCase()===t); if(ex) return ex.id; const inc=all.find(p=>(p.productName||'').toLowerCase().includes(t)); if(inc) return inc.id; }catch(e){} return null;
-  };
-  window.addEventListener('load', ()=>{
-    const host=document.getElementById('kadraj-overlays-host'); if(!host) return;
-    host.addEventListener('click', async (e)=>{
-      const cont=e.target.closest('#kadraj-overlays-host .flex.items-center.gap-3.border.rounded-lg.p-2'); if(!cont) return;
-      const title=(cont.querySelector('p.font-medium')?.textContent||'').trim(); if(!title) return;
-      const pid=await resolveProductIdByTitle(title); if(pid) location.href=`/products/${pid}`;
-    });
-  });
-})();
-
-/** ===== Global clicks (icons & product actions) ===== */
-document.addEventListener('click', async (e)=>{
-  const el = e.target.closest('[data-open-cart],[data-open-favorites],[data-add-to-cart],[data-toggle-favorite]');
-  if(!el) return;
-  if (el.hasAttribute('data-open-cart')) { e.preventDefault(); if (window.openCart) window.openCart(); return; }
-  if (el.hasAttribute('data-open-favorites')) { e.preventDefault(); if (window.openFavorites) window.openFavorites(); return; }
-  if (el.hasAttribute('data-add-to-cart') || el.hasAttribute('data-toggle-favorite')){
+  // Global click safety net (works for desktop + mobile)
+  document.addEventListener('click', function(e){
+    const el = e.target.closest('[data-open-cart],[data-open-favorites]');
+    if (!el) return;
     e.preventDefault();
-    const pid = await resolveProductFromPage(); if(!pid) return;
-    let payload={ productId: pid, qty:1, price:0, title:'', image:'' };
-    try{ const ref=window.doc(window.firebaseFirestore,'products',pid); const s=await window.getDoc(ref); const d=s.exists()?s.data():{}; payload={ productId:pid, qty:1, price:d.price||0, title:d.productName||'', image:(d.imageUrls&&d.imageUrls[0])||'' }; }catch(e){}
-    if(el.hasAttribute('data-add-to-cart')){ await CartService.add(payload); window.dispatchEvent(new CustomEvent('cart:changed')); }
-    if(el.hasAttribute('data-toggle-favorite')){ await FavoriteService.toggle({ productId:pid, title:payload.title, price:payload.price, image:payload.image }); window.dispatchEvent(new CustomEvent('favorites:changed')); }
-  }
-});
+    if (el.hasAttribute('data-open-cart') && window.openCart) return void window.openCart();
+    if (el.hasAttribute('data-open-favorites') && window.openFavorites) return void window.openFavorites();
+  }, true);
 
-// initial sync
-const refreshAll=()=>{ syncCartBadge(); syncFavIndicator(); refreshDetailQtyUI(); refreshDetailHeart(); };
-window.addEventListener('load', ()=>{ ensureIconBadges(); refreshAll(); });
-window.addEventListener('cart:changed', refreshAll);
-window.addEventListener('favorites:changed', refreshAll);
+  // Run now and on any DOM update (desktop SSR/React re-renders)
+  wireDesktopIcons();
+  const mo = new MutationObserver(wireDesktopIcons);
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener('load', wireDesktopIcons);
+})();
 </script>
 
 </body>
