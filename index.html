@@ -131,6 +131,24 @@
 .fly-dot.fav { background: #ef4444; }
 </style>
 
+
+<!-- SELLER & RECO PATCH CSS -->
+<style>
+.k-seller-line{margin-top:.5rem;font-size:.875rem;color:#6b7280}
+.k-section{margin-top:2.5rem}
+.k-section h3{font-weight:600;font-size:1.125rem;margin-bottom:.5rem}
+.k-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+@media (min-width:768px){.k-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.k-card{display:block;border:1px solid #e5e7eb;border-radius:.75rem;overflow:hidden;transition:box-shadow .2s}
+.k-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.06)}
+.k-card img{width:100%;height:10rem;object-fit:cover}
+.k-card .k-meta{padding:.5rem}
+.k-card .k-title{font-size:.875rem;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.k-card .k-price{font-size:.75rem;color:#6b7280}
+/* SPA seller page root */
+#kadraj-seller-spa{position:fixed;inset:0;background:#fff;z-index:998;display:none}
+</style>
+
 </head>
 
 <body>
@@ -2679,44 +2697,182 @@ window.addEventListener('load', tryAttachBarButtons);
 </script>
 
 
-<!-- DESKTOP ENFORCER PATCH -->
-<script>
-// Force desktop icons to be wired even if classes differ.
-// Runs repeatedly so SSR/React re-renders won't undo it.
-(function(){
-  const wireDesktopIcons = () => {
-    try {
-      // Find header icon candidates (buttons/links that contain an <svg>)
-      const header = document.querySelector('header') || document;
-      const icons = Array.from(header.querySelectorAll('a,button')).filter(el => el.querySelector('svg'));
-      if (icons.length >= 2) {
-        // Rightmost -> Cart, one-before-rightmost -> Favorites
-        const cartEl = icons[icons.length - 1];
-        const favEl  = icons[icons.length - 2];
-        cartEl.setAttribute('data-open-cart','true');
-        cartEl.setAttribute('aria-label','Sepet');
-        cartEl.setAttribute('title','Sepet');
-        favEl.setAttribute('data-open-favorites','true');
-        favEl.setAttribute('aria-label','Favoriler');
-        favEl.setAttribute('title','Favoriler');
-      }
+<!-- SELLER & RECO PATCH JS -->
+<script type="text/babel">
+/** ========== Utilities shared ========== */
+const _getProductIdFromUrl=()=>{try{const p=location.pathname.toLowerCase().split('/').filter(Boolean);const i=Math.max(p.indexOf('product'),p.indexOf('products'));if(i>=0&&p[i+1])return p[i+1];const u=new URL(location.href);return u.searchParams.get('id')}catch(e){return null}}
+window.resolveProductFromPage = window.resolveProductFromPage || (async ()=>{
+  let pid=document.querySelector('[data-product-id]')?.getAttribute('data-product-id'); if(pid) return pid;
+  pid=_getProductIdFromUrl(); if(pid) return pid;
+  try{
+    const title=(document.querySelector('h1')?.textContent||'').trim().toLowerCase();
+    const priceText=(document.querySelector('[class*="price"],[data-price]')?.textContent||'').replace(/\./g,'');
+    const ref=window.collection(window.firebaseFirestore,'products');
+    const qs=await window.getDocs(ref);
+    const all=qs.docs.map(d=>({id:d.id,...d.data()}));
+    if(title){
+      const ex=all.find(p=>(p.productName||'').toLowerCase()===title); if(ex) return ex.id;
+      const inc=all.find(p=>(p.productName||'').toLowerCase().includes(title)); if(inc) return inc.id;
+    }
+    const m=(priceText||'').match(/(\d[\d\s]*)/);
+    if(m){
+      const val=parseInt(m[1].replace(/\s/g,''),10);
+      const list=all.filter(p=>(p.price|0)===val);
+      if(list.length===1) return list[0].id;
+    }
+  }catch(e){}
+  return null;
+});
+
+/** ========== Mount seller line, story, other products & recommendations on product page ========== */
+(async function mountSellerAndReco(){
+  if (!window.firebaseFirestore) return;
+  const pid = await window.resolveProductFromPage(); if(!pid) return;
+  // fetch product
+  const pref = window.doc(window.firebaseFirestore,'products',pid);
+  const psnap = await window.getDoc(pref); if(!psnap.exists()) return;
+  const p = psnap.data();
+  const sellerId = p.sellerId || p.ownerId || p.userId || null;
+
+  // 1) Seller line under title
+  const title = document.querySelector('h1');
+  if (title && !document.getElementById('k-seller-line')) {
+    const line = document.createElement('div');
+    line.id = 'k-seller-line';
+    line.className = 'k-seller-line';
+    const a = document.createElement('a');
+    if (sellerId) a.href = `/seller/${sellerId}`;
+    a.textContent = p.sellerName || p.seller || 'Satıcı';
+    a.className = 'underline underline-offset-4 hover:text-gray-700 transition';
+    line.textContent = 'Satıcı: ';
+    line.appendChild(a);
+    title.parentNode.insertBefore(line, title.nextSibling);
+  }
+
+  // Host below product content
+  let host = document.getElementById('k-sections-host');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'k-sections-host';
+    const anchor = document.querySelector('[role="tablist"]') || document.querySelector('section') || document.querySelector('main') || document.body;
+    anchor.parentNode.insertBefore(host, anchor.nextSibling);
+  }
+
+  // Try fetch seller profile
+  let seller=null;
+  if (sellerId) {
+    try { const sref = window.doc(window.firebaseFirestore,'users',sellerId);
+      const ss = await window.getDoc(sref);
+      seller = ss.exists() ? ss.data() : null;
     } catch(e){}
+  }
+
+  // 2) Seller story section
+  if (!document.getElementById('k-seller-story')) {
+    const sec = document.createElement('section');
+    sec.id = 'k-seller-story';
+    sec.className='k-section';
+    sec.innerHTML = `<h3>Satıcının Hikayesi</h3>
+    <p class="text-sm text-gray-600">${(seller?.story || seller?.bio || 'Satıcının hikayesi yakında eklenecek.')}</p>`;
+    host.appendChild(sec);
+  }
+
+  // Fetch all products (client filter)
+  const allRef = window.collection(window.firebaseFirestore,'products');
+  const qs = await window.getDocs(allRef);
+  const all = qs.docs.map(d=>({id:d.id, ...d.data()}));
+
+  // 3) Seller's other products
+  if (!document.getElementById('k-seller-more')) {
+    const others = sellerId ? all.filter(x => (x.sellerId||x.ownerId||x.userId) === sellerId && x.id !== pid).slice(0,8) : [];
+    if (others.length) {
+      const sec = document.createElement('section'); sec.id='k-seller-more'; sec.className='k-section';
+      sec.innerHTML = `<h3>Satıcının Diğer Ürünleri</h3>`;
+      const grid = document.createElement('div'); grid.className='k-grid';
+      others.forEach(x => {
+        const a = document.createElement('a'); a.className='k-card'; a.href=`/products/${x.id}`;
+        a.innerHTML = `<img src="${(x.imageUrls&&x.imageUrls[0])||'https://via.placeholder.com/400'}">
+                       <div class="k-meta"><div class="k-title">${x.productName||x.id}</div>
+                       <div class="k-price">${x.price ? (x.price+' ₺') : ''}</div></div>`;
+        grid.appendChild(a);
+      });
+      sec.appendChild(grid); host.appendChild(sec);
+    }
+  }
+
+  // 4) Recommended products (same category else random)
+  if (!document.getElementById('k-recommended')) {
+    let recs = all.filter(x => x.id !== pid);
+    if (p.category) recs = recs.filter(x => (x.category||'') === p.category);
+    recs = recs.slice(0,8);
+    if (recs.length) {
+      const sec = document.createElement('section'); sec.id='k-recommended'; sec.className='k-section';
+      sec.innerHTML = `<h3>Önerilen Ürünler</h3>`;
+      const grid = document.createElement('div'); grid.className='k-grid';
+      recs.forEach(x => {
+        const a = document.createElement('a'); a.className='k-card'; a.href=`/products/${x.id}`;
+        a.innerHTML = `<img src="${(x.imageUrls&&x.imageUrls[0])||'https://via.placeholder.com/400'}">
+                       <div class="k-meta"><div class="k-title">${x.productName||x.id}</div>
+                       <div class="k-price">${x.price ? (x.price+' ₺') : ''}</div></div>`;
+        grid.appendChild(a);
+      });
+      sec.appendChild(grid); host.appendChild(sec);
+    }
+  }
+})();
+
+/** ========== SPA Seller Page: /seller/<id> (full page, not overlay) ========== */
+(function(){
+  const mountId='kadraj-seller-spa';
+  const ensureRoot=()=>{ let el=document.getElementById(mountId); if(!el){ el=document.createElement('div'); el.id=mountId; document.body.appendChild(el);} return el; }
+  const parseId=()=> location.pathname.startsWith('/seller/') ? decodeURIComponent(location.pathname.split('/seller/')[1]||'') : null;
+  const show=(node)=>{ const el=ensureRoot(); el.style.display='block'; ReactDOM.createRoot(el).render(node); window.scrollTo(0,0); };
+  const hide=()=>{ const el=ensureRoot(); el.style.display='none'; ReactDOM.createRoot(el).render(null); };
+
+  const SellerPage=({id})=>{
+    const [seller,setSeller]=React.useState(null);
+    const [items,setItems]=React.useState([]);
+    React.useEffect(()=>{ (async()=>{
+      try{ const sref=window.doc(window.firebaseFirestore,'users',id); const ss=await window.getDoc(sref); setSeller(ss.exists()? ss.data() : { displayName:'Satıcı' }); }catch(e){ setSeller({ displayName:'Satıcı' }); }
+      try{ const pref=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(pref); const all=qs.docs.map(d=>({id:d.id,...d.data()})); setItems(all.filter(x=>(x.sellerId||x.ownerId||x.userId)===id)); }catch(e){ setItems([]); }
+    })(); },[id]);
+    return (
+      <div className="w-full h-full overflow-y-auto">
+        <div className="max-w-6xl mx-auto p-4 md:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl md:text-2xl font-bold">{seller?.displayName || seller?.companyName || 'Satıcı'}</h1>
+            <button onClick={()=>history.back()} className="px-3 py-2 border rounded hover:bg-gray-50">Geri</button>
+          </div>
+          {seller?.story && <p className="text-gray-600 mb-6">{seller.story}</p>}
+          <h3 className="text-lg font-semibold mb-2">Ürünleri</h3>
+          {items.length ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {items.map(p => (
+                <a key={p.id} href={`/products/${p.id}`} className="k-card">
+                  <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}/>
+                  <div className="k-meta">
+                    <div className="k-title">{p.productName||p.id}</div>
+                    <div className="k-price">{p.price ? (p.price+' ₺') : ''}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : <p className="text-sm text-gray-500">Bu satıcıya ait ürün bulunamadı.</p>}
+        </div>
+      </div>
+    )
   };
 
-  // Global click safety net (works for desktop + mobile)
-  document.addEventListener('click', function(e){
-    const el = e.target.closest('[data-open-cart],[data-open-favorites]');
-    if (!el) return;
+  const handleRoute=()=>{ const sid=parseId(); if(sid){ show(<SellerPage id={sid}/>) } else { hide(); } };
+  // hijack seller links
+  document.addEventListener('click',(e)=>{
+    const a=e.target.closest('a[href^="/seller/"]'); if(!a) return;
     e.preventDefault();
-    if (el.hasAttribute('data-open-cart') && window.openCart) return void window.openCart();
-    if (el.hasAttribute('data-open-favorites') && window.openFavorites) return void window.openFavorites();
-  }, true);
-
-  // Run now and on any DOM update (desktop SSR/React re-renders)
-  wireDesktopIcons();
-  const mo = new MutationObserver(wireDesktopIcons);
-  mo.observe(document.documentElement, { childList: true, subtree: true });
-  window.addEventListener('load', wireDesktopIcons);
+    const href=a.getAttribute('href'); if(location.pathname!==href) history.pushState({},'',href);
+    handleRoute();
+  });
+  window.addEventListener('popstate', handleRoute);
+  window.addEventListener('load', handleRoute);
 })();
 </script>
 
