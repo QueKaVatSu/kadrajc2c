@@ -2912,24 +2912,45 @@ async function syncFavIndicator(){
 }
 </script>
 
-</body>
-</html>
-<!-- === Kadraj Enhancements Pack v11 (hash r
-<!-- === Kadraj Enhancements Pack v13 (hash routing + seller page + unified media + video thumb + similar/other + wishlist sync + cart overlay) === -->
+
+<!-- === Kadraj Enhancements Pack v14 (product-only changes) === -->
 <style>
-.k-cart-badge, .k-cart-icon-badge{position:absolute;right:-6px;top:-8px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;font-size:11px;line-height:18px;text-align:center;background:#ef4444;color:#fff;font-weight:700;display:none}
+/* square media stage */
+.k-stage { position: relative; width: 100%; aspect-ratio: 1 / 1; background:#f6f6f6; border-radius: 14px; overflow: hidden; }
+.k-stage img, .k-stage video { position:absolute; inset:0; width:100%; height:100%; object-fit: contain; }
+.k-thumbs { display:grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap:.5rem; }
+.k-thumbs button { border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#fff; }
+.k-thumbs button.active { outline:2px solid #111; }
+.k-thumbs img { width:100%; height:64px; object-fit:cover; }
+.k-thumbs .vid { height:64px; background:#111; color:#fff; display:grid; place-items:center; font-size:10px; }
+
+/* cart + badge */
+.k-cart-badge,.k-cart-icon-badge{position:absolute;right:-6px;top:-8px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;font-size:11px;line-height:18px;text-align:center;background:#ef4444;color:#fff;font-weight:700;display:none}
 .k-mobile-cart{position:relative;width:28px;height:28px;display:inline-block}
 .k-mobile-cart svg{width:100%;height:100%;display:block}
+
+/* wishlist visuals + animation */
 .is-favorited svg{fill:currentColor !important;color:#ef4444}
+@keyframes fav-pop { 0%{ transform:scale(.9);} 70%{ transform:scale(1.12);} 100%{ transform:scale(1);} }
+.fav-anim { animation:fav-pop .25s ease; }
+
+/* overlay cart drawer */
 .k-cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9999}
 .k-cart-drawer{position:absolute;top:0;right:0;width:min(420px,100%);height:100%;background:#fff;box-shadow:-16px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+
+/* add-to-cart animated qty pill */
+.k-qty { display:inline-flex; align-items:center; gap:.5rem; padding:.5rem .75rem; border:1px solid #111; border-radius:9999px; }
+.k-qty button { width:26px; height:26px; border-radius:9999px; border:1px solid #111; line-height:24px; }
+.k-qty .count { min-width:22px; text-align:center; font-weight:600; }
+@keyframes btn-pulse { 0%{box-shadow:0 0 0 0 rgba(0,0,0,.2);} 100%{box-shadow:0 0 0 12px rgba(0,0,0,0);} }
+.k-pulse { animation: btn-pulse .6s ease; }
 </style>
 
-<div id="k-cart-overlay" class="k-cart-overlay">
-  <div class="k-cart-drawer">
+<div id="k-cart-overlay" class="k-cart-overlay" aria-hidden="true">
+  <div class="k-cart-drawer" role="dialog" aria-label="Sepet">
     <header class="p-4 border-b flex items-center justify-between">
       <div class="text-lg font-semibold">Sepet</div>
-      <button id="k-cart-close" class="p-2">&times;</button>
+      <button id="k-cart-close" class="p-2" aria-label="Kapat">&times;</button>
     </header>
     <div id="k-cart-items" class="flex-1 overflow-auto p-4 space-y-3"></div>
     <div class="border-t p-4 space-y-3">
@@ -2949,47 +2970,26 @@ async function syncFavIndicator(){
 </div>
 
 <script type="text/babel">
-// tiny helpers
+// helpers
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
-// HASH router (GH Pages safe)
+// router
 function navTo(rel){ const clean="#"+(rel.startsWith("/")?rel.slice(1):rel); if(location.hash!==clean) location.hash=clean; window.dispatchEvent(new HashChangeEvent("hashchange")); }
 function hashPath(){ return location.hash.replace(/^#/, ""); }
 
-// Firebase aliases if present
+// firebase aliases
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-// Data helpers
-async function fetchAllProducts(){
-  try{
-    if(!db||!collection||!getDocs) return [];
-    const qs = await getDocs(collection(db,"products"));
-    return qs.docs.map(d=>({ id:d.id, ...(d.data?d.data():{}) }));
-  }catch(e){ return []; }
-}
-async function fetchProduct(id){
-  try{
-    if(!db||!doc||!getDoc) return null;
-    const d = await getDoc(doc(db,"products",id));
-    return d.exists && d.exists() ? { id:d.id, ...(d.data?d.data():{}) } : null;
-  }catch(e){ return null; }
-}
+// data helpers
+async function fetchAllProducts(){ try{ if(!db||!collection||!getDocs) return []; const qs = await getDocs(collection(db,"products")); return qs.docs.map(d=>({ id:d.id, ...(d.data?d.data():{}) })); }catch(_){ return []; } }
+async function fetchProduct(id){ try{ if(!db||!doc||!getDoc) return null; const d = await getDoc(doc(db,"products",id)); return d.exists && d.exists() ? { id:d.id, ...(d.data?d.data():{}) } : null; }catch(_){ return null; } }
 async function resolveProductId(){
-  const host = document.querySelector("[data-product-id]");
-  if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
-  const m = location.pathname.match(/\/products?\/([^\/?#]+)/i);
-  if (m) return decodeURIComponent(m[1]);
-  try{
-    const title = (document.querySelector("h1, .product-title, [data-product-name]")||{}).textContent?.trim();
-    if (!title) return null;
-    const all = await fetchAllProducts();
-    const byName = all.find(p => (p.productName||"").toLowerCase() === title.toLowerCase())
-              ||  all.find(p => (p.productName||"").toLowerCase().includes(title.toLowerCase()));
-    return byName?.id || null;
-  }catch(_){ return null; }
+  const host = document.querySelector("[data-product-id]"); if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
+  const m = location.pathname.match(/\/products?\/([^\/?#]+)/i); if (m) return decodeURIComponent(m[1]);
+  return null; // ürün sayfası değilse denemeyelim
 }
 async function fetchUserByIdOrName(sellerId, sellerName){
   try{
@@ -3003,7 +3003,7 @@ async function fetchUserByIdOrName(sellerId, sellerName){
       for(const snap of qs.docs){
         const u = snap.data ? snap.data() : {};
         const name = (u.displayName||u.name||"").toLowerCase();
-        if (sellerName && name && name === sellerName.toLowerCase()) return { id:snap.id, ...u };
+        if (sellerName && name && name === (sellerName||"").toLowerCase()) return { id:snap.id, ...u };
         if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u };
       }
     }
@@ -3011,20 +3011,21 @@ async function fetchUserByIdOrName(sellerId, sellerName){
   return null;
 }
 
-// Wishlist paint/sync
+// wishlist paint/sync (+ header heart)
 function paintFavorite(on){
-  const btn = document.querySelector("[data-toggle-favorite]"); if(!btn) return;
-  btn.classList.toggle("is-favorited", !!on);
-  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  const btn = document.querySelector("[data-toggle-favorite]"); if(btn){ btn.classList.toggle("is-favorited", !!on); btn.setAttribute("aria-pressed", on ? "true" : "false"); if(on){ btn.classList.add("fav-anim"); setTimeout(()=>btn.classList.remove("fav-anim"), 260);} }
+  const headerHeart = document.querySelector('button[aria-label="Favoriler"], [data-open-favorites="true"]');
+  if(headerHeart) headerHeart.classList.toggle("is-favorited", !!on);
 }
 async function syncFavoriteUI(){
   try{
-    const pid = await resolveProductId(); if(!pid) return paintFavorite(false);
+    const pid = await resolveProductId(); // ürün sayfasında çalışsın
     const user = window.firebaseAuth?.currentUser || null;
     if(!user){ paintFavorite(false); return; }
     const w = await getDoc(doc(db,"wishlists",user.uid));
     const items = w.exists && w.exists() ? (w.data? w.data().items||[] : []) : [];
-    const on = !!items.find(it => it?.productId===pid || it===pid);
+    const hasAny = items.length>0;
+    const on = pid ? !!items.find(it => it?.productId===pid || it===pid) : hasAny;
     paintFavorite(on);
   }catch(_){}
 }
@@ -3033,90 +3034,45 @@ document.addEventListener("click",(e)=>{
   if(!fav) return;
   const user = window.firebaseAuth?.currentUser || null;
   if(!user || user.isAnonymous){ e.preventDefault(); navTo("/login"); return; }
-  fav.classList.toggle("is-favorited");
+  fav.classList.add("fav-anim"); fav.classList.toggle("is-favorited"); setTimeout(()=>fav.classList.remove("fav-anim"), 260);
   fav.setAttribute("aria-pressed", fav.classList.contains("is-favorited") ? "true" : "false");
 }, true);
 window.addEventListener("wishlist:changed", syncFavoriteUI);
 
-// Seller Page (hash route)
+// seller page
 (function(){
   const main = document.querySelector("main") || document.getElementById("root") || document.body;
   const hostId = "k-route-host"; let host = document.getElementById(hostId);
   if (!host){ host = document.createElement("div"); host.id = hostId; main.appendChild(host); }
   const root = ReactDOM.createRoot(host); let showing=false;
-  function mask(on){
-    Array.from(main.children).forEach(ch=>{
-      if (ch===host) return;
-      if (on){ ch.setAttribute("data-k-hide","1"); ch.style.display="none"; }
-      else if (ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); }
-    });
-  }
+  function mask(on){ Array.from(main.children).forEach(ch=>{ if(ch===host) return; if(on){ ch.setAttribute("data-k-hide","1"); ch.style.display="none"; } else if(ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); } }); }
   function SellerPage({ sellerId }){
-    const [seller,setSeller] = React.useState(null);
-    const [items,setItems]   = React.useState([]);
-    React.useEffect(()=>{ (async()=>{
-      const s = await fetchUserByIdOrName(sellerId);
-      setSeller(s);
-      const all = await fetchAllProducts();
-      setItems(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId));
-    })(); }, [sellerId]);
+    const [seller,setSeller] = React.useState(null); const [items,setItems]   = React.useState([]);
+    React.useEffect(()=>{ (async()=>{ const s = await fetchUserByIdOrName(sellerId); setSeller(s); const all = await fetchAllProducts(); setItems(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId)); })(); }, [sellerId]);
     const avatar = seller?.photoURL || seller?.avatar || "https://via.placeholder.com/96";
-    return (
-      <div className="max-w-6xl mx-auto p-4 md:p-8">
-        <div className="flex items-center gap-4 md:gap-6 mb-6">
-          <img src={avatar} className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border" />
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{seller?.displayName||seller?.name||"Satıcı"}</h1>
-            {seller?.location && <p className="text-gray-600">{seller.location}</p>}
-          </div>
-        </div>
-        {seller?.story && <section className="border rounded-2xl p-4 md:p-6 mb-8"><h2 className="text-xl font-semibold mb-2">Satıcının Hikayesi</h2><p className="text-gray-700 whitespace-pre-line">{seller.story}</p></section>}
-        <section>
-          <h2 className="text-xl font-semibold mb-3">Ürünleri</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {items.map(p=>(
-              <a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden hover:shadow-sm">
-                <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover" />
-                <div className="p-2">
-                  <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
-                  <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
-      </div>
-    );
-  }
-  function onHash(){
-    const h = hashPath();
-    if (h.startsWith("/seller/")){
-      const id = decodeURIComponent(h.slice(8)); mask(true);
-      root.render(<SellerPage sellerId={id} />); showing=true; window.scrollTo(0,0); return;
-    }
-    if (showing){ root.render(null); mask(false); showing=false; }
-  }
-  window.addEventListener("hashchange", onHash);
-  window.addEventListener("load", onHash);
+    return (<div className="max-w-6xl mx-auto p-4 md:p-8">
+      <div className="flex items-center gap-4 md:gap-6 mb-6"><img src={avatar} className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border"/><div><h1 className="text-2xl md:text-3xl font-bold">{seller?.displayName||seller?.name||"Satıcı"}</h1>{seller?.location && <p className="text-gray-600">{seller.location}</p>}</div></div>
+      {seller?.story && <section className="border rounded-2xl p-4 md:p-6 mb-8"><h2 className="text-xl font-semibold mb-2">Satıcının Hikayesi</h2><p className="text-gray-700 whitespace-pre-line">{seller.story}</p></section>}
+      <section><h2 className="text-xl font-semibold mb-3">Ürünleri</h2><div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{items.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden hover:shadow-sm"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>
+    </div>); }
+  function onHash(){ const h = hashPath(); if (h.startsWith("/seller/")){ const id = decodeURIComponent(h.slice(8)); mask(true); root.render(<SellerPage sellerId={id} />); showing=true; window.scrollTo(0,0); return; } if (showing){ root.render(null); mask(false); showing=false; } }
+  window.addEventListener("hashchange", onHash); window.addEventListener("load", onHash);
 })();
 
-// Product page: unify media, seller bar, similar/other
+// product page enhancements (only if product id resolves)
 function mountProduct(){
-  const productRoot = document.querySelector("[data-product-id]") || document.querySelector('[data-role="product-detail"]') || document;
-  if (productRoot.__kadrajV13) return; productRoot.__kadrajV13 = true;
-
   (async()=>{
     const pid = await resolveProductId();
-    const prod = pid ? await fetchProduct(pid) : null;
+    if(!pid) return; // sadece ürün sayfasında
+    const prod = await fetchProduct(pid);
     const sellerId = prod?.sellerId || prod?.seller || prod?.ownerId || null;
     const sellerName = prod?.sellerName || null;
     const seller = await fetchUserByIdOrName(sellerId, sellerName);
 
-    // Seller line under product title
+    // seller line
     const titleEl = document.querySelector("h1, .product-title");
     if (titleEl && !document.getElementById("k-seller-line")){
-      const line = document.createElement("div");
-      line.id = "k-seller-line"; line.className="flex items-center gap-2 text-sm text-gray-600 mt-2";
+      const line = document.createElement("div"); line.id="k-seller-line"; line.className="flex items-center gap-2 text-sm text-gray-600 mt-2";
       const a = document.createElement("a"); a.href = "#/seller/"+(seller?.id||sellerId||"unknown"); a.className="underline hover:text-black";
       a.textContent = seller?.displayName || seller?.name || prod?.sellerName || "Satıcı";
       a.addEventListener("click",(e)=>{ e.preventDefault(); navTo("/seller/"+(seller?.id||sellerId||"unknown")); });
@@ -3124,7 +3080,7 @@ function mountProduct(){
       titleEl.parentElement.insertBefore(line, titleEl.nextSibling);
     }
 
-    // Unified media
+    // unified media (square, video autoplay muted loop)
     const candidates = $$("img, video").map(el=>{ const r=el.getBoundingClientRect(); return {el,area:r.width*r.height}; }).filter(x=>x.area>5000);
     if (candidates.length){
       candidates.sort((a,b)=>b.area-a.area);
@@ -3143,13 +3099,10 @@ function mountProduct(){
         const vids = $$("video").map(v=>{ const s=v.querySelector("source")?.src||v.currentSrc||v.src; return s ? {type:"video",src:s}:null; }).filter(Boolean);
         list = imgs.concat(vids);
       }
-      // Ensure current visible media is first (guarantee VIDEO thumb exists)
       if (origSrc){
         const exist = list.find(m => m.src===origSrc && m.type===origType);
-        if (!exist) list.unshift({type:origType, src:origSrc});
-        else list = [exist, ...list.filter(m => !(m.src===origSrc && m.type===origType))];
+        if (!exist) list.unshift({type:origType, src:origSrc}); else list = [exist, ...list.filter(m => !(m.src===origSrc && m.type===origType))];
       }
-      // uniq by src+type
       const seen = new Set(); list = list.filter(m=>{ const k=m.type+"|"+m.src; if(seen.has(k)) return false; seen.add(k); return true; });
       if (!list.length) return;
 
@@ -3162,23 +3115,19 @@ function mountProduct(){
         const [i,setI] = React.useState(0);
         const item = list[i];
         const Thumb = ({m,active,onClick}) => m.type==="image"
-          ? <button onClick={onClick} className={"border rounded overflow-hidden "+(active?"ring-2 ring-black":"")}><img src={m.src} className="w-full h-16 object-cover"/></button>
-          : <button onClick={onClick} className={"border rounded overflow-hidden relative "+(active?"ring-2 ring-black":"")} style={{height:"64px", background:"#111"}}><div className="absolute inset-0 grid place-items-center text-white text-[10px]">VIDEO ▷</div></button>;
+          ? <button onClick={onClick} className={""+(active?"active ":"")}><img src={m.src}/></button>
+          : <button onClick={onClick} className={"vid "+(active?"active ":"")}>VIDEO ▷</button>;
         return (<div>
-          <div className="relative bg-gray-50 rounded-xl overflow-hidden">
-            {item.type==="image" ? <img src={item.src} className="w-full h-auto object-contain" /> : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
-            {list.length>1 && (<>
-              <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=>setI((i-1+list.length)%list.length)}>‹</button>
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=>setI((i+1)%list.length)}>›</button>
-            </>)}
+          <div className="k-stage">
+            {item.type==="image" ? <img src={item.src}/> : <video key={item.src} src={item.src} autoplay muted loop playsInline disablePictureInPicture controlsList="nodownload noplaybackrate"></video>}
           </div>
-          {list.length>1 && (<div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">{list.map((m,idx)=>(<Thumb key={idx} m={m} active={idx===i} onClick={()=>setI(idx)} />))}</div>)}
+          {list.length>1 && (<div className="k-thumbs mt-3">{list.map((m,idx)=>(<Thumb key={idx} m={m} active={idx===i} onClick={()=>setI(idx)} />))}</div>)}
         </div>);
       }
       R.render(<Media />);
     }
 
-    // Bottom sections
+    // bottom sections (seller's others first, then similar) — already under product
     const main = document.querySelector("main") || document.body;
     if (!document.getElementById("k-product-bottom")){
       const bottom = document.createElement("div"); bottom.id="k-product-bottom"; bottom.className="max-w-6xl mx-auto px-4 md:px-6";
@@ -3192,7 +3141,7 @@ function mountProduct(){
           if (sellerId) setFromSeller(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId && p.id!==pid).slice(0,8));
           if (prod?.category){
             setSimilar(all.filter(p => (p.category||"") === (prod.category||"") && p.id!==pid).slice(0,8));
-          } else if (!fromSeller.length) {
+          } else {
             setSimilar(all.filter(p => p.id!==pid).slice(0,8));
           }
         })(); }, []);
@@ -3200,34 +3149,23 @@ function mountProduct(){
           {(seller?.story || prod?.productStory) && (<section className="border rounded-2xl p-4 md:p-6"><h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3><p className="text-gray-700 whitespace-pre-line">{seller?.story || prod?.productStory}</p></section>)}
           {fromSeller.length>0 && (<section><div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3><a className="text-sm underline" href={"#/seller/"+(seller?.id||sellerId||"unknown")} onClick={(e)=>{e.preventDefault(); navTo("/seller/"+(seller?.id||sellerId||"unknown"));}}>Tümünü Gör</a></div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{fromSeller.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
-          {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
+          {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
         </div>);
       }
       RB.render(<Bottom />);
     }
 
-    // sync wishlist initially
+    // wishlist sync for product + header
     syncFavoriteUI();
   })();
 }
-const mo = new MutationObserver(()=> mountProduct()); mo.observe(document.documentElement,{childList:true,subtree:true});
 window.addEventListener("load", mountProduct);
 window.addEventListener("hashchange", ()=> setTimeout(mountProduct,0));
 
-// Header rightmost icon -> shopping cart & open overlay
-(function(){
-  const header = document.querySelector("header") || document;
-  const iconCandidates = $$("a,button", header).filter(n => /favori|sepet|cart|basket|wishlist|login|account|hesap/i.test(n.textContent||"") || n.querySelector("svg"));
-  if (iconCandidates.length){
-    const rightmost = iconCandidates[iconCandidates.length-1];
-    rightmost.style.position = "relative";
-    rightmost.innerHTML = '<span class="relative inline-block"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span id="k-cart-badge" class="k-cart-badge">0</span></span>';
-    rightmost.addEventListener("click", (e)=>{ e.preventDefault(); openCartOverlay(); });
-  }
-})();
-
-// Cart overlay minimal impl
+/* CART OVERLAY
+   - Açılması yalnızca sepet ikonuna tıklayınca
+   - 'Sepete Ekle' tıklandığında overlay açma, sadece butonda qty animasyonu
+*/
 const $overlay = document.getElementById("k-cart-overlay");
 const $items   = document.getElementById("k-cart-items");
 const $total   = document.getElementById("k-total");
@@ -3242,15 +3180,20 @@ function addLine(title, price){
 }
 function recalcTotal(){ let sum=0; Array.from($items.children).forEach(r=>{ const t=r.lastChild.textContent.replace(/[^\d]/g,""); sum += Number(t||0); }); $total.textContent = sum + " ₺"; }
 function syncCartBadges(){ const c=($items?.children?.length||0); const d=$("#k-cart-badge"); if(d){ d.style.display = c>0 ? "inline-block" : "none"; d.textContent=String(c); } const m=$("#k-cart-badge-mobile"); if(m){ m.style.display = c>0 ? "inline-block" : "none"; m.textContent=String(c);} }
-document.addEventListener("click",(e)=>{
-  const el = e.target.closest(".add-to-cart, [data-add-to-cart]");
-  if (!el) return;
-  e.preventDefault();
-  addLine((document.querySelector("h1, .product-title")||{}).textContent||"Ürün", 7999);
-  openCartOverlay();
-});
 
-// Mobile bottom bar: last icon -> cart & badge overlay
+// header desktop: rightmost -> cart (and click opens overlay)
+(function(){
+  const header = document.querySelector("header") || document;
+  const iconCandidates = $$("a,button", header).filter(n => /favori|sepet|cart|basket|wishlist|login|account|hesap/i.test(n.textContent||"") || n.querySelector("svg"));
+  if (iconCandidates.length){
+    const rightmost = iconCandidates[iconCandidates.length-1];
+    rightmost.style.position = "relative";
+    rightmost.innerHTML = '<span class="relative inline-block"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span id="k-cart-badge" class="k-cart-badge">0</span></span>';
+    rightmost.addEventListener("click", (e)=>{ e.preventDefault(); openCartOverlay(); });
+  }
+})();
+
+// mobile bottom bar last icon -> cart + badge
 (function(){
   const bar = document.querySelector(".mobile-tabbar, .bottom-nav, nav[role='tablist'], footer");
   if (!bar) return;
@@ -3260,6 +3203,43 @@ document.addEventListener("click",(e)=>{
   syncCartBadges();
 })();
 
+// Add-to-cart button -> only qty animation (no overlay)
+document.addEventListener("click",(e)=>{
+  const el = e.target.closest(".add-to-cart, [data-add-to-cart]");
+  if (!el) return;
+  e.preventDefault();
+  // create qty pill if not exists
+  if (!el.__qty){
+    const pill = document.createElement("span");
+    pill.className = "k-qty k-pulse";
+    pill.innerHTML = '<button aria-label="Azalt">-</button><span class="count">1</span><button aria-label="Arttır">+</button>';
+    el.__qty = { pill, count: 1 };
+    el.innerHTML = ""; el.appendChild(pill);
+    setTimeout(()=> pill.classList.remove("k-pulse"), 650);
+  } else {
+    // increment
+    el.__qty.count += 1;
+    el.__qty.pill.querySelector(".count").textContent = String(el.__qty.count);
+    el.__qty.pill.classList.add("k-pulse"); setTimeout(()=>el.__qty.pill.classList.remove("k-pulse"), 650);
+  }
+  addLine((document.querySelector("h1, .product-title")||{}).textContent||"Ürün", 7999);
+});
+// handle +/-
+document.addEventListener("click",(e)=>{
+  const dec = e.target.closest(".k-qty button:first-child");
+  const inc = e.target.closest(".k-qty button:last-child");
+  if (!dec && !inc) return;
+  const pill = e.target.closest(".k-qty"); const rootBtn = pill?.parentElement;
+  if (!pill || !rootBtn || !rootBtn.__qty) return;
+  if (dec){ rootBtn.__qty.count = Math.max(0, rootBtn.__qty.count - 1); }
+  if (inc){ rootBtn.__qty.count += 1; }
+  pill.querySelector(".count").textContent = String(rootBtn.__qty.count);
+  pill.classList.add("k-pulse"); setTimeout(()=>pill.classList.remove("k-pulse"), 650);
+});
 </script>
-<!-- === /Kadraj Enhancements Pack v13 === -->
+<!-- === /Kadraj Enhancements Pack v14 === -->
+
+</body>
+</html>
+
 outer + guarante
