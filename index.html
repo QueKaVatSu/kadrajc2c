@@ -2892,21 +2892,39 @@ mo.observe(document.documentElement,{childList:true,subtree:true});
 
 </body>
 </html>
-<!-- === Kadraj Enhancements Pack v6 (robust media + safe seller routing) === -->
+<!-- === Kadraj Enhancements Pack v7 (GH Pages base path + video thumb + robust seller/sections) === -->
 <script type="text/babel">
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
-function toPath(href){
-  try{ const u=new URL(href, location.origin); return u.pathname+u.search+u.hash; }catch(_){ return href; }
-}
-function goto(p){ const path = toPath(p); if (location.pathname!==path){ history.pushState({}, "", path);} window.dispatchEvent(new Event("popstate")); }
 
-// Firebase aliases
+// ---- BASE PATH (GitHub Pages project site support) ----
+function getBasePath(){
+  // e.g. /kadrajc2c/... -> /kadrajc2c
+  const parts = location.pathname.split("/").filter(Boolean);
+  if (parts.length && parts[0] !== "index.html") return "/" + parts[0];
+  return "";
+}
+function joinPath(...segs){
+  const flat = segs.join("/").replace(/\/+/g,"/");
+  return flat.startsWith("/") ? flat : "/" + flat;
+}
+const BASE = getBasePath();
+function goto(p){
+  const path = typeof p==="string" ? p : (p?.href || "/");
+  let target = path;
+  if (!path.startsWith(BASE)) target = joinPath(BASE, path);
+  if (location.pathname !== target){
+    history.pushState({}, "", target);
+  }
+  window.dispatchEvent(new Event("popstate"));
+}
+
+// ---- Firebase (if exposed globally) ----
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-// Product id resolver
+// ---- Helpers ----
 async function resolveProductFromPageX(){
   const host = document.querySelector("[data-product-id]");
   if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
@@ -2932,17 +2950,27 @@ async function fetchProductX(id){
     return d.exists() ? { id:d.id, ...d.data() } : null;
   }catch(e){ return null; }
 }
-async function fetchSellerX(sellerId){
+async function fetchSellerX(sellerId, sellerName){
   try{
     if (!db) return null;
-    const direct = await getDoc(doc(db,"users",sellerId));
-    if (direct.exists()) return { id:direct.id, ...direct.data() };
-  }catch(e){}
-  try{
-    const qs = await getDocs(collection(db,"users"));
-    for(const snap of qs.docs){
-      const u = snap.data();
-      if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u };
+    if (sellerId){
+      const direct = await getDoc(doc(db,"users",sellerId));
+      if (direct.exists()) return { id:direct.id, ...direct.data() };
+    }
+    // fallback by name
+    if (sellerName){
+      const qs = await getDocs(collection(db,"users"));
+      for(const snap of qs.docs){
+        const u = snap.data();
+        const nm = (u.displayName||u.name||"").toLowerCase();
+        if (nm && nm === sellerName.toLowerCase()) return { id:snap.id, ...u };
+      }
+    } else {
+      const qs = await getDocs(collection(db,"users"));
+      for(const snap of qs.docs){
+        const u = snap.data();
+        if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u };
+      }
     }
   }catch(e){}
   return null;
@@ -2961,7 +2989,7 @@ async function fetchProductsByX(filter){
   }catch(e){ return []; }
 }
 
-// Wishlist
+// ---- Wishlist state paint ----
 async function checkFavorited(productId){
   try{
     if (window.WishlistService?.isFavorited) return await window.WishlistService.isFavorited(productId);
@@ -2973,21 +3001,21 @@ async function checkFavorited(productId){
   }catch(e){ return false; }
 }
 function paintFavoriteUI(root, on){
-  const btn = root.querySelector("[data-toggle-favorite]") || document.querySelector("[data-toggle-favorite]");
-  if (!btn) return;
-  btn.setAttribute("aria-pressed", on ? "true" : "false");
-  btn.classList.toggle("is-favorited", !!on);
-  const svg = btn.querySelector("svg");
+  const favBtn = root.querySelector("[data-toggle-favorite]") || document.querySelector("[data-toggle-favorite]");
+  if (!favBtn) return;
+  favBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  favBtn.classList.toggle("is-favorited", !!on);
+  const svg = favBtn.querySelector("svg");
   if (svg){ if(on){ svg.setAttribute("fill","currentColor"); } else { svg.removeAttribute("fill"); } }
 }
 document.addEventListener("click",(e)=>{
   const el = e.target.closest("[data-toggle-favorite]");
   if (!el) return;
   const user = window.firebaseAuth?.currentUser || null;
-  if(!user || user.isAnonymous){ e.preventDefault(); goto("/login"); }
+  if(!user || user.isAnonymous){ e.preventDefault(); goto(joinPath(BASE,"/login")); }
 }, true);
 
-// Safe Seller Router (keeps header/footer, avoids flashes)
+// ---- Seller Page inside MAIN (preserve header/footer) ----
 (function(){
   const main = document.querySelector("main") || document.getElementById("root") || document.body;
   const hostId = "kadraj-route-main";
@@ -3000,7 +3028,8 @@ document.addEventListener("click",(e)=>{
     const [seller, setSeller] = React.useState(null);
     const [products, setProducts] = React.useState([]);
     React.useEffect(()=>{ (async()=>{
-      const s = await fetchSellerX(sellerId); setSeller(s);
+      const s = await fetchSellerX(sellerId);
+      setSeller(s);
       setProducts(await fetchProductsByX({ sellerId }));
     })(); }, [sellerId]);
     const avatar = seller?.photoURL || seller?.avatar || "https://via.placeholder.com/96";
@@ -3023,8 +3052,8 @@ document.addEventListener("click",(e)=>{
           <h2 className="text-xl font-semibold mb-3">Ürünleri</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map(p=>(
-              <a key={p.id} href={"/products/"+p.id} className="border rounded-lg overflow-hidden hover:shadow-sm"
-                 onClick={(e)=>{ e.preventDefault(); goto("/products/"+p.id); }}>
+              <a key={p.id} href={joinPath(BASE,"/products/"+p.id)} className="border rounded-lg overflow-hidden hover:shadow-sm"
+                 onClick={(e)=>{ e.preventDefault(); goto(joinPath(BASE,"/products/"+p.id)); }}>
                 <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover"/>
                 <div className="p-2">
                   <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
@@ -3040,8 +3069,9 @@ document.addEventListener("click",(e)=>{
 
   function onRoute(){
     const path = location.pathname;
-    if (path.startsWith("/seller/")){
-      const id = decodeURIComponent(path.split("/seller/")[1]||"");
+    const basePrefix = BASE ? BASE + "/seller/" : "/seller/";
+    if (path.startsWith(basePrefix)){
+      const id = decodeURIComponent(path.slice(basePrefix.length));
       root.render(<SellerPage sellerId={id}/>);
       showing = true; window.scrollTo(0,0); return;
     }
@@ -3051,18 +3081,20 @@ document.addEventListener("click",(e)=>{
   window.addEventListener("load", onRoute);
 })();
 
-// PRODUCT: single-frame media in the **largest** left media container
+// ---- PRODUCT PAGE: unified media + bottom sections ----
 function mountProductEnhancements(){
   const root = document.querySelector("[data-product-id]") || document.querySelector('[data-role="product-detail"]');
   if (!root) return;
-  if (root.__kadrajEnhancedV6) return;
-  root.__kadrajEnhancedV6 = true;
+  if (root.__kadrajEnhancedV7) return;
+  root.__kadrajEnhancedV7 = true;
 
   (async()=>{
     const pid = await resolveProductFromPageX();
     const product = pid ? await fetchProductX(pid) : null;
-    const sellerId = product?.sellerId || product?.seller || product?.ownerId || null;
-    const seller = sellerId ? await fetchSellerX(sellerId) : null;
+    const sellerIdRaw = product?.sellerId || product?.seller || product?.ownerId || null;
+    const sellerName = product?.sellerName || null;
+    const seller = await fetchSellerX(sellerIdRaw, sellerName);
+    const sellerId = seller?.id || sellerIdRaw;
 
     // Wishlist paint
     checkFavorited(pid).then(on => paintFavoriteUI(root, on));
@@ -3074,7 +3106,7 @@ function mountProductEnhancements(){
       bar.id = "k-seller-line";
       bar.className = "flex items-center gap-2 text-sm text-gray-600 mt-2";
       const a = document.createElement("a");
-      a.href = "/seller/" + (seller?.id || sellerId || "unknown");
+      a.href = joinPath(BASE, "/seller/" + (sellerId || "unknown"));
       a.className = "underline hover:text-black";
       a.textContent = seller?.displayName || seller?.name || product?.sellerName || "Satıcı";
       a.addEventListener("click",(e)=>{ e.preventDefault(); goto(a.href); });
@@ -3083,52 +3115,54 @@ function mountProductEnhancements(){
       titleEl.parentElement.insertBefore(bar, titleEl.nextSibling);
     }
 
-    // Find the **largest** visible container that currently holds an img/video in the left column
-    const candidates = $$("img, video", root).map(el=>{
-      const rect = el.getBoundingClientRect();
-      const area = rect.width*rect.height;
-      return { el, area, parent: el.parentElement };
-    }).filter(x=> x.area>5000); // ignore small icons
-    if (candidates.length){
-      candidates.sort((a,b)=> b.area - a.area);
-      let container = candidates[0].parent;
-      // climb one level if parent is purely the media element wrapper (common in sliders)
+    // Find main left media container and replace inner with unified gallery
+    // Choose the largest media element under root
+    const medias = $$("img, video", root)
+      .map(el=>({ el, rect: el.getBoundingClientRect() }))
+      .filter(x=> (x.rect.width * x.rect.height) > 5000);
+    if (medias.length){
+      medias.sort((a,b)=> (b.rect.width*b.rect.height) - (a.rect.width*a.rect.height));
+      let container = medias[0].el.parentElement;
       if (container && container.children.length===1) container = container.parentElement || container;
-      // collect media sources from **container & siblings** thumbnails
-      const imgs = $$("img", container.parentElement || container).filter(i=> i.width>120 && i.height>120).map(i=>({type:"image", src:i.src}));
-      const vids = $$("video", container.parentElement || container).map(v=>{
-        const src = v.querySelector("source")?.src || v.currentSrc || v.src;
-        return src ? {type:"video", src} : null;
-      }).filter(Boolean);
-      let media = [];
-      if (Array.isArray(product?.imageUrls)) media = media.concat(product.imageUrls.map(s=>({type:"image", src:s})));
-      if (Array.isArray(product?.videoUrls)) media = media.concat(product.videoUrls.map(s=>({type:"video", src:s})));
-      if (media.length===0) media = imgs.concat(vids);
-      // uniq by src
-      const seen = new Set(); media = media.filter(m=> (m.src && !seen.has(m.src) && seen.add(m.src)) );
-      if (media.length){
+
+      // Build media list (include video as thumbnail too)
+      let list = [];
+      if (Array.isArray(product?.imageUrls)) list = list.concat(product.imageUrls.map(src=>({type:"image", src})));
+      if (Array.isArray(product?.videoUrls)) list = list.concat(product.videoUrls.map(src=>({type:"video", src})));
+      if (list.length===0){
+        // fallback gather from the entire product area (and neighbor thumbs)
+        const imgs = $$("img", root).filter(i=> i.width>120 && i.height>120).map(i=>({type:"image", src:i.src}));
+        const vids = $$("video", root).map(v=>{
+          const src = v.querySelector("source")?.src || v.currentSrc || v.src;
+          return src ? {type:"video", src} : null;
+        }).filter(Boolean);
+        list = imgs.concat(vids);
+      }
+      // uniq
+      const seen = new Set(); list = list.filter(m=> m.src && !seen.has(m.src) && seen.add(m.src));
+
+      if (list.length){
         const mount = document.createElement("div"); mount.id="k-media-gallery";
-        // preserve container box, just clear children
         while (container.firstChild) container.removeChild(container.firstChild);
         container.appendChild(mount);
         const R = ReactDOM.createRoot(mount);
         function MediaGallery(){
           const [i, setI] = React.useState(0);
-          const item = media[i];
+          const item = list[i];
           return (
             <div>
               <div className="relative bg-gray-50 rounded-xl overflow-hidden">
                 {item.type==="image"
                   ? <img src={item.src} className="w-full h-auto object-contain" />
                   : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
-                {media.length>1 && (<>
-                  <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i-1+media.length)%media.length)}>‹</button>
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i+1)%media.length)}>›</button>
+                {list.length>1 && (<>
+                  <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i-1+list.length)%list.length)}>‹</button>
+                  <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i+1)%list.length)}>›</button>
                 </>)}
               </div>
-              {media.length>1 && (
+              {list.length>1 && (
                 <div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">
-                  {media.map((m, idx)=>(
+                  {list.map((m, idx)=>(
                     <button key={idx} onClick={()=>setI(idx)} className={"border rounded overflow-hidden " + (idx===i?"ring-2 ring-black":"")}>
                       {m.type==="image"
                         ? <img src={m.src} className="w-full h-16 object-cover"/>
@@ -3144,7 +3178,77 @@ function mountProductEnhancements(){
       }
     }
 
-    // Bottom sections mount stays as in v5 (omitted here for brevity)
+    // Bottom sections (ensure they always mount; if data yoksa görünmez)
+    const main = document.querySelector("main") || root.closest("main") || document.body;
+    if (!document.getElementById("k-product-extras-bottom-v7")){
+      const bottom = document.createElement("div");
+      bottom.id = "k-product-extras-bottom-v7";
+      bottom.className = "max-w-6xl mx-auto px-4 md:px-6";
+      main.appendChild(bottom);
+      const RB = ReactDOM.createRoot(bottom);
+      function Bottom(){
+        const [fromSeller, setFromSeller] = React.useState([]);
+        const [similar, setSimilar] = React.useState([]);
+        React.useEffect(()=>{ (async()=>{
+          if (sellerId) setFromSeller(await fetchProductsByX({ sellerId, exceptId: pid }));
+          if (product?.category) setSimilar(await fetchProductsByX({ category: product.category, exceptId: pid }));
+          // fallbacks: show at least some products if arrays empty
+          if ((!sellerId || fromSeller.length===0) && !product?.category){
+            const all = await fetchProductsByX({});
+            setSimilar(all.filter(p=>p.id!==pid).slice(0,8));
+          }
+        })(); }, []);
+        return (
+          <div className="mt-10 space-y-10">
+            {(seller?.story || product?.productStory) && (
+              <section className="border rounded-2xl p-4 md:p-6">
+                <h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3>
+                <p className="text-gray-700 whitespace-pre-line">{seller?.story || product?.productStory}</p>
+              </section>
+            )}
+            {fromSeller.length>0 && (
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3>
+                  <a className="text-sm underline" href={joinPath(BASE,"/seller/"+(sellerId || "unknown"))}
+                     onClick={(e)=>{ e.preventDefault(); goto(e.currentTarget.getAttribute("href")); }}>Tümünü Gör</a>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {fromSeller.slice(0,8).map(p=>(
+                    <a key={p.id} href={joinPath(BASE,"/products/"+p.id)} className="border rounded-lg overflow-hidden"
+                       onClick={(e)=>{e.preventDefault(); goto(e.currentTarget.getAttribute("href"));}}>
+                      <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
+                      <div className="p-2">
+                        <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
+                        <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+            {similar.length>0 && (
+              <section>
+                <h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {similar.slice(0,8).map(p=>(
+                    <a key={p.id} href={joinPath(BASE,"/products/"+p.id)} className="border rounded-lg overflow-hidden"
+                       onClick={(e)=>{e.preventDefault(); goto(e.currentTarget.getAttribute("href"));}}>
+                      <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
+                      <div className="p-2">
+                        <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
+                        <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        );
+      }
+      RB.render(<Bottom />);
+    }
   })();
 }
 
@@ -3153,4 +3257,4 @@ mo.observe(document.documentElement, { childList:true, subtree:true });
 window.addEventListener("load", mountProductEnhancements);
 window.addEventListener("popstate", ()=> setTimeout(mountProductEnhancements,0));
 </script>
-<!-- === /Kadraj Enhancements Pack v6 === -->
+<!-- === /Kadraj Enhancements Pack v7 === -->
