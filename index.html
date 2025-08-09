@@ -2128,7 +2128,7 @@
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 
-<!-- KADRAJ C2C PATCH v8 CSS -->
+<!-- KADRAJ C2C PATCH v9 CSS -->
 <style>
 .k-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:rgba(239,68,68,.15);color:#ef4444;font-size:11px;line-height:18px;text-align:center;font-weight:700;pointer-events:none}
 .k-icon-wrap{position:relative;display:inline-flex}
@@ -2142,52 +2142,127 @@ button.in-cart{background-color:#111827}
 button.in-cart .k-subtext{font-size:12px;color:#d1d5db;margin-left:8px}
 </style>
 
-<!-- KADRAJ C2C PATCH v8 JS -->
+<!-- KADRAJ C2C PATCH v9 JS -->
 <script type="text/babel">
-// Utils
-const flyTo=(srcEl,targetSelector,isFav=false)=>{try{const t=document.querySelector(targetSelector);if(!srcEl||!t)return;const a=srcEl.getBoundingClientRect();const b=t.getBoundingClientRect();const d=document.createElement('div');d.className='fly-dot'+(isFav?' fav':'');d.style.transform=`translate(${a.left+a.width/2}px, ${a.top+a.height/2}px)`;document.body.appendChild(d);requestAnimationFrame(()=>{d.style.transform=`translate(${b.left+b.width/2}px, ${b.top+b.height/2}px)`});setTimeout(()=>{d.remove()},700)}catch(e){}};
+// ---- Minimal guards ----
+if (!window.React || !window.ReactDOM) { console.warn('React/ReactDOM missing'); }
 
-const ensureIconWrappers=()=>{document.querySelectorAll('[data-open-cart],[data-open-favorites]').forEach(a=>{a.classList.add('k-icon-wrap');if(!a.querySelector('.k-badge')){const b=document.createElement('span');b.className='k-badge';b.style.display='none';a.appendChild(b);}})};
+// ---- Small helpers ----
+const flyTo=(src,targetSel,isFav=false)=>{try{const t=document.querySelector(targetSel);if(!src||!t)return;const a=src.getBoundingClientRect(),b=t.getBoundingClientRect(),d=document.createElement('div');d.className='fly-dot'+(isFav?' fav':'');d.style.transform=`translate(${a.left+a.width/2}px, ${a.top+a.height/2}px)`;document.body.appendChild(d);requestAnimationFrame(()=>{d.style.transform=`translate(${b.left+b.width/2}px, ${b.top+b.height/2}px)`});setTimeout(()=>d.remove(),700)}catch(e){}}
+const ensureWrap=()=>{document.querySelectorAll('[data-open-cart],[data-open-favorites]').forEach(a=>{a.classList.add('k-icon-wrap');if(!a.querySelector('.k-badge')){const b=document.createElement('span');b.className='k-badge';b.style.display='none';a.appendChild(b);}})}
+const getUid=()=>window.firebaseAuth?.currentUser?.uid||null
+const CartSvc={async get(){try{const uid=getUid(); if(!uid) return []; const ref=window.doc(window.firebaseFirestore,'carts',uid); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[]}catch(e){return []}}}
+const FavSvc={async get(){try{const uid=getUid(); if(!uid) return []; const ref=window.doc(window.firebaseFirestore,'favorites',uid); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[]}catch(e){return []}}}
 
-const applyDesktopIconFix=()=>{
-  const c=[...document.querySelectorAll('header a, header button')].filter(el=>el.querySelector('svg'));
-  if(c.length){const r=c[c.length-1];r.setAttribute('data-open-cart','true');r.setAttribute('aria-label','Sepet');r.setAttribute('title','Sepet');}
-  const h=[...document.querySelectorAll('header a, header button')].find(el=>/heart|favori|wishlist/i.test((el.getAttribute('title')||'')+' '+(el.getAttribute('aria-label')||'')));
-  if(h){h.setAttribute('data-open-favorites','true');h.setAttribute('aria-label','Favoriler');h.setAttribute('title','Favoriler');}
-  ensureIconWrappers();
-};
+// ---- Desktop header: force rightmost as Cart, one-before-rightmost as Favorites ----
+const fixDesktopHeader=()=>{
+  const icons=[...document.querySelectorAll('header a, header button')].filter(el=>el.querySelector('svg'))
+  if(icons.length){
+    const cartEl=icons[icons.length-1]
+    cartEl.setAttribute('data-open-cart','true'); cartEl.setAttribute('aria-label','Sepet'); cartEl.setAttribute('title','Sepet')
+    // replace svg if bag not recognizable
+    if(!/bag|cart|sepet/i.test((cartEl.getAttribute('title')||'')+(cartEl.getAttribute('aria-label')||''))){
+      cartEl.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 7h12l-1 12H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>';
+    }
+    if(icons.length>=2){
+      const favEl=icons[icons.length-2]
+      favEl.setAttribute('data-open-favorites','true'); favEl.setAttribute('aria-label','Favoriler'); favEl.setAttribute('title','Favoriler')
+    }
+  }
+  ensureWrap()
+}
 
-// State helpers (reuse services if defined)
-const getUid=()=>window.firebaseAuth?.currentUser?.uid||null;
+// ---- Badges & heart soft-fill ----
+const syncCartBadge=async()=>{
+  ensureWrap()
+  const items=await (window.CartService?.get?.()||CartSvc.get())
+  const count=items.reduce((s,i)=>s+(i.qty||1),0)
+  document.querySelectorAll('[data-open-cart] .k-badge').forEach(b=>{ b.textContent=count; b.style.display=count>0?'inline-block':'none' })
+}
+const syncFavIndicator=async()=>{
+  const items=await (window.FavoriteService?.get?.()||FavSvc.get())
+  const has=items.length>0
+  document.querySelectorAll('[data-open-favorites]').forEach(el=>el.classList.toggle('fav-indicator-on',has))
+}
 
-const CartSvc={async get(){try{const uid=getUid();if(!uid)return[];const ref=window.doc(window.firebaseFirestore,'carts',uid);const s=await window.getDoc(ref);return s.exists()?(s.data().items||[]):[]}catch(e){return[]}}};
+// ---- Product page tagging (robust) ----
+const getProductIdFromUrl=()=>{try{const parts=location.pathname.toLowerCase().split('/').filter(Boolean);const i=Math.max(parts.indexOf('product'),parts.indexOf('products'));if(i>=0&&parts[i+1])return parts[i+1];const u=new URL(location.href);return u.searchParams.get('id')}catch(e){return null}}
+const resolveProductFromPage=async()=>{
+  let pid=getProductIdFromUrl(); if(pid) return pid;
+  try{
+    const name=(document.querySelector('h1')?.textContent||'').trim().toLowerCase()
+    const priceText=(document.querySelector('[class*="price"],[data-price]')?.textContent||'').replace(/\./g,'')
+    const productsRef=window.collection(window.firebaseFirestore,'products')
+    const qs=await window.getDocs(productsRef)
+    const all=qs.docs.map(d=>({id:d.id,...d.data()}))
+    if(name){
+      const ex=all.find(p=>(p.productName||'').toLowerCase()===name); if(ex) return ex.id
+      const inc=all.find(p=>(p.productName||'').toLowerCase().includes(name)); if(inc) return inc.id
+    }
+    if(priceText){
+      const m=(priceText.match(/(\d[\d\s]*)/)||[])[1]
+      if(m){ const val=parseInt(m.replace(/\s/g,''),10); const list=all.filter(p=>(p.price|0)===val); if(list.length===1) return list[0].id }
+    }
+  }catch(e){}
+  return null
+}
 
-const FavoriteSvc={async get(){try{const uid=getUid();if(!uid)return[];const ref=window.doc(window.firebaseFirestore,'favorites',uid);const s=await window.getDoc(ref);return s.exists()?(s.data().items||[]):[]}catch(e){return[]}}};
+const tagProductActions=()=>{
+  // Find the wide dark "Sepete Ekle" button and the small outlined heart button next to it
+  const area = document.querySelector('button:has(svg)')?.closest('div') || document.querySelector('main') || document
+  // Longest button by width likely is add-to-cart
+  const btns=[...document.querySelectorAll('button')]
+  if(btns.length){
+    const sorted=[...btns].sort((a,b)=> (b.getBoundingClientRect().width - a.getBoundingClientRect().width))
+    const add=sorted.find(b=>(b.textContent||'').toLowerCase().includes('sepete ekle') || b.className.toLowerCase().includes('sepet'))
+    if(add) add.setAttribute('data-add-to-cart','true')
+  }
+  // Heart-like: icon-only small button to the right
+  document.querySelectorAll('button').forEach(b=>{
+    const hasHeart=b.querySelector('svg') && (b.textContent||'').trim()===''
+    if(hasHeart) b.setAttribute('data-toggle-favorite','true')
+  })
+}
 
-const updateCartBadges=async()=>{ensureIconWrappers();const items=await (window.CartService?.get?.()||CartSvc.get());const count=items.reduce((s,i)=>s+(i.qty||1),0);document.querySelectorAll('[data-open-cart] .k-badge').forEach(b=>{b.textContent=count;b.style.display=count>0?'inline-block':'none'})};
+// ---- Global click interceptor (safety layer if main script misses) ----
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-open-cart],[data-open-favorites],[data-add-to-cart],[data-toggle-favorite]');
+  if (!el) return;
+  if (el.hasAttribute('data-open-cart')) { e.preventDefault(); if (window.openCart) window.openCart(); return; }
+  if (el.hasAttribute('data-open-favorites')) { e.preventDefault(); if (window.openFavorites) window.openFavorites(); return; }
+  // product actions
+  if (el.hasAttribute('data-add-to-cart') || el.hasAttribute('data-toggle-favorite')) {
+    e.preventDefault();
+    // Resolve product
+    let pid=document.querySelector('[data-product-id]')?.getAttribute('data-product-id');
+    if(!pid) pid=await resolveProductFromPage();
+    if(!pid){ console.warn('product id not resolved'); return; }
+    const ref=window.doc(window.firebaseFirestore,'products',pid)
+    const snap=await window.getDoc(ref); const data=snap.exists()?snap.data():{}
+    const payload={ productId: pid, qty: 1, price: data.price||0, title: data.productName||'', image: (data.imageUrls && data.imageUrls[0]) || '' }
+    if (el.hasAttribute('data-add-to-cart')) {
+      await (window.CartService?.add?.(payload));
+      window.dispatchEvent(new CustomEvent('cart:changed'));
+      el.classList.add('btn-added','btn-ring'); setTimeout(()=>el.classList.remove('btn-added','btn-ring'),650)
+      flyTo(el,'[data-open-cart]')
+    }
+    if (el.hasAttribute('data-toggle-favorite')) {
+      await (window.FavoriteService?.toggle?.({productId: pid, title: payload.title, price: payload.price, image: payload.image}));
+      window.dispatchEvent(new CustomEvent('favorites:changed'));
+      el.classList.add('btn-added'); setTimeout(()=>el.classList.remove('btn-added'),550)
+      flyTo(el,'[data-open-favorites]',true)
+    }
+  }
+});
 
-const applyFavIndicator=async()=>{const items=await (window.FavoriteService?.get?.()||FavoriteSvc.get());const has=items.length>0;document.querySelectorAll('[data-open-favorites]').forEach(el=>{el.classList.toggle('fav-indicator-on',has)})};
-
-// Product page "Sepette (adet)" göstergesi
-const getProductIdFromUrl=()=>{try{const parts=location.pathname.toLowerCase().split('/').filter(Boolean);const i=Math.max(parts.indexOf('product'),parts.indexOf('products'));if(i>=0&&parts[i+1])return parts[i+1];const u=new URL(location.href);return u.searchParams.get('id')}catch(e){return null}};
-const resolveProductFromPage=async()=>{let pid=getProductIdFromUrl();if(pid)return pid;try{const name=(document.querySelector('h1')?.textContent||'').trim().toLowerCase();const priceText=(document.querySelector('[class*="price"],[data-price]')?.textContent||'').replace(/\./g,'');const productsRef=window.collection(window.firebaseFirestore,'products');const qs=await window.getDocs(productsRef);const all=qs.docs.map(d=>({id:d.id,...d.data()}));if(name){const ex=all.find(p=>(p.productName||'').toLowerCase()===name);if(ex)return ex.id;const inc=all.find(p=>(p.productName||'').toLowerCase().includes(name));if(inc)return inc.id}if(priceText){const m=(priceText.match(/(\d[\d\s]*)/)||[])[1];if(m){const val=parseInt(m.replace(/\s/g,''),10);const list=all.filter(p=>(p.price|0)===val);if(list.length===1)return list[0].id}}}catch(e){}return null};
-
-const updateProductButtonState=async()=>{
-  const btn=document.querySelector('[data-add-to-cart]')||[...document.querySelectorAll('button')].find(b=>(b.textContent||'').toLowerCase().includes('sepete ekle'));
-  if(!btn)return;
-  let pid=document.querySelector('[data-product-id]')?.getAttribute('data-product-id');
-  if(!pid) pid=await resolveProductFromPage();
-  if(!pid) return;
-  const items=await (window.CartService?.get?.()||CartSvc.get());
-  const it=items.find(x=>x.productId===pid);
-  if(it){btn.classList.add('in-cart');btn.querySelectorAll('.k-subtext').forEach(n=>n.remove());const sub=document.createElement('span');sub.className='k-subtext';sub.textContent=`Sepette (${it.qty||1})`;btn.appendChild(sub);} else {btn.classList.remove('in-cart');btn.querySelectorAll('.k-subtext').forEach(n=>n.remove());}
-};
-
-// Hook events
-window.addEventListener('favorites:changed', ()=>{applyFavIndicator()});
-window.addEventListener('cart:changed', ()=>{updateCartBadges();updateProductButtonState()});
-window.addEventListener('load', ()=>{applyDesktopIconFix();updateCartBadges();applyFavIndicator();updateProductButtonState();});
-const mo=new MutationObserver(()=>{applyDesktopIconFix();ensureIconWrappers()});mo.observe(document.documentElement,{childList:true,subtree:true});
+// ---- Boot ----
+window.addEventListener('load', ()=>{
+  fixDesktopHeader(); ensureWrap(); tagProductActions(); syncCartBadge(); syncFavIndicator();
+});
+window.addEventListener('cart:changed', ()=>{ syncCartBadge(); });
+window.addEventListener('favorites:changed', ()=>{ syncFavIndicator(); });
+const mo=new MutationObserver(()=>{ fixDesktopHeader(); ensureWrap(); tagProductActions(); });
+mo.observe(document.documentElement,{childList:true,subtree:true});
 </script>
 
 </body>
