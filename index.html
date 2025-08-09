@@ -2914,239 +2914,352 @@ async function syncFavIndicator(){
 
 </body>
 </html>
-<!-- === Kadraj Enhancements Pack v11 (hash router + guaranteed video thumb + cart icon/badge fix) === -->
+<!-- === Kadraj Enhancements Pack v11 (hash r
+<!-- === Kadraj Enhancements Pack v13 (hash routing + seller page + unified media + video thumb + similar/other + wishlist sync + cart overlay) === -->
 <style>
-/* Mobile bottom bar cart badge & icon */
-.k-mobile-cart { position: relative; width: 28px; height: 28px; display:inline-block; }
-.k-mobile-cart svg { width: 100%; height: 100%; display:block; }
-.k-cart-icon-badge { position:absolute; right:-6px; top:-8px; min-width:18px; height:18px; padding:0 5px;
-  border-radius:9999px; font-size:11px; line-height:18px; text-align:center; background:#ef4444; color:#fff; font-weight:700; }
+.k-cart-badge, .k-cart-icon-badge{position:absolute;right:-6px;top:-8px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;font-size:11px;line-height:18px;text-align:center;background:#ef4444;color:#fff;font-weight:700;display:none}
+.k-mobile-cart{position:relative;width:28px;height:28px;display:inline-block}
+.k-mobile-cart svg{width:100%;height:100%;display:block}
+.is-favorited svg{fill:currentColor !important;color:#ef4444}
+.k-cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9999}
+.k-cart-drawer{position:absolute;top:0;right:0;width:min(420px,100%);height:100%;background:#fff;box-shadow:-16px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
 </style>
+
+<div id="k-cart-overlay" class="k-cart-overlay">
+  <div class="k-cart-drawer">
+    <header class="p-4 border-b flex items-center justify-between">
+      <div class="text-lg font-semibold">Sepet</div>
+      <button id="k-cart-close" class="p-2">&times;</button>
+    </header>
+    <div id="k-cart-items" class="flex-1 overflow-auto p-4 space-y-3"></div>
+    <div class="border-t p-4 space-y-3">
+      <div>
+        <label class="text-sm">Kupon Kodu</label>
+        <input id="k-coupon" class="w-full mt-1 border rounded-lg p-2" placeholder="KUPON2025" />
+      </div>
+      <div class="flex items-center justify-between font-semibold">
+        <span>Toplam</span><span id="k-total">0 ₺</span>
+      </div>
+      <div class="flex gap-2">
+        <a href="#/cart" id="k-go-cart" class="flex-1 px-4 py-2 border rounded-lg text-center">Sepete Git</a>
+        <a href="#/checkout" id="k-go-checkout" class="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center">Ödeme Yap</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="text/babel">
+// tiny helpers
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
-/* ---------- HASH ROUTER (safe for GitHub Pages) ---------- */
+// HASH router (GH Pages safe)
 function navTo(rel){ const clean="#"+(rel.startsWith("/")?rel.slice(1):rel); if(location.hash!==clean) location.hash=clean; window.dispatchEvent(new HashChangeEvent("hashchange")); }
 function hashPath(){ return location.hash.replace(/^#/, ""); }
 
-/* ---------- Firebase aliases ---------- */
+// Firebase aliases if present
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-/* ---------- Data helpers ---------- */
-async function resolveProductFromPageX(){
+// Data helpers
+async function fetchAllProducts(){
+  try{
+    if(!db||!collection||!getDocs) return [];
+    const qs = await getDocs(collection(db,"products"));
+    return qs.docs.map(d=>({ id:d.id, ...(d.data?d.data():{}) }));
+  }catch(e){ return []; }
+}
+async function fetchProduct(id){
+  try{
+    if(!db||!doc||!getDoc) return null;
+    const d = await getDoc(doc(db,"products",id));
+    return d.exists && d.exists() ? { id:d.id, ...(d.data?d.data():{}) } : null;
+  }catch(e){ return null; }
+}
+async function resolveProductId(){
   const host = document.querySelector("[data-product-id]");
   if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
   const m = location.pathname.match(/\/products?\/([^\/?#]+)/i);
   if (m) return decodeURIComponent(m[1]);
   try{
-    if(!db || !collection || !getDocs) return null;
-    const name = (document.querySelector("h1, .product-title, [data-product-name]")||{}).textContent?.trim();
-    const qs = await getDocs(collection(db,"products"));
-    const all = qs.docs.map(d=>({ id:d.id, ...d.data() }));
-    if (name){
-      const byName = all.find(p => (p.productName||"").toLowerCase() === name.toLowerCase())
-                ||  all.find(p => (p.productName||"").toLowerCase().includes(name.toLowerCase()));
-      if (byName) return byName.id;
-    }
-  }catch(e){}
-  return null;
+    const title = (document.querySelector("h1, .product-title, [data-product-name]")||{}).textContent?.trim();
+    if (!title) return null;
+    const all = await fetchAllProducts();
+    const byName = all.find(p => (p.productName||"").toLowerCase() === title.toLowerCase())
+              ||  all.find(p => (p.productName||"").toLowerCase().includes(title.toLowerCase()));
+    return byName?.id || null;
+  }catch(_){ return null; }
 }
-async function fetchProductX(id){
-  try{
-    if (!db || !doc || !getDoc) return null;
-    const d = await getDoc(doc(db, "products", id));
-    return d.exists() ? { id:d.id, ...d.data() } : null;
-  }catch(e){ return null; }
-}
-async function fetchSellerX(sellerId, sellerName){
+async function fetchUserByIdOrName(sellerId, sellerName){
   try{
     if (!db) return null;
-    if (sellerId){
-      const direct = await getDoc(doc(db,"users",sellerId));
-      if (direct.exists()) return { id:direct.id, ...direct.data() };
+    if (sellerId && doc && getDoc){
+      const ds = await getDoc(doc(db,"users",sellerId));
+      if (ds.exists && ds.exists()) return { id:ds.id, ...(ds.data?ds.data():{}) };
     }
-    const qs = await getDocs(collection(db,"users"));
-    for(const snap of qs.docs){
-      const u = snap.data();
-      if (sellerName){
-        const nm = (u.displayName||u.name||"").toLowerCase();
-        if (nm && nm === sellerName.toLowerCase()) return { id:snap.id, ...u };
+    if (collection && getDocs){
+      const qs = await getDocs(collection(db,"users"));
+      for(const snap of qs.docs){
+        const u = snap.data ? snap.data() : {};
+        const name = (u.displayName||u.name||"").toLowerCase();
+        if (sellerName && name && name === sellerName.toLowerCase()) return { id:snap.id, ...u };
+        if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u };
       }
-      if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u };
     }
-  }catch(e){}
+  }catch(_){}
   return null;
 }
-async function fetchProductsByX(filter){
-  try{
-    if (!db) return [];
-    const qs = await getDocs(collection(db,"products"));
-    const all = qs.docs.map(d=>({ id:d.id, ...d.data() }));
-    return all.filter(p=>{
-      if (filter.exceptId && p.id===filter.exceptId) return false;
-      if (filter.category && (p.category||"").toLowerCase() !== (filter.category||"").toLowerCase()) return false;
-      if (filter.sellerId && (p.sellerId||p.seller||p.ownerId)!==filter.sellerId) return false;
-      return true;
-    });
-  }catch(e){ return []; }
+
+// Wishlist paint/sync
+function paintFavorite(on){
+  const btn = document.querySelector("[data-toggle-favorite]"); if(!btn) return;
+  btn.classList.toggle("is-favorited", !!on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
 }
-
-/* ---------- Favorites: no auto-fill, guard login ---------- */
+async function syncFavoriteUI(){
+  try{
+    const pid = await resolveProductId(); if(!pid) return paintFavorite(false);
+    const user = window.firebaseAuth?.currentUser || null;
+    if(!user){ paintFavorite(false); return; }
+    const w = await getDoc(doc(db,"wishlists",user.uid));
+    const items = w.exists && w.exists() ? (w.data? w.data().items||[] : []) : [];
+    const on = !!items.find(it => it?.productId===pid || it===pid);
+    paintFavorite(on);
+  }catch(_){}
+}
 document.addEventListener("click",(e)=>{
-  const el=e.target.closest("[data-toggle-favorite]"); if(!el) return;
-  const user=window.firebaseAuth?.currentUser||null;
-  if(!user || user.isAnonymous){ e.preventDefault(); navTo("/login"); }
+  const fav = e.target.closest("[data-toggle-favorite]");
+  if(!fav) return;
+  const user = window.firebaseAuth?.currentUser || null;
+  if(!user || user.isAnonymous){ e.preventDefault(); navTo("/login"); return; }
+  fav.classList.toggle("is-favorited");
+  fav.setAttribute("aria-pressed", fav.classList.contains("is-favorited") ? "true" : "false");
 }, true);
+window.addEventListener("wishlist:changed", syncFavoriteUI);
 
-/* ---------- Seller page (hash route) ---------- */
+// Seller Page (hash route)
 (function(){
   const main = document.querySelector("main") || document.getElementById("root") || document.body;
-  const hostId="kadraj-route-main"; let host=document.getElementById(hostId);
-  if(!host){ host=document.createElement("div"); host.id=hostId; main.appendChild(host); }
-  const root=ReactDOM.createRoot(host); let showing=false;
-  function setMask(on){ Array.from(main.children).forEach(ch=>{ if(ch===host) return; if(on){ ch.setAttribute("data-k-hide","1"); ch.style.display="none"; } else if(ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); }}); }
-  function SellerPage({sellerId}){
-    const [seller,setSeller]=React.useState(null); const [products,setProducts]=React.useState([]);
-    React.useEffect(()=>{ (async()=>{ const s=await fetchSellerX(sellerId); setSeller(s); setProducts(await fetchProductsByX({sellerId})); })(); },[sellerId]);
-    const avatar=seller?.photoURL||seller?.avatar||"https://via.placeholder.com/96";
-    return (<div className="max-w-6xl mx-auto p-4 md:p-8">
-      <div className="flex items-center gap-4 md:gap-6 mb-6">
-        <img src={avatar} className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border"/>
-        <div><h1 className="text-2xl md:text-3xl font-bold">{seller?.displayName||seller?.name||"Satıcı"}</h1>{seller?.location && <p className="text-gray-600">{seller.location}</p>}</div>
-      </div>
-      {seller?.story && <section className="border rounded-2xl p-4 md:p-6 mb-8"><h2 className="text-xl font-semibold mb-2">Satıcının Hikayesi</h2><p className="text-gray-700 whitespace-pre-line">{seller.story}</p></section>}
-      <section><h2 className="text-xl font-semibold mb-3">Ürünleri</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map(p=>(<a key={p.id} href={"#/products/"+p.id} className="border rounded-lg overflow-hidden hover:shadow-sm" onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}}>
-            <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover"/>
-            <div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div>
-          </a>))}
-        </div>
-      </section>
-    </div>);
+  const hostId = "k-route-host"; let host = document.getElementById(hostId);
+  if (!host){ host = document.createElement("div"); host.id = hostId; main.appendChild(host); }
+  const root = ReactDOM.createRoot(host); let showing=false;
+  function mask(on){
+    Array.from(main.children).forEach(ch=>{
+      if (ch===host) return;
+      if (on){ ch.setAttribute("data-k-hide","1"); ch.style.display="none"; }
+      else if (ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); }
+    });
   }
-  function onHash(){ const h=hashPath(); if(h.startsWith("/seller/")){ const id=decodeURIComponent(h.slice(8)); setMask(true); root.render(<SellerPage sellerId={id}/>); showing=true; window.scrollTo(0,0); return; } if(showing){ root.render(null); setMask(false); showing=false; } }
-  window.addEventListener("hashchange", onHash); window.addEventListener("load", onHash);
+  function SellerPage({ sellerId }){
+    const [seller,setSeller] = React.useState(null);
+    const [items,setItems]   = React.useState([]);
+    React.useEffect(()=>{ (async()=>{
+      const s = await fetchUserByIdOrName(sellerId);
+      setSeller(s);
+      const all = await fetchAllProducts();
+      setItems(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId));
+    })(); }, [sellerId]);
+    const avatar = seller?.photoURL || seller?.avatar || "https://via.placeholder.com/96";
+    return (
+      <div className="max-w-6xl mx-auto p-4 md:p-8">
+        <div className="flex items-center gap-4 md:gap-6 mb-6">
+          <img src={avatar} className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border" />
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">{seller?.displayName||seller?.name||"Satıcı"}</h1>
+            {seller?.location && <p className="text-gray-600">{seller.location}</p>}
+          </div>
+        </div>
+        {seller?.story && <section className="border rounded-2xl p-4 md:p-6 mb-8"><h2 className="text-xl font-semibold mb-2">Satıcının Hikayesi</h2><p className="text-gray-700 whitespace-pre-line">{seller.story}</p></section>}
+        <section>
+          <h2 className="text-xl font-semibold mb-3">Ürünleri</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {items.map(p=>(
+              <a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden hover:shadow-sm">
+                <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover" />
+                <div className="p-2">
+                  <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
+                  <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
+  }
+  function onHash(){
+    const h = hashPath();
+    if (h.startsWith("/seller/")){
+      const id = decodeURIComponent(h.slice(8)); mask(true);
+      root.render(<SellerPage sellerId={id} />); showing=true; window.scrollTo(0,0); return;
+    }
+    if (showing){ root.render(null); mask(false); showing=false; }
+  }
+  window.addEventListener("hashchange", onHash);
+  window.addEventListener("load", onHash);
 })();
 
-/* ---------- Product page: unified media & guaranteed video thumb ---------- */
-function mountProductEnhancements(){
-  const root=document.querySelector("[data-product-id]")||document.querySelector('[data-role="product-detail"]'); if(!root) return;
-  if(root.__kadrajEnhancedV11) return; root.__kadrajEnhancedV11=true;
+// Product page: unify media, seller bar, similar/other
+function mountProduct(){
+  const productRoot = document.querySelector("[data-product-id]") || document.querySelector('[data-role="product-detail"]') || document;
+  if (productRoot.__kadrajV13) return; productRoot.__kadrajV13 = true;
+
   (async()=>{
-    const pid=await resolveProductFromPageX(); const product=pid?await fetchProductX(pid):null;
-    const sellerIdRaw=product?.sellerId||product?.seller||product?.ownerId||null; const sellerName=product?.sellerName||null;
-    const seller=await fetchSellerX(sellerIdRaw,sellerName); const sellerId=seller?.id||sellerIdRaw;
+    const pid = await resolveProductId();
+    const prod = pid ? await fetchProduct(pid) : null;
+    const sellerId = prod?.sellerId || prod?.seller || prod?.ownerId || null;
+    const sellerName = prod?.sellerName || null;
+    const seller = await fetchUserByIdOrName(sellerId, sellerName);
 
-    // Seller line
-    const titleEl=root.querySelector("h1, .product-title")||$("h1");
-    if(titleEl && !$("#k-seller-line")){ const bar=document.createElement("div"); bar.id="k-seller-line"; bar.className="flex items-center gap-2 text-sm text-gray-600 mt-2";
-      const a=document.createElement("a"); a.href="#/seller/"+(sellerId||"unknown"); a.className="underline hover:text-black";
-      a.textContent=seller?.displayName||seller?.name||product?.sellerName||"Satıcı"; a.addEventListener("click",(e)=>{e.preventDefault(); navTo("/seller/"+(sellerId||"unknown"));});
-      bar.appendChild(document.createTextNode("Satıcı: ")); bar.appendChild(a); titleEl.parentElement.insertBefore(bar,titleEl.nextSibling); }
-
-    // Locate main media container
-    const candidates=$$("img, video", root).map(el=>{ const r=el.getBoundingClientRect(); return {el, area:r.width*r.height};}).filter(x=>x.area>5000);
-    if(!candidates.length) return; candidates.sort((a,b)=>b.area-a.area);
-    let container=candidates[0].el.parentElement; if(container && container.children.length===1) container=container.parentElement||container;
-
-    const origEl=candidates[0].el; const origType=origEl.tagName.toLowerCase()==="video"?"video":"image";
-    const origSrc=origType==="video"?(origEl.querySelector("source")?.src||origEl.currentSrc||origEl.src||""):(origEl.src||"");
-
-    // Build list from product or DOM
-    let list=[];
-    if(Array.isArray(product?.imageUrls)) list=list.concat(product.imageUrls.map(src=>({type:"image",src})));
-    if(Array.isArray(product?.videoUrls)) list=list.concat(product.videoUrls.map(src=>({type:"video",src})));
-    if(list.length===0){
-      const imgs=$$("img", root).filter(i=>i.width>120&&i.height>120).map(i=>({type:"image",src:i.src}));
-      const vids=$$("video", root).map(v=>{ const src=v.querySelector("source")?.src||v.currentSrc||v.src; return src?{type:"video",src}:null; }).filter(Boolean);
-      list=imgs.concat(vids);
+    // Seller line under product title
+    const titleEl = document.querySelector("h1, .product-title");
+    if (titleEl && !document.getElementById("k-seller-line")){
+      const line = document.createElement("div");
+      line.id = "k-seller-line"; line.className="flex items-center gap-2 text-sm text-gray-600 mt-2";
+      const a = document.createElement("a"); a.href = "#/seller/"+(seller?.id||sellerId||"unknown"); a.className="underline hover:text-black";
+      a.textContent = seller?.displayName || seller?.name || prod?.sellerName || "Satıcı";
+      a.addEventListener("click",(e)=>{ e.preventDefault(); navTo("/seller/"+(seller?.id||sellerId||"unknown")); });
+      line.appendChild(document.createTextNode("Satıcı: ")); line.appendChild(a);
+      titleEl.parentElement.insertBefore(line, titleEl.nextSibling);
     }
-    // Ensure current visible media (especially VIDEO) is present as the FIRST item
-    if(origSrc){ const exists=list.find(m=>m.src===origSrc && m.type===origType); if(!exists) list.unshift({type:origType, src:origSrc}); else { // also move it to front
-        list = [exists, ...list.filter(m=> !(m.src===origSrc && m.type===origType))];
-    } }
-    // uniq by src+type order-preserving
-    const seen=new Set(); list=list.filter(m=>{ const key=m.type+"|"+m.src; if(seen.has(key)) return false; seen.add(key); return true; });
-    if(!list.length) return;
 
-    const startIndex=0; // because we moved current media to the first
-    const mount=document.createElement("div"); mount.id="k-media-gallery";
-    while(container.firstChild) container.removeChild(container.firstChild); container.appendChild(mount);
+    // Unified media
+    const candidates = $$("img, video").map(el=>{ const r=el.getBoundingClientRect(); return {el,area:r.width*r.height}; }).filter(x=>x.area>5000);
+    if (candidates.length){
+      candidates.sort((a,b)=>b.area-a.area);
+      let container = candidates[0].el.parentElement;
+      if (container && container.children.length===1) container = container.parentElement || container;
 
-    const R=ReactDOM.createRoot(mount);
-    function MediaGallery(){
-      const [i,setI]=React.useState(startIndex); const item=list[i];
-      const Thumb=({m,active,onClick})=> m.type==="image"
-        ? <button onClick={onClick} className={"border rounded overflow-hidden "+(active?"ring-2 ring-black":"")}><img src={m.src} className="w-full h-16 object-cover"/></button>
-        : <button onClick={onClick} className={"border rounded overflow-hidden relative "+(active?"ring-2 ring-black":"")} style={{height:"64px", background:"#111"}}><div className="absolute inset-0 grid place-items-center text-white text-[10px]">VIDEO ▷</div></button>;
-      return (<div>
-        <div className="relative bg-gray-50 rounded-xl overflow-hidden">
-          {item.type==="image" ? <img src={item.src} className="w-full h-auto object-contain"/> : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline/>}
-          {list.length>1 && (<><button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=>setI((i-1+list.length)%list.length)}>‹</button>
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=>setI((i+1)%list.length)}>›</button></>)}
-        </div>
-        {list.length>1 && (<div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">
-          {list.map((m,idx)=>(<Thumb key={idx} m={m} active={idx===i} onClick={()=>setI(idx)}/>))}
-        </div>)}
-      </div>);
+      const origEl = candidates[0].el;
+      const origType = origEl.tagName.toLowerCase()==="video"?"video":"image";
+      const origSrc = origType==="video" ? (origEl.querySelector("source")?.src || origEl.currentSrc || origEl.src || "") : (origEl.src||"");
+
+      let list = [];
+      if (Array.isArray(prod?.imageUrls)) list = list.concat(prod.imageUrls.map(src=>({type:"image",src})));
+      if (Array.isArray(prod?.videoUrls)) list = list.concat(prod.videoUrls.map(src=>({type:"video",src})));
+      if (!list.length){
+        const imgs = $$("img").filter(i=> i.width>120 && i.height>120).map(i=>({type:"image",src:i.src}));
+        const vids = $$("video").map(v=>{ const s=v.querySelector("source")?.src||v.currentSrc||v.src; return s ? {type:"video",src:s}:null; }).filter(Boolean);
+        list = imgs.concat(vids);
+      }
+      // Ensure current visible media is first (guarantee VIDEO thumb exists)
+      if (origSrc){
+        const exist = list.find(m => m.src===origSrc && m.type===origType);
+        if (!exist) list.unshift({type:origType, src:origSrc});
+        else list = [exist, ...list.filter(m => !(m.src===origSrc && m.type===origType))];
+      }
+      // uniq by src+type
+      const seen = new Set(); list = list.filter(m=>{ const k=m.type+"|"+m.src; if(seen.has(k)) return false; seen.add(k); return true; });
+      if (!list.length) return;
+
+      const mount = document.createElement("div"); mount.id="k-media-gallery";
+      while (container.firstChild) container.removeChild(container.firstChild);
+      container.appendChild(mount);
+
+      const R = ReactDOM.createRoot(mount);
+      function Media(){
+        const [i,setI] = React.useState(0);
+        const item = list[i];
+        const Thumb = ({m,active,onClick}) => m.type==="image"
+          ? <button onClick={onClick} className={"border rounded overflow-hidden "+(active?"ring-2 ring-black":"")}><img src={m.src} className="w-full h-16 object-cover"/></button>
+          : <button onClick={onClick} className={"border rounded overflow-hidden relative "+(active?"ring-2 ring-black":"")} style={{height:"64px", background:"#111"}}><div className="absolute inset-0 grid place-items-center text-white text-[10px]">VIDEO ▷</div></button>;
+        return (<div>
+          <div className="relative bg-gray-50 rounded-xl overflow-hidden">
+            {item.type==="image" ? <img src={item.src} className="w-full h-auto object-contain" /> : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
+            {list.length>1 && (<>
+              <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=>setI((i-1+list.length)%list.length)}>‹</button>
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=>setI((i+1)%list.length)}>›</button>
+            </>)}
+          </div>
+          {list.length>1 && (<div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">{list.map((m,idx)=>(<Thumb key={idx} m={m} active={idx===i} onClick={()=>setI(idx)} />))}</div>)}
+        </div>);
+      }
+      R.render(<Media />);
     }
-    R.render(<MediaGallery />);
 
-    // Bottom sections — show when data exists
-    const main=document.querySelector("main")||root.closest("main")||document.body;
-    if(!document.getElementById("k-product-extras-bottom-v11")){
-      const bottom=document.createElement("div"); bottom.id="k-product-extras-bottom-v11"; bottom.className="max-w-6xl mx-auto px-4 md:px-6"; main.appendChild(bottom);
-      const RB=ReactDOM.createRoot(bottom);
+    // Bottom sections
+    const main = document.querySelector("main") || document.body;
+    if (!document.getElementById("k-product-bottom")){
+      const bottom = document.createElement("div"); bottom.id="k-product-bottom"; bottom.className="max-w-6xl mx-auto px-4 md:px-6";
+      main.appendChild(bottom);
+      const RB = ReactDOM.createRoot(bottom);
       function Bottom(){
-        const [fromSeller,setFromSeller]=React.useState([]); const [similar,setSimilar]=React.useState([]);
-        React.useEffect(()=>{ (async()=>{ try{ if(sellerId) setFromSeller(await fetchProductsByX({sellerId, exceptId:pid}));
-          if(product?.category) setSimilar(await fetchProductsByX({category:product.category, exceptId:pid})); }catch(e){} })(); }, []);
+        const [fromSeller,setFromSeller] = React.useState([]);
+        const [similar,setSimilar]       = React.useState([]);
+        React.useEffect(()=>{ (async()=>{
+          const all = await fetchAllProducts();
+          if (sellerId) setFromSeller(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId && p.id!==pid).slice(0,8));
+          if (prod?.category){
+            setSimilar(all.filter(p => (p.category||"") === (prod.category||"") && p.id!==pid).slice(0,8));
+          } else if (!fromSeller.length) {
+            setSimilar(all.filter(p => p.id!==pid).slice(0,8));
+          }
+        })(); }, []);
         return (<div className="mt-10 space-y-10">
-          {(seller?.story||product?.productStory)&&(<section className="border rounded-2xl p-4 md:p-6"><h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3><p className="text-gray-700 whitespace-pre-line">{seller?.story||product?.productStory}</p></section>)}
-          {fromSeller.length>0 && (<section><div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3>
-            <a className="text-sm underline" href={"#/seller/"+(sellerId||"unknown")} onClick={(e)=>{e.preventDefault(); navTo("/seller/"+(sellerId||"unknown"));}}>Tümünü Gör</a></div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{fromSeller.slice(0,8).map(p=>(
-              <a key={p.id} href={"#/products/"+p.id} className="border rounded-lg overflow-hidden" onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}}>
-                <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
-                <div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div>
-              </a>))}</div></section>)}
+          {(seller?.story || prod?.productStory) && (<section className="border rounded-2xl p-4 md:p-6"><h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3><p className="text-gray-700 whitespace-pre-line">{seller?.story || prod?.productStory}</p></section>)}
+          {fromSeller.length>0 && (<section><div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3><a className="text-sm underline" href={"#/seller/"+(seller?.id||sellerId||"unknown")} onClick={(e)=>{e.preventDefault(); navTo("/seller/"+(seller?.id||sellerId||"unknown"));}}>Tümünü Gör</a></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{fromSeller.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
           {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.slice(0,8).map(p=>(
-              <a key={p.id} href={"#/products/"+p.id} className="border rounded-lg overflow-hidden" onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}}>
-                <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
-                <div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div>
-              </a>))}</div></section>)}
-        </div>); }
-      RB.render(<Bottom/>);
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
+        </div>);
+      }
+      RB.render(<Bottom />);
     }
+
+    // sync wishlist initially
+    syncFavoriteUI();
   })();
 }
-const mo=new MutationObserver(()=>mountProductEnhancements()); mo.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener("load", mountProductEnhancements);
-window.addEventListener("popstate", ()=> setTimeout(mountProductEnhancements,0));
-window.addEventListener("hashchange", ()=> setTimeout(mountProductEnhancements,0));
+const mo = new MutationObserver(()=> mountProduct()); mo.observe(document.documentElement,{childList:true,subtree:true});
+window.addEventListener("load", mountProduct);
+window.addEventListener("hashchange", ()=> setTimeout(mountProduct,0));
 
-/* ---------- Mobile bottom nav: swap rightmost icon to shopping cart + badge overlay ---------- */
+// Header rightmost icon -> shopping cart & open overlay
 (function(){
-  // try to find bottom tabbar; pick last item with text like "Sepet" or "Sepetim"
-  const barCandidates = $$(".bottom-nav, .mobile-tabbar, nav[role='tablist'], .fixed.bottom-0, footer");
-  const bar = barCandidates.find(b => /favori|sepet|anasayfa|hesap/i.test(b.textContent||"")) || document.body;
-  const items = $$("a, button", bar).filter(el => /sepet/i.test(el.textContent||"") || /cart|basket/i.test(el.getAttribute("aria-label")||""));
-  const target = items[0] || null;
-  if (!target) return;
-  // replace icon with cart SVG and put badge on top-right
-  const countAttr = target.getAttribute("data-count") || target.querySelector("[data-count]")?.getAttribute("data-count") || target.querySelector(".badge")?.textContent || "";
-  const count = String(countAttr||"").trim();
-  const iconWrap = document.createElement("span");
-  iconWrap.className = "k-mobile-cart";
-  iconWrap.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg>';
-  // clear existing icon if first child is an svg/icon
-  if (target.firstChild) target.insertBefore(iconWrap, target.firstChild); else target.appendChild(iconWrap);
-  if (count){ const b=document.createElement("span"); b.className="k-cart-icon-badge"; b.textContent=count; iconWrap.appendChild(b); }
+  const header = document.querySelector("header") || document;
+  const iconCandidates = $$("a,button", header).filter(n => /favori|sepet|cart|basket|wishlist|login|account|hesap/i.test(n.textContent||"") || n.querySelector("svg"));
+  if (iconCandidates.length){
+    const rightmost = iconCandidates[iconCandidates.length-1];
+    rightmost.style.position = "relative";
+    rightmost.innerHTML = '<span class="relative inline-block"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span id="k-cart-badge" class="k-cart-badge">0</span></span>';
+    rightmost.addEventListener("click", (e)=>{ e.preventDefault(); openCartOverlay(); });
+  }
 })();
+
+// Cart overlay minimal impl
+const $overlay = document.getElementById("k-cart-overlay");
+const $items   = document.getElementById("k-cart-items");
+const $total   = document.getElementById("k-total");
+$("#k-cart-close")?.addEventListener("click", ()=> closeCartOverlay());
+$overlay?.addEventListener("click",(e)=>{ if(e.target===$overlay) closeCartOverlay(); });
+function openCartOverlay(){ if(!$overlay) return; $overlay.style.display="block"; syncCartBadges(); }
+function closeCartOverlay(){ if(!$overlay) return; $overlay.style.display="none"; }
+function addLine(title, price){
+  const row = document.createElement("div"); row.className="flex items-center justify-between gap-3";
+  row.innerHTML = '<div class="flex-1">'+(title||"Ürün")+'</div><div>'+ (price||"0") +' ₺</div>';
+  $items.appendChild(row); recalcTotal(); syncCartBadges();
+}
+function recalcTotal(){ let sum=0; Array.from($items.children).forEach(r=>{ const t=r.lastChild.textContent.replace(/[^\d]/g,""); sum += Number(t||0); }); $total.textContent = sum + " ₺"; }
+function syncCartBadges(){ const c=($items?.children?.length||0); const d=$("#k-cart-badge"); if(d){ d.style.display = c>0 ? "inline-block" : "none"; d.textContent=String(c); } const m=$("#k-cart-badge-mobile"); if(m){ m.style.display = c>0 ? "inline-block" : "none"; m.textContent=String(c);} }
+document.addEventListener("click",(e)=>{
+  const el = e.target.closest(".add-to-cart, [data-add-to-cart]");
+  if (!el) return;
+  e.preventDefault();
+  addLine((document.querySelector("h1, .product-title")||{}).textContent||"Ürün", 7999);
+  openCartOverlay();
+});
+
+// Mobile bottom bar: last icon -> cart & badge overlay
+(function(){
+  const bar = document.querySelector(".mobile-tabbar, .bottom-nav, nav[role='tablist'], footer");
+  if (!bar) return;
+  const lastBtn = $$("a,button", bar).slice(-1)[0]; if(!lastBtn) return;
+  lastBtn.innerHTML = '<span class="k-mobile-cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span class="k-cart-icon-badge" id="k-cart-badge-mobile">0</span></span><div class="text-xs mt-1">Sepetim</div>';
+  lastBtn.addEventListener("click",(e)=>{ e.preventDefault(); openCartOverlay(); });
+  syncCartBadges();
+})();
+
 </script>
-<!-- === /Kadraj Enhancements Pack v11 === -->
+<!-- === /Kadraj Enhancements Pack v13 === -->
+outer + guarante
