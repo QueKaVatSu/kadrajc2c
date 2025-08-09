@@ -2892,31 +2892,25 @@ mo.observe(document.documentElement,{childList:true,subtree:true});
 
 </body>
 </html>
-<!-- === Kadraj Enhancements Pack v9 (seller route fix + unified media + video thumb + sections + no auto-filled heart) === -->
+<!-- === Kadraj Enhancements Pack v10 (hash routing + solid video thumbnail + working gallery) === -->
 <script type="text/babel">
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
-// ---------- BASE PATH (GitHub Pages project) ----------
-function detectBase(){
-  const segs = location.pathname.split("/").filter(Boolean);
-  if (segs.length >= 1) return "/" + segs[0];
-  return "";
+/* ---------- HASH ROUTER (GitHub Pages-safe) ---------- */
+function navTo(rel){ // rel like "/seller/<id>"
+  const clean = "#" + (rel.startsWith("/") ? rel.slice(1) : rel);
+  if (location.hash !== clean) location.hash = clean;
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
 }
-const BASE = detectBase();
-function joinPath(...parts){ return ("/" + parts.join("/").replace(/(^\/+|\/+$)/g,"")).replace(/\/+/g,"/"); }
-function go(rel){
-  const target = rel.startsWith(BASE) ? rel : joinPath(BASE, rel);
-  if (location.pathname !== target) history.pushState({}, "", target);
-  window.dispatchEvent(new Event("popstate"));
-}
+function hashPath(){ return location.hash.replace(/^#/, ""); } // e.g. "/seller/123"
 
-// ---------- Firebase shortcuts if available ----------
+/* ---------- Firebase aliases ---------- */
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-// ---------- Data helpers ----------
+/* ---------- Data helpers ---------- */
 async function resolveProductFromPageX(){
   const host = document.querySelector("[data-product-id]");
   if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
@@ -2975,15 +2969,15 @@ async function fetchProductsByX(filter){
   }catch(e){ return []; }
 }
 
-// ---------- Favorites: require login, but DO NOT auto-paint as filled ----------
+/* ---------- Favorites: require login, do NOT auto-fill heart ---------- */
 document.addEventListener("click",(e)=>{
   const el = e.target.closest("[data-toggle-favorite]");
   if (!el) return;
   const user = window.firebaseAuth?.currentUser || null;
-  if(!user || user.isAnonymous){ e.preventDefault(); go("/login"); }
+  if(!user || user.isAnonymous){ e.preventDefault(); navTo("/login"); }
 }, true);
 
-// ---------- Seller page router (hides underlying home content) ----------
+/* ---------- Seller page (renders inside <main>, hides other content) ---------- */
 (function(){
   const main = document.querySelector("main") || document.getElementById("root") || document.body;
   const hostId = "kadraj-route-main";
@@ -2991,8 +2985,6 @@ document.addEventListener("click",(e)=>{
   if (!host){ host = document.createElement("div"); host.id = hostId; main.appendChild(host); }
   const root = ReactDOM.createRoot(host);
   let showing = false;
-
-  // hide all siblings of host inside main when showing seller page
   function setMainMask(on){
     const kids = Array.from(main.children);
     kids.forEach(ch => {
@@ -3001,7 +2993,6 @@ document.addEventListener("click",(e)=>{
       else if (ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); }
     });
   }
-
   function SellerPage({ sellerId }){
     const [seller, setSeller] = React.useState(null);
     const [products, setProducts] = React.useState([]);
@@ -3030,8 +3021,8 @@ document.addEventListener("click",(e)=>{
           <h2 className="text-xl font-semibold mb-3">Ürünleri</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map(p=>(
-              <a key={p.id} href={joinPath(BASE,"/products/"+p.id)} className="border rounded-lg overflow-hidden hover:shadow-sm"
-                 onClick={(e)=>{ e.preventDefault(); go("/products/"+p.id); }}>
+              <a key={p.id} href={"#/products/"+p.id} className="border rounded-lg overflow-hidden hover:shadow-sm"
+                 onClick={(e)=>{ e.preventDefault(); navTo("/products/"+p.id); }}>
                 <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover"/>
                 <div className="p-2">
                   <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
@@ -3044,31 +3035,28 @@ document.addEventListener("click",(e)=>{
       </div>
     );
   }
-
-  function onRoute(){
-    const basePrefix = joinPath(BASE,"/seller/");
-    if (location.pathname.startsWith(basePrefix)){
-      const id = decodeURIComponent(location.pathname.slice(basePrefix.length));
+  function onHash(){
+    const h = hashPath();
+    if (h.startsWith("/seller/")){
+      const id = decodeURIComponent(h.slice("/seller/".length));
       setMainMask(true);
       root.render(<SellerPage sellerId={id}/>);
       showing = true; window.scrollTo(0,0); return;
     }
     if (showing){
-      root.render(null);
-      setMainMask(false);
-      showing=false;
+      root.render(null); setMainMask(false); showing=false;
     }
   }
-  window.addEventListener("popstate", onRoute);
-  window.addEventListener("load", onRoute);
+  window.addEventListener("hashchange", onHash);
+  window.addEventListener("load", onHash);
 })();
 
-// ---------- Product page enhancer (unified media + working thumbs + sections) ----------
+/* ---------- Product page enhancements ---------- */
 function mountProductEnhancements(){
   const root = document.querySelector("[data-product-id]") || document.querySelector('[data-role="product-detail"]');
   if (!root) return;
-  if (root.__kadrajEnhancedV9) return;
-  root.__kadrajEnhancedV9 = true;
+  if (root.__kadrajEnhancedV10) return;
+  root.__kadrajEnhancedV10 = true;
 
   (async()=>{
     const pid = await resolveProductFromPageX();
@@ -3078,23 +3066,23 @@ function mountProductEnhancements(){
     const seller = await fetchSellerX(sellerIdRaw, sellerName);
     const sellerId = seller?.id || sellerIdRaw;
 
-    // 1) Seller line with correct link (base aware)
+    // 1) Seller line with HASH link
     const titleEl = root.querySelector("h1, .product-title") || $("h1");
     if (titleEl && !$("#k-seller-line")){
       const bar = document.createElement("div");
       bar.id = "k-seller-line";
       bar.className = "flex items-center gap-2 text-sm text-gray-600 mt-2";
       const a = document.createElement("a");
-      a.href = joinPath(BASE, "/seller/" + (sellerId || "unknown"));
+      a.href = "#/seller/" + (sellerId || "unknown");
       a.className = "underline hover:text-black";
       a.textContent = seller?.displayName || seller?.name || product?.sellerName || "Satıcı";
-      a.addEventListener("click",(e)=>{ e.preventDefault(); go("/seller/" + (sellerId || "unknown")); });
-      bar.appendChild(document.createTextNode("Satıcı: "));
+      a.addEventListener("click",(e)=>{ e.preventDefault(); navTo("/seller/" + (sellerId || "unknown")); });
+      bar.appendChild(document.createTextNode("Satıcı: " ));
       bar.appendChild(a);
       titleEl.parentElement.insertBefore(bar, titleEl.nextSibling);
     }
 
-    // 2) Unified media in the main left container (with VIDEO thumbnail)
+    // 2) Unified media — ensure video has a visible thumb and selection works
     const candidates = $$("img, video", root).map(el=>{
       const r = el.getBoundingClientRect(); return { el, area: r.width*r.height };
     }).filter(x=> x.area>5000);
@@ -3103,32 +3091,27 @@ function mountProductEnhancements(){
       let container = candidates[0].el.parentElement;
       if (container && container.children.length===1) container = container.parentElement || container;
 
-      // capture the originally visible media to set initial index
       const origEl = candidates[0].el;
       const origType = origEl.tagName.toLowerCase()==="video" ? "video" : "image";
       const origSrc = origType==="video" ? (origEl.querySelector("source")?.src || origEl.currentSrc || origEl.src || "") : (origEl.src || "");
 
-      // build list
       let list = [];
       if (Array.isArray(product?.imageUrls)) list = list.concat(product.imageUrls.map(src=>({type:"image", src})));
       if (Array.isArray(product?.videoUrls)) list = list.concat(product.videoUrls.map(src=>({type:"video", src})));
       if (list.length===0){
         const imgs = $$("img", root).filter(i=> i.width>120 && i.height>120).map(i=>({type:"image", src:i.src}));
         const vids = $$("video", root).map(v=>{
-          const s = v.getAttribute("poster") || v.querySelector("source")?.src || v.currentSrc || v.src;
           const src = v.querySelector("source")?.src || v.currentSrc || v.src;
-          return src ? {type:"video", src, poster: s && s!==src ? s : null} : null;
+          return src ? {type:"video", src} : null;
         }).filter(Boolean);
         list = imgs.concat(vids);
       }
-      // uniq by src
       const seen = new Set(); list = list.filter(m=> m.src && !seen.has(m.src) && seen.add(m.src));
+      if (!list.length) return;
 
-      // initial index
       let startIndex = list.findIndex(m => m.src === origSrc && m.type === origType);
       if (startIndex < 0) startIndex = 0;
 
-      // mount
       const mount = document.createElement("div"); mount.id="k-media-gallery";
       while (container.firstChild) container.removeChild(container.firstChild);
       container.appendChild(mount);
@@ -3136,15 +3119,16 @@ function mountProductEnhancements(){
       function MediaGallery(){
         const [i, setI] = React.useState(startIndex);
         const item = list[i];
-        const Thumb = ({m, active, onClick}) => (
-          m.type==="image"
-            ? <button onClick={onClick} className={"border rounded overflow-hidden "+(active?"ring-2 ring-black":"")}>
-                <img src={m.src} className="w-full h-16 object-cover"/>
-              </button>
-            : <button onClick={onClick} className={"border rounded overflow-hidden grid place-items-center "+(active?"ring-2 ring-black":"")} style={{width:"100%", height:"64px", background:"#111", color:"#fff"}}>
-                <span style={{fontSize:"10px",opacity:0.9}}>VIDEO ▷</span>
-              </button>
-        );
+        const Thumb = ({m, active, onClick}) => {
+          if (m.type==="image"){
+            return <button onClick={onClick} className={"border rounded overflow-hidden "+(active?"ring-2 ring-black":"")}>
+              <img src={m.src} className="w-full h-16 object-cover"/>
+            </button>;
+          }
+          return <button onClick={onClick} className={"border rounded overflow-hidden relative "+(active?"ring-2 ring-black":"")} style={{height:"64px", background:"#111"}}>
+            <div className="absolute inset-0 grid place-items-center text-white text-[10px]">VIDEO ▷</div>
+          </button>;
+        };
         return (
           <div>
             <div className="relative bg-gray-50 rounded-xl overflow-hidden">
@@ -3169,11 +3153,11 @@ function mountProductEnhancements(){
       R.render(<MediaGallery />);
     }
 
-    // 3) Bottom sections (seller story, other items, similar) — show when data exists
+    // 3) Bottom sections (render when data exists)
     const main = document.querySelector("main") || root.closest("main") || document.body;
-    if (!document.getElementById("k-product-extras-bottom-v9")){
+    if (!document.getElementById("k-product-extras-bottom-v10")){
       const bottom = document.createElement("div");
-      bottom.id = "k-product-extras-bottom-v9";
+      bottom.id = "k-product-extras-bottom-v10";
       bottom.className = "max-w-6xl mx-auto px-4 md:px-6";
       main.appendChild(bottom);
       const RB = ReactDOM.createRoot(bottom);
@@ -3198,13 +3182,13 @@ function mountProductEnhancements(){
               <section>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3>
-                  <a className="text-sm underline" href={joinPath(BASE,"/seller/"+(sellerId || "unknown"))}
-                     onClick={(e)=>{ e.preventDefault(); go("/seller/"+(sellerId || "unknown")); }}>Tümünü Gör</a>
+                  <a className="text-sm underline" href={"#/seller/"+(sellerId || "unknown")}
+                     onClick={(e)=>{ e.preventDefault(); navTo("/seller/"+(sellerId || "unknown")); }}>Tümünü Gör</a>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {fromSeller.slice(0,8).map(p=>(
-                    <a key={p.id} href={joinPath(BASE,"/products/"+p.id)} className="border rounded-lg overflow-hidden"
-                       onClick={(e)=>{e.preventDefault(); go("/products/"+p.id);}}>
+                    <a key={p.id} href={"#/products/"+p.id} className="border rounded-lg overflow-hidden"
+                       onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}}>
                       <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
                       <div className="p-2">
                         <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
@@ -3220,8 +3204,8 @@ function mountProductEnhancements(){
                 <h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {similar.slice(0,8).map(p=>(
-                    <a key={p.id} href={joinPath(BASE,"/products/"+p.id)} className="border rounded-lg overflow-hidden"
-                       onClick={(e)=>{e.preventDefault(); go("/products/"+p.id);}}>
+                    <a key={p.id} href={"#/products/"+p.id} className="border rounded-lg overflow-hidden"
+                       onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}}>
                       <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
                       <div className="p-2">
                         <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
@@ -3244,5 +3228,6 @@ const mo = new MutationObserver(()=> mountProductEnhancements());
 mo.observe(document.documentElement, { childList:true, subtree:true });
 window.addEventListener("load", mountProductEnhancements);
 window.addEventListener("popstate", ()=> setTimeout(mountProductEnhancements,0));
+window.addEventListener("hashchange", ()=> setTimeout(mountProductEnhancements,0));
 </script>
-<!-- === /Kadraj Enhancements Pack v9 === -->
+<!-- === /Kadraj Enhancements Pack v10 === -->
