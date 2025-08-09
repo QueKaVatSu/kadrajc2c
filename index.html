@@ -132,8 +132,17 @@
 </style>
 
 
-<!-- SELLER & RECO PATCH CSS -->
+<!-- FINAL KADRAJ PATCH CSS -->
 <style>
+.k-icon-wrap{position:relative;display:inline-flex}
+.k-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:rgba(239,68,68,.15);color:#ef4444;font-size:11px;line-height:18px;text-align:center;font-weight:700;pointer-events:none;display:none}
+.fav-indicator-on svg{fill:rgba(239,68,68,.15);stroke:#ef4444}
+.k-inlist{font-size:12px;color:#6b7280;margin-left:.5rem}
+.k-qty{display:inline-flex;align-items:center;gap:.25rem;margin-left:.75rem}
+.k-qty button{width:24px;height:24px;border:1px solid #d1d5db;border-radius:6px;line-height:22px;font-weight:600}
+.k-qty .k-qty-num{min-width:20px;text-align:center;font-size:12px;color:#6b7280}
+.k-heart-filled svg{fill:rgba(239,68,68,.22);stroke:#ef4444}
+/* Sections */
 .k-seller-line{margin-top:.5rem;font-size:.875rem;color:#6b7280}
 .k-section{margin-top:2.5rem}
 .k-section h3{font-weight:600;font-size:1.125rem;margin-bottom:.5rem}
@@ -145,7 +154,7 @@
 .k-card .k-meta{padding:.5rem}
 .k-card .k-title{font-size:.875rem;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .k-card .k-price{font-size:.75rem;color:#6b7280}
-/* SPA seller page root */
+/* Seller SPA */
 #kadraj-seller-spa{position:fixed;inset:0;background:#fff;z-index:998;display:none}
 </style>
 
@@ -2697,183 +2706,200 @@ window.addEventListener('load', tryAttachBarButtons);
 </script>
 
 
-<!-- SELLER & RECO PATCH JS -->
-<script type="text/babel">
-/** ========== Utilities shared ========== */
-const _getProductIdFromUrl=()=>{try{const p=location.pathname.toLowerCase().split('/').filter(Boolean);const i=Math.max(p.indexOf('product'),p.indexOf('products'));if(i>=0&&p[i+1])return p[i+1];const u=new URL(location.href);return u.searchParams.get('id')}catch(e){return null}}
-window.resolveProductFromPage = window.resolveProductFromPage || (async ()=>{
+<!-- FINAL KADRAJ PATCH JS -->
+<script>
+/** ========= Guards ========= */
+(function(){ if(!window.React || !window.ReactDOM){ console.debug('React not detected: grid/SPA parts are inert, but core features work.'); } })();
+
+/** ========= Auth (anonymous if needed) ========= */
+(async()=>{ try{ if(window.firebaseAuth && !window.firebaseAuth.currentUser && window.signInAnonymously){ await window.signInAnonymously(window.firebaseAuth); } }catch(e){ console.warn('anon auth fail', e); } })();
+
+/** ========= Headers: force-wire desktop & mobile icons ========= */
+(function(){
+  const ensureBadges=()=>{
+    document.querySelectorAll('[data-open-cart],[data-open-favorites]').forEach(el=>{
+      el.classList.add('k-icon-wrap');
+      if(!el.querySelector('.k-badge')){ const b=document.createElement('span'); b.className='k-badge'; el.appendChild(b); }
+    });
+  };
+  const wire=()=>{
+    try{
+      const header=document.querySelector('header')||document;
+      const icons=[...header.querySelectorAll('a,button')].filter(el=>el.querySelector('svg'));
+      if(icons.length>=2){
+        const cart=icons[icons.length-1], fav=icons[icons.length-2];
+        cart.setAttribute('data-open-cart','true'); cart.setAttribute('aria-label','Sepet'); cart.setAttribute('title','Sepet');
+        fav.setAttribute('data-open-favorites','true'); fav.setAttribute('aria-label','Favoriler'); fav.setAttribute('title','Favoriler');
+      }
+      ensureBadges();
+    }catch(e){}
+  };
+  // click handler (capture to beat React)
+  document.addEventListener('click', function(e){
+    const el=e.target.closest('[data-open-cart],[data-open-favorites]'); if(!el) return;
+    e.preventDefault();
+    if(el.hasAttribute('data-open-cart') && window.openCart){ window.openCart(); }
+    if(el.hasAttribute('data-open-favorites') && window.openFavorites){ window.openFavorites(); }
+  }, true);
+  wire();
+  const mo=new MutationObserver(wire); mo.observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('load', wire);
+  window.kadrajEnsureBadges = ensureBadges;
+})();
+
+/** ========= Services (fallback) ========= */
+const _uid=()=>window.firebaseAuth?.currentUser?.uid||null;
+const CartService = window.CartService || {
+  async get(){ try{ const u=_uid(); if(!u) return []; const ref=window.doc(window.firebaseFirestore,'carts',u); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[] }catch(e){ return [] } },
+  async set(items){ try{ const u=_uid(); if(!u) return; const ref=window.doc(window.firebaseFirestore,'carts',u); await window.setDoc(ref,{items,updatedAt:Date.now()},{merge:true}); }catch(e){} },
+  async add(item){ const cur=await this.get(); const i=cur.findIndex(x=>x.productId===item.productId); if(i>=0){ cur[i].qty=(cur[i].qty||1)+(item.qty||1); } else { cur.push(item); } await this.set(cur); }
+};
+const FavoriteService = window.FavoriteService || {
+  async get(){ try{ const u=_uid(); if(!u) return []; const ref=window.doc(window.firebaseFirestore,'favorites',u); const s=await window.getDoc(ref); return s.exists()?(s.data().items||[]):[] }catch(e){ return [] } },
+  async toggle(item){ const cur=await this.get(); const i=cur.findIndex(x=>x.productId===item.productId); if(i>=0){ cur.splice(i,1); } else { cur.push(item); } await CartService.set ? await window.setDoc(window.doc(window.firebaseFirestore,'favorites',_uid()),{items:cur,updatedAt:Date.now()},{merge:true}) : null; return i<0; }
+};
+
+/** ========= Product id resolve ========= */
+const getProductIdFromUrl=()=>{ try{ const p=location.pathname.toLowerCase().split('/').filter(Boolean); const i=Math.max(p.indexOf('product'),p.indexOf('products')); if(i>=0&&p[i+1]) return p[i+1]; const u=new URL(location.href); return u.searchParams.get('id'); }catch(e){ return null; } };
+const resolveProductFromPage=async()=>{
   let pid=document.querySelector('[data-product-id]')?.getAttribute('data-product-id'); if(pid) return pid;
-  pid=_getProductIdFromUrl(); if(pid) return pid;
+  pid=getProductIdFromUrl(); if(pid) return pid;
   try{
     const title=(document.querySelector('h1')?.textContent||'').trim().toLowerCase();
     const priceText=(document.querySelector('[class*="price"],[data-price]')?.textContent||'').replace(/\./g,'');
-    const ref=window.collection(window.firebaseFirestore,'products');
-    const qs=await window.getDocs(ref);
-    const all=qs.docs.map(d=>({id:d.id,...d.data()}));
-    if(title){
-      const ex=all.find(p=>(p.productName||'').toLowerCase()===title); if(ex) return ex.id;
-      const inc=all.find(p=>(p.productName||'').toLowerCase().includes(title)); if(inc) return inc.id;
-    }
-    const m=(priceText||'').match(/(\d[\d\s]*)/);
-    if(m){
-      const val=parseInt(m[1].replace(/\s/g,''),10);
-      const list=all.filter(p=>(p.price|0)===val);
-      if(list.length===1) return list[0].id;
-    }
+    const ref=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(ref); const all=qs.docs.map(d=>({id:d.id,...d.data()}));
+    if(title){ const ex=all.find(p=>(p.productName||'').toLowerCase()===title); if(ex) return ex.id; const inc=all.find(p=>(p.productName||'').toLowerCase().includes(title)); if(inc) return inc.id; }
+    const m=(priceText||'').match(/(\d[\d\s]*)/); if(m){ const v=parseInt(m[1].replace(/\s/g,''),10); const list=all.filter(p=>(p.price|0)===v); if(list.length===1) return list[0].id; }
   }catch(e){}
   return null;
-});
+};
+window.resolveProductFromPage = window.resolveProductFromPage || resolveProductFromPage;
 
-/** ========== Mount seller line, story, other products & recommendations on product page ========== */
-(async function mountSellerAndReco(){
-  if (!window.firebaseFirestore) return;
-  const pid = await window.resolveProductFromPage(); if(!pid) return;
-  // fetch product
-  const pref = window.doc(window.firebaseFirestore,'products',pid);
-  const psnap = await window.getDoc(pref); if(!psnap.exists()) return;
-  const p = psnap.data();
-  const sellerId = p.sellerId || p.ownerId || p.userId || null;
+/** ========= Badges & heart fill ========= */
+const syncFavIndicator=async()=>{ const favs=await FavoriteService.get(); const has=favs.length>0; document.querySelectorAll('[data-open-favorites]').forEach(el=>el.classList.toggle('fav-indicator-on',has)); };
+const syncCartBadge=async()=>{ window.kadrajEnsureBadges&&window.kadrajEnsureBadges(); const items=await CartService.get(); const count=items.reduce((s,i)=>s+(i.qty||1),0); document.querySelectorAll('[data-open-cart] .k-badge').forEach(b=>{ b.textContent=count; b.style.display=count>0?'inline-block':'none'; }); };
 
-  // 1) Seller line under title
-  const title = document.querySelector('h1');
-  if (title && !document.getElementById('k-seller-line')) {
-    const line = document.createElement('div');
-    line.id = 'k-seller-line';
-    line.className = 'k-seller-line';
-    const a = document.createElement('a');
-    if (sellerId) a.href = `/seller/${sellerId}`;
-    a.textContent = p.sellerName || p.seller || 'Satıcı';
-    a.className = 'underline underline-offset-4 hover:text-gray-700 transition';
-    line.textContent = 'Satıcı: ';
-    line.appendChild(a);
-    title.parentNode.insertBefore(line, title.nextSibling);
+/** ========= Detail button: show "Sepette (qty)" and +/- ========= */
+const refreshDetailQtyUI = async () => {
+  const btn = document.querySelector('[data-add-to-cart]') || Array.from(document.querySelectorAll('button')).find(b => (b.textContent||'').toLowerCase().includes('sepete ekle'));
+  if(!btn) return;
+  const pid = await resolveProductFromPage(); if(!pid) return;
+  const items = await CartService.get();
+  const it = items.find(x => x.productId === pid);
+  // clear
+  btn.querySelectorAll('.k-inlist,.k-qty').forEach(n=>n.remove());
+  if(it){
+    const inl=document.createElement('span'); inl.className='k-inlist'; inl.textContent=`Sepette (${it.qty||1})`;
+    const wrap=document.createElement('span'); wrap.className='k-qty';
+    const minus=document.createElement('button'); minus.type='button'; minus.textContent='-';
+    const num=document.createElement('span'); num.className='k-qty-num'; num.textContent=it.qty||1;
+    const plus=document.createElement('button'); plus.type='button'; plus.textContent='+';
+    wrap.appendChild(minus); wrap.appendChild(num); wrap.appendChild(plus);
+    btn.appendChild(inl); btn.appendChild(wrap);
+    minus.addEventListener('click', async ev=>{ ev.stopPropagation(); const cur=await CartService.get(); const idx=cur.findIndex(x=>x.productId===pid); if(idx<0) return; const q=(cur[idx].qty||1)-1; if(q<=0){ cur.splice(idx,1); } else { cur[idx].qty=q; } await CartService.set(cur); window.dispatchEvent(new CustomEvent('cart:changed')); });
+    plus.addEventListener('click', async ev=>{ ev.stopPropagation(); const cur=await CartService.get(); const idx=cur.findIndex(x=>x.productId===pid); if(idx<0){ cur.push({productId:pid,qty:1}); } else { cur[idx].qty=(cur[idx].qty||1)+1; } await CartService.set(cur); window.dispatchEvent(new CustomEvent('cart:changed')); });
   }
+};
 
-  // Host below product content
-  let host = document.getElementById('k-sections-host');
-  if (!host) {
-    host = document.createElement('div');
-    host.id = 'k-sections-host';
-    const anchor = document.querySelector('[role="tablist"]') || document.querySelector('section') || document.querySelector('main') || document.body;
-    anchor.parentNode.insertBefore(host, anchor.nextSibling);
-  }
+const refreshDetailHeart = async () => {
+  const heart = document.querySelector('[data-toggle-favorite]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg') && (b.textContent||'').trim()==='');
+  if(!heart) return;
+  const pid = await resolveProductFromPage(); if(!pid) return;
+  const favs = await FavoriteService.get();
+  const has = !!favs.find(x => x.productId === pid);
+  heart.classList.toggle('k-heart-filled', has);
+};
 
-  // Try fetch seller profile
-  let seller=null;
-  if (sellerId) {
-    try { const sref = window.doc(window.firebaseFirestore,'users',sellerId);
-      const ss = await window.getDoc(sref);
-      seller = ss.exists() ? ss.data() : null;
-    } catch(e){}
-  }
-
-  // 2) Seller story section
-  if (!document.getElementById('k-seller-story')) {
-    const sec = document.createElement('section');
-    sec.id = 'k-seller-story';
-    sec.className='k-section';
-    sec.innerHTML = `<h3>Satıcının Hikayesi</h3>
-    <p class="text-sm text-gray-600">${(seller?.story || seller?.bio || 'Satıcının hikayesi yakında eklenecek.')}</p>`;
-    host.appendChild(sec);
-  }
-
-  // Fetch all products (client filter)
-  const allRef = window.collection(window.firebaseFirestore,'products');
-  const qs = await window.getDocs(allRef);
-  const all = qs.docs.map(d=>({id:d.id, ...d.data()}));
-
-  // 3) Seller's other products
-  if (!document.getElementById('k-seller-more')) {
-    const others = sellerId ? all.filter(x => (x.sellerId||x.ownerId||x.userId) === sellerId && x.id !== pid).slice(0,8) : [];
-    if (others.length) {
-      const sec = document.createElement('section'); sec.id='k-seller-more'; sec.className='k-section';
-      sec.innerHTML = `<h3>Satıcının Diğer Ürünleri</h3>`;
-      const grid = document.createElement('div'); grid.className='k-grid';
-      others.forEach(x => {
-        const a = document.createElement('a'); a.className='k-card'; a.href=`/products/${x.id}`;
-        a.innerHTML = `<img src="${(x.imageUrls&&x.imageUrls[0])||'https://via.placeholder.com/400'}">
-                       <div class="k-meta"><div class="k-title">${x.productName||x.id}</div>
-                       <div class="k-price">${x.price ? (x.price+' ₺') : ''}</div></div>`;
-        grid.appendChild(a);
-      });
-      sec.appendChild(grid); host.appendChild(sec);
-    }
-  }
-
-  // 4) Recommended products (same category else random)
-  if (!document.getElementById('k-recommended')) {
-    let recs = all.filter(x => x.id !== pid);
-    if (p.category) recs = recs.filter(x => (x.category||'') === p.category);
-    recs = recs.slice(0,8);
-    if (recs.length) {
-      const sec = document.createElement('section'); sec.id='k-recommended'; sec.className='k-section';
-      sec.innerHTML = `<h3>Önerilen Ürünler</h3>`;
-      const grid = document.createElement('div'); grid.className='k-grid';
-      recs.forEach(x => {
-        const a = document.createElement('a'); a.className='k-card'; a.href=`/products/${x.id}`;
-        a.innerHTML = `<img src="${(x.imageUrls&&x.imageUrls[0])||'https://via.placeholder.com/400'}">
-                       <div class="k-meta"><div class="k-title">${x.productName||x.id}</div>
-                       <div class="k-price">${x.price ? (x.price+' ₺') : ''}</div></div>`;
-        grid.appendChild(a);
-      });
-      sec.appendChild(grid); host.appendChild(sec);
-    }
-  }
-})();
-
-/** ========== SPA Seller Page: /seller/<id> (full page, not overlay) ========== */
+/** ========= Gallery thumb -> main switch ========= */
 (function(){
-  const mountId='kadraj-seller-spa';
-  const ensureRoot=()=>{ let el=document.getElementById(mountId); if(!el){ el=document.createElement('div'); el.id=mountId; document.body.appendChild(el);} return el; }
-  const parseId=()=> location.pathname.startsWith('/seller/') ? decodeURIComponent(location.pathname.split('/seller/')[1]||'') : null;
-  const show=(node)=>{ const el=ensureRoot(); el.style.display='block'; ReactDOM.createRoot(el).render(node); window.scrollTo(0,0); };
-  const hide=()=>{ const el=ensureRoot(); el.style.display='none'; ReactDOM.createRoot(el).render(null); };
-
-  const SellerPage=({id})=>{
-    const [seller,setSeller]=React.useState(null);
-    const [items,setItems]=React.useState([]);
-    React.useEffect(()=>{ (async()=>{
-      try{ const sref=window.doc(window.firebaseFirestore,'users',id); const ss=await window.getDoc(sref); setSeller(ss.exists()? ss.data() : { displayName:'Satıcı' }); }catch(e){ setSeller({ displayName:'Satıcı' }); }
-      try{ const pref=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(pref); const all=qs.docs.map(d=>({id:d.id,...d.data()})); setItems(all.filter(x=>(x.sellerId||x.ownerId||x.userId)===id)); }catch(e){ setItems([]); }
-    })(); },[id]);
-    return (
-      <div className="w-full h-full overflow-y-auto">
-        <div className="max-w-6xl mx-auto p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl md:text-2xl font-bold">{seller?.displayName || seller?.companyName || 'Satıcı'}</h1>
-            <button onClick={()=>history.back()} className="px-3 py-2 border rounded hover:bg-gray-50">Geri</button>
-          </div>
-          {seller?.story && <p className="text-gray-600 mb-6">{seller.story}</p>}
-          <h3 className="text-lg font-semibold mb-2">Ürünleri</h3>
-          {items.length ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {items.map(p => (
-                <a key={p.id} href={`/products/${p.id}`} className="k-card">
-                  <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}/>
-                  <div className="k-meta">
-                    <div className="k-title">{p.productName||p.id}</div>
-                    <div className="k-price">{p.price ? (p.price+' ₺') : ''}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          ) : <p className="text-sm text-gray-500">Bu satıcıya ait ürün bulunamadı.</p>}
-        </div>
-      </div>
-    )
-  };
-
-  const handleRoute=()=>{ const sid=parseId(); if(sid){ show(<SellerPage id={sid}/>) } else { hide(); } };
-  // hijack seller links
-  document.addEventListener('click',(e)=>{
-    const a=e.target.closest('a[href^="/seller/"]'); if(!a) return;
-    e.preventDefault();
-    const href=a.getAttribute('href'); if(location.pathname!==href) history.pushState({},'',href);
-    handleRoute();
-  });
-  window.addEventListener('popstate', handleRoute);
-  window.addEventListener('load', handleRoute);
+  const selectMain = () => document.querySelector('figure img, .product-media img, .main-media img, figure video, .product-media video, .main-media video, [data-main-media] img, [data-main-media] video');
+  const selectThumbs = () => Array.from(document.querySelectorAll('[data-thumbnail], .thumbnails img, .thumbs img, .swiper-slide img, [class*="thumb"] img, [aria-roledescription="slide"] img, [role="tab"] img'));
+  const swap = (t) => { const m=selectMain(); if(!m||!t) return; const src=t.getAttribute('data-full')||t.getAttribute('data-src')||t.currentSrc||t.src; if(!src) return; if(m.tagName.toLowerCase()==='video'){ try{ m.pause(); }catch(e){} if(m.src!==src){ m.src=src; try{ m.load(); m.play(); }catch(e){} } } else { if(m.src!==src) m.src=src; } };
+  const wire = (t)=>{ if(t.__wired) return; t.__wired=true; t.style.cursor='pointer'; t.addEventListener('click', e=>{ e.preventDefault(); swap(t); }); };
+  const init = ()=>{ selectThumbs().forEach(wire); };
+  const mo = new MutationObserver(init); mo.observe(document.documentElement,{childList:true,subtree:true}); window.addEventListener('load', init);
 })();
+
+/** ========= Seller sections (line, story, others, recommended) ========= */
+(async function(){
+  if(!window.firebaseFirestore) return;
+  const pid = await resolveProductFromPage(); if(!pid) return;
+  const pref=window.doc(window.firebaseFirestore,'products',pid); const ps=await window.getDoc(pref); if(!ps.exists()) return; const pd=ps.data();
+  const sellerId = pd.sellerId || pd.ownerId || pd.userId || null;
+  // seller line
+  const title=document.querySelector('h1');
+  if(title && !document.getElementById('k-seller-line')){
+    const line=document.createElement('div'); line.id='k-seller-line'; line.className='k-seller-line';
+    const a=document.createElement('a'); if(sellerId) a.href=`/seller/${sellerId}`; a.textContent=pd.sellerName||pd.seller||'Satıcı'; a.className='underline underline-offset-4 hover:text-gray-700 transition';
+    line.textContent='Satıcı: '; line.appendChild(a); title.parentNode.insertBefore(line,title.nextSibling);
+  }
+  // host
+  let host=document.getElementById('k-sections-host'); if(!host){ host=document.createElement('div'); host.id='k-sections-host'; const anchor=document.querySelector('[role="tablist"]')||document.querySelector('section')||document.querySelector('main')||document.body; anchor.parentNode.insertBefore(host, anchor.nextSibling); }
+  // story
+  let seller=null; if(sellerId){ try{ const sref=window.doc(window.firebaseFirestore,'users',sellerId); const ss=await window.getDoc(sref); seller=ss.exists()? ss.data(): null; }catch(e){} }
+  if(!document.getElementById('k-seller-story')){ const sec=document.createElement('section'); sec.id='k-seller-story'; sec.className='k-section'; sec.innerHTML=`<h3>Satıcının Hikayesi</h3><p class="text-sm text-gray-600">${(seller?.story||seller?.bio||'Satıcının hikayesi yakında eklenecek.')}</p>`; host.appendChild(sec); }
+  // all products
+  const allRef=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(allRef); const all=qs.docs.map(d=>({id:d.id,...d.data()}));
+  // others
+  if(!document.getElementById('k-seller-more')){ const list=sellerId? all.filter(x=>(x.sellerId||x.ownerId||x.userId)===sellerId && x.id!==pid).slice(0,8):[]; if(list.length){ const sec=document.createElement('section'); sec.id='k-seller-more'; sec.className='k-section'; sec.innerHTML='<h3>Satıcının Diğer Ürünleri</h3>'; const grid=document.createElement('div'); grid.className='k-grid'; list.forEach(x=>{ const a=document.createElement('a'); a.href=`/products/${x.id}`; a.className='k-card'; a.innerHTML=`<img src="${(x.imageUrls&&x.imageUrls[0])||'https://via.placeholder.com/400'}"><div class="k-meta"><div class="k-title">${x.productName||x.id}</div><div class="k-price">${x.price?(x.price+' ₺'):''}</div></div>`; grid.appendChild(a); }); sec.appendChild(grid); host.appendChild(sec);} }
+  // recommended
+  if(!document.getElementById('k-recommended')){ let recs=all.filter(x=>x.id!==pid); if(pd.category){ recs=recs.filter(x=>(x.category||'')===pd.category); } recs=recs.slice(0,8); if(recs.length){ const sec=document.createElement('section'); sec.id='k-recommended'; sec.className='k-section'; sec.innerHTML='<h3>Önerilen Ürünler</h3>'; const grid=document.createElement('div'); grid.className='k-grid'; recs.forEach(x=>{ const a=document.createElement('a'); a.href=`/products/${x.id}`; a.className='k-card'; a.innerHTML=`<img src="${(x.imageUrls&&x.imageUrls[0])||'https://via.placeholder.com/400'}"><div class="k-meta"><div class="k-title">${x.productName||x.id}</div><div class="k-price">${x.price?(x.price+' ₺'):''}</div></div>`; grid.appendChild(a); }); sec.appendChild(grid); host.appendChild(sec);} }
+})();
+
+/** ========= Account Favorites page grid & overlay click->product ========= */
+(function(){
+  if(!window.React || !window.ReactDOM) return; // only if React is present on page
+  const mountFavs=()=>{
+    const nodes=[...document.querySelectorAll('div,section,main,p')];
+    const host=nodes.find(n=>/Favori tasar(ı|i)mlar(ı)n(ı)z burada listelenecek\./i.test(n.textContent||''));
+    if(!host) return;
+    const mount=document.createElement('div'); host.replaceChildren(mount);
+    const Grid=()=>{
+      const [items,setItems]=React.useState([]);
+      React.useEffect(()=>{ FavoriteService.get().then(setItems); },[]);
+      React.useEffect(()=>{ const h=()=>FavoriteService.get().then(setItems); window.addEventListener('favorites:changed',h); return ()=>window.removeEventListener('favorites:changed',h); },[]);
+      if(!items.length) return React.createElement('p',{className:'text-sm text-gray-500'},'Henüz favori eklenmemiş.');
+      return React.createElement('div',{className:'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'}, items.map(it =>
+        React.createElement('a',{key:it.productId,href:`/products/${it.productId}`,className:'k-card'},
+          React.createElement('img',{src:it.image||'https://via.placeholder.com/400'}),
+          React.createElement('div',{className:'k-meta'},
+            React.createElement('div',{className:'k-title'}, it.title||it.productId),
+            React.createElement('div',{className:'k-price'}, it.price? (it.price+' ₺') : '')
+          )
+        )
+      ));
+    };
+    ReactDOM.createRoot(mount).render(React.createElement(Grid));
+  };
+  const mo=new MutationObserver(mountFavs); mo.observe(document.documentElement,{childList:true,subtree:true}); window.addEventListener('load', mountFavs);
+
+  // overlay: click -> product
+  const resolveByTitle=async(t)=>{ try{ const ref=window.collection(window.firebaseFirestore,'products'); const qs=await window.getDocs(ref); const all=qs.docs.map(d=>({id:d.id,...d.data()})); const k=t.trim().toLowerCase(); const ex=all.find(p=>(p.productName||'').toLowerCase()===k); if(ex) return ex.id; const inc=all.find(p=>(p.productName||'').toLowerCase().includes(k)); if(inc) return inc.id; }catch(e){} return null; };
+  window.addEventListener('load',()=>{ const host=document.getElementById('kadraj-overlays-host'); if(!host) return; host.addEventListener('click', async e=>{ const box=e.target.closest('#kadraj-overlays-host .flex.items-center.gap-3.border.rounded-lg.p-2'); if(!box) return; const title=(box.querySelector('p.font-medium')?.textContent||'').trim(); if(!title) return; const id=await resolveByTitle(title); if(id) location.href=`/products/${id}`; }); });
+})();
+
+/** ========= Global click handler for product actions ========= */
+document.addEventListener('click', async (e)=>{
+  const el=e.target.closest('[data-add-to-cart],[data-toggle-favorite]');
+  if(!el) return;
+  // capture to beat framework handlers
+}, true);
+document.addEventListener('click', async (e)=>{
+  const el=e.target.closest('[data-add-to-cart],[data-toggle-favorite]');
+  if(!el) return;
+  e.preventDefault();
+  const pid=await resolveProductFromPage(); if(!pid) return;
+  let payload={productId:pid,qty:1,price:0,title:'',image:''};
+  try{ const ref=window.doc(window.firebaseFirestore,'products',pid); const s=await window.getDoc(ref); const d=s.exists()?s.data():{}; payload={productId:pid,qty:1,price:d.price||0,title:d.productName||'',image:(d.imageUrls&&d.imageUrls[0])||''}; }catch(e){}
+  if(el.hasAttribute('data-add-to-cart')){ await CartService.add(payload); window.dispatchEvent(new CustomEvent('cart:changed')); }
+  if(el.hasAttribute('data-toggle-favorite')){ await FavoriteService.toggle({ productId:pid, title:payload.title, price:payload.price, image:payload.image }); window.dispatchEvent(new CustomEvent('favorites:changed')); }
+}, false);
+
+/** ========= Initial sync ========= */
+const refreshAll=()=>{ syncCartBadge(); syncFavIndicator(); refreshDetailQtyUI(); refreshDetailHeart(); };
+window.addEventListener('load', refreshAll);
+window.addEventListener('cart:changed', refreshAll);
+window.addEventListener('favorites:changed', refreshAll);
 </script>
 
 </body>
