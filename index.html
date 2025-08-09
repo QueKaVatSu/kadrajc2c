@@ -2916,7 +2916,10 @@ async function syncFavIndicator(){
 
 
 
-<!-- === Kadraj Enhancements Pack v15 === -->
+
+
+
+<!-- === Kadraj Enhancements Pack v16 === -->
 <style>
 /* Square media stage */
 .k-stage { position: relative; width: 100%; aspect-ratio: 1 / 1; background:#f6f6f6; border-radius: 14px; overflow: hidden; }
@@ -2927,7 +2930,7 @@ async function syncFavIndicator(){
 .k-thumbs button.active { outline:2px solid #111; }
 .k-thumbs img { width:100%; height:64px; object-fit:cover; }
 .k-thumbs .vid { height:64px; background:#111; color:#fff; display:grid; place-items:center; font-size:10px; }
-/* Stage navigation hint */
+/* Stage hint */
 .k-stage .hint { position:absolute; right:.5rem; bottom:.5rem; background:rgba(0,0,0,.5); color:#fff; padding:.15rem .4rem; border-radius:8px; font-size:10px; }
 
 /* Wishlist visuals */
@@ -2935,7 +2938,7 @@ async function syncFavIndicator(){
 @keyframes fav-pop { 0%{ transform:scale(.9);} 70%{ transform:scale(1.12);} 100%{ transform:scale(1);} }
 .fav-anim { animation:fav-pop .25s ease; }
 
-/* Cart drawer overlay */
+/* Cart drawer overlay -> slide from right */
 .k-cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9999}
 .k-cart-drawer{position:absolute;top:0;right:0;width:min(420px,100%);height:100%;background:#fff;box-shadow:-16px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s ease;}
 .k-cart-overlay.open .k-cart-drawer{transform:translateX(0)}
@@ -2945,7 +2948,7 @@ async function syncFavIndicator(){
 .k-mobile-cart{position:relative;width:28px;height:28px;display:inline-block}
 .k-mobile-cart svg{width:100%;height:100%;display:block}
 
-/* Add-to-cart qty inline controls (button stays; controls appear at right) */
+/* Add-to-cart inline controls (right of button) */
 .k-qty-inline{display:inline-flex;align-items:center;gap:.5rem;margin-left:.75rem;vertical-align:middle}
 .k-qty-inline .pill{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #111;border-radius:9999px;padding:.25rem .5rem}
 .k-qty-inline .pill button{width:24px;height:24px;border:1px solid #111;border-radius:9999px;line-height:22px}
@@ -2978,7 +2981,7 @@ async function syncFavIndicator(){
       </div>
       <div class="flex gap-2">
         <a href="#/cart" id="k-go-cart" class="flex-1 px-4 py-2 border rounded-lg text-center">Sepete Git</a>
-        <a href="#/checkout" id="k-go-checkout" className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center">Ödeme Yap</a>
+        <a href="#/checkout" id="k-go-checkout" class="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center">Ödeme Yap</a>
       </div>
     </div>
   </div>
@@ -3002,7 +3005,7 @@ async function fetchUserByIdOrName(sellerId, sellerName){
   return null;
 }
 
-/* --- Wishlist visuals & header heart --- */
+/* Wishlist visuals */
 function paintFavorite(on){
   const btn = document.querySelector("[data-toggle-favorite]"); if(btn){ btn.classList.toggle("is-favorited", !!on); btn.setAttribute("aria-pressed", on ? "true" : "false"); if(on){ btn.classList.add("fav-anim"); setTimeout(()=>btn.classList.remove("fav-anim"), 260);} }
   const headerHeart = document.querySelector('button[aria-label="Favoriler"], [data-open-favorites="true"]');
@@ -3030,15 +3033,14 @@ document.addEventListener("click",(e)=>{
 }, true);
 window.addEventListener("wishlist:changed", syncFavoriteUI);
 
-/* --- Simple in-memory cart keyed by product id --- */
+/* In-memory cart keyed by product id + button label sync */
 const CART = new Map(); // id -> {name, price, qty}
-function cartAdd(id, name, unit){ const entry = CART.get(id)||{name, price:unit, qty:0}; entry.qty += 1; CART.set(id, entry); renderCart(); }
-function cartDec(id){ const e=CART.get(id); if(!e) return; e.qty=Math.max(0,e.qty-1); if(e.qty===0) CART.delete(id); renderCart(); }
-function cartSet(id, qty){ const e=CART.get(id); if(!e) return; e.qty = Math.max(0, qty); if(e.qty===0) CART.delete(id); renderCart(); }
+function cartAdd(id, name, unit){ const entry = CART.get(id)||{name, price:unit, qty:0}; entry.qty += 1; CART.set(id, entry); renderCart(); syncAddButton(); }
+function cartDec(id){ const e=CART.get(id); if(!e) return; e.qty=Math.max(0,e.qty-1); if(e.qty===0) CART.delete(id); renderCart(); syncAddButton(); }
 function cartQty(id){ return CART.get(id)?.qty||0; }
 function cartTotal(){ let s=0; CART.forEach(e=>{ s+= e.qty*Number(e.price||0); }); return s; }
 
-/* --- Cart overlay --- */
+/* Cart overlay drawer */
 const $overlay = document.getElementById("k-cart-overlay");
 const $items   = document.getElementById("k-cart-items");
 const $total   = document.getElementById("k-total");
@@ -3063,7 +3065,6 @@ function renderCart(){
   $total.textContent = cartTotal() + " ₺";
   syncCartBadges();
 }
-// cart qty buttons in drawer
 document.addEventListener("click",(e)=>{
   const q = e.target.closest(".k-line .qty"); if(!q) return;
   const id = q.getAttribute("data-id");
@@ -3092,8 +3093,7 @@ document.addEventListener("click",(e)=>{
   syncCartBadges();
 })();
 
-
-/* --- Product page mount --- */
+/* Product page mount + resilient observer so it doesn't fall back to old layout */
 function mountProduct(){
   (async()=>{
     const pid = await resolveProductId(); if(!pid) return;
@@ -3113,7 +3113,7 @@ function mountProduct(){
       titleEl.parentElement.insertBefore(line, titleEl.nextSibling);
     }
 
-    // Unified media (square) + click/drag/swipe to navigate + autoplay video
+    // Media unify
     const candidates = $$("img, video").map(el=>{ const r=el.getBoundingClientRect(); return {el,area:r.width*r.height}; }).filter(x=>x.area>5000);
     if (candidates.length){
       candidates.sort((a,b)=>b.area-a.area);
@@ -3152,7 +3152,6 @@ function mountProduct(){
         const Thumb = ({m,active,onClick}) => m.type==="image"
           ? <button onClick={onClick} className={""+(active?"active ":"")}><img src={m.src}/></button>
           : <button onClick={onClick} className={"vid "+(active?"active ":"")}>VIDEO ▷</button>;
-        // swipe
         const startXRef = React.useRef(0);
         const onTouchStart = (e)=>{ startXRef.current = e.touches[0].clientX; };
         const onTouchEnd = (e)=>{ const dx = e.changedTouches[0].clientX - startXRef.current; if (Math.abs(dx) > 40){ if (dx<0) next(); else prev(); }};
@@ -3167,7 +3166,7 @@ function mountProduct(){
       R.render(<Media />);
     }
 
-    // Bottom sections under product
+    // Bottom sections
     const main = document.querySelector("main") || document.body;
     if (!document.getElementById("k-product-bottom")){
       const bottom = document.createElement("div"); bottom.id="k-product-bottom"; bottom.className="max-w-6xl mx-auto px-4 md:px-6";
@@ -3187,48 +3186,59 @@ function mountProduct(){
           {fromSeller.length>0 && (<section><div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3><a className="text-sm underline" href={"#/seller/"+(seller?.id||sellerId||"unknown")} onClick={(e)=>{e.preventDefault(); navTo("/seller/"+(seller?.id||sellerId||"unknown"));}}>Tümünü Gör</a></div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{fromSeller.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div>
           </section>)}
-          {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div>
-          </section>)}
+          {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
         </div>);
       }
       RB.render(<Bottom />);
     }
 
-    // Wishlist sync
+    // Add-to-cart button label must be "Sepette (n)" after added
+    syncAddButton();
+    // Inline controls next to button
+    setupInlineQty(pid);
+    // Sync wishlist
     syncFavoriteUI();
-
-    // Add-to-cart inline controls next to button
-    const addBtn = document.querySelector(".add-to-cart, [data-add-to-cart]");
-    if (addBtn){
-      function ensureInline(){
-        if (addBtn.__inline) return;
-        const wrap = document.createElement("span"); wrap.className="k-qty-inline";
-        wrap.innerHTML = '<span class="pill k-pulse"><button class="dec">-</button><span class="count">0</span><button class="inc">+</button></span>';
-        addBtn.after(wrap);
-        addBtn.__inline = { wrap, countEl: wrap.querySelector(".count"), pill: wrap.querySelector(".pill") };
-        setTimeout(()=> addBtn.__inline.pill.classList.remove("k-pulse"), 650);
-      }
-      ensureInline();
-      const upd = ()=>{ const q = cartQty(pid); addBtn.__inline.countEl.textContent = String(q); };
-      upd();
-      addBtn.addEventListener("click",(e)=>{
-        e.preventDefault();
-        cartAdd(pid, window.__k_current_product.name, window.__k_current_product.price||7999);
-        addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650);
-        upd();
-      });
-      addBtn.__inline.wrap.addEventListener("click",(e)=>{
-        if (e.target.classList.contains("dec")){ cartDec(pid); addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650); }
-        if (e.target.classList.contains("inc")){ cartAdd(pid, window.__k_current_product.name, window.__k_current_product.price||7999); addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650); }
-        addBtn.__inline.countEl.textContent = String(cartQty(pid));
-      });
-    }
   })();
 }
+function setupInlineQty(pid){
+  const addBtn = document.querySelector(".add-to-cart, [data-add-to-cart]");
+  if (!addBtn) return;
+  if (!addBtn.__inline){
+    const wrap = document.createElement("span"); wrap.className="k-qty-inline";
+    wrap.innerHTML = '<span class="pill"><button class="dec">-</button><span class="count">0</span><button class="inc">+</button></span>';
+    addBtn.after(wrap);
+    addBtn.__inline = { wrap, countEl: wrap.querySelector(".count"), pill: wrap.querySelector(".pill") };
+  }
+  const upd = ()=>{ const q = cartQty(pid); addBtn.__inline.countEl.textContent = String(q); };
+  upd();
+  addBtn.onclick = (e)=>{ e.preventDefault(); cartAdd(pid, window.__k_current_product?.name||"Ürün", window.__k_current_product?.price||7999); addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650); upd(); };
+  addBtn.__inline.wrap.onclick = (e)=>{
+    if (e.target.classList.contains("dec")){ cartDec(pid); }
+    if (e.target.classList.contains("inc")){ cartAdd(pid, window.__k_current_product?.name||"Ürün", window.__k_current_product?.price||7999); }
+    addBtn.__inline.countEl.textContent = String(cartQty(pid));
+  };
+}
+function syncAddButton(){
+  const pid = window.__k_current_product?.id;
+  const addBtn = document.querySelector(".add-to-cart, [data-add-to-cart]");
+  if (!addBtn || !pid) return;
+  const q = cartQty(pid);
+  addBtn.textContent = q>0 ? `Sepette (${q})` : `Sepete Ekle`;
+}
+
 window.addEventListener("load", mountProduct);
 window.addEventListener("hashchange", ()=> setTimeout(mountProduct,0));
+// resilient mutation observer to keep new layout active
+const reMount = ()=> setTimeout(mountProduct, 50);
+const mo = new MutationObserver((muts)=>{
+  // if product title or main gallery changed, re-mount
+  for(const m of muts){
+    if ([...m.addedNodes].some(n=> (n.nodeType===1) && (n.matches?.("img,video,[data-product-id],h1,.product-title") ))) { reMount(); break; }
+  }
+});
+mo.observe(document.documentElement, { childList:true, subtree:true });
 </script>
-<!-- === /Kadraj Enhancements Pack v15 === -->
+<!-- === /Kadraj Enhancements Pack v16 === -->
 
 </body>
 </html>
