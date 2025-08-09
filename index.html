@@ -3153,5 +3153,228 @@ const attachOverlayNavigation = () => {
 window.addEventListener('load', attachOverlayNavigation);
 </script>
 
+
+<script type="text/babel">
+/** ------- Robust Gallery Switch ------- */
+(function(){
+  const selectMainMedia = () => document.querySelector('figure img, .product-media img, .main-media img, figure video, .product-media video, .main-media video, [data-main-media] img, [data-main-media] video');
+  const selectThumbs = () => Array.from(document.querySelectorAll('[data-thumbnail], .thumbnails img, .thumbs img, .swiper-slide img, [class*="thumb"] img, [aria-roledescription="slide"] img, [role="tab"] img'));
+
+  const swapTo = (thumb) => {
+    const main = selectMainMedia();
+    if (!main || !thumb) return;
+    const src = thumb.getAttribute('data-full') || thumb.getAttribute('data-src') || thumb.currentSrc || thumb.src;
+    if (!src) return;
+    if (main.tagName.toLowerCase()==='video'){
+      if (main.src !== src) {
+        try{ main.pause(); }catch(e){}
+        main.src = src;
+        try{ main.load(); main.play(); }catch(e){}
+      }
+    } else {
+      if (main.src !== src) main.src = src;
+    }
+  };
+
+  const wireThumb = (t) => {
+    if (!t || t.__wired) return;
+    t.__wired = true;
+    t.style.cursor = 'pointer';
+    t.addEventListener('click', (e)=>{ e.preventDefault(); swapTo(t); });
+  };
+
+  const init = () => {
+    const thumbs = selectThumbs();
+    thumbs.forEach(wireThumb);
+  };
+
+  const mo = new MutationObserver(() => init());
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener('load', init);
+})();
+</script>
+
+
+<script type="text/babel">
+/** ------- Seller Sections (force mount & show recommendations even if sellerId missing) ------- */
+(async function(){
+  const getPid = async () => {
+    const direct = document.querySelector('[data-product-id]')?.getAttribute('data-product-id');
+    if (direct) return direct;
+    if (window.resolveProductFromPage) return await window.resolveProductFromPage();
+    return null;
+  };
+  const pid = await getPid(); if (!pid || !window.firebaseFirestore) return;
+  const pref = window.doc(window.firebaseFirestore, 'products', pid);
+  const psnap = await window.getDoc(pref); if (!psnap.exists()) return;
+  const pdata = psnap.data();
+  const sellerId = pdata.sellerId || pdata.ownerId || pdata.userId || null;
+
+  // Host area: try under product details container; fallback end of <main> or body
+  let host = document.getElementById('k-seller-sections');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'k-seller-sections';
+    host.className = 'mt-10 space-y-8';
+    const productShell = document.querySelector('main .container, main [class*="container"], main .grid, main') || document.querySelector('main') || document.body;
+    productShell.appendChild(host);
+  }
+
+  // Seller line under title
+  const title = document.querySelector('h1');
+  if (title && !document.getElementById('k-seller-line')) {
+    const p = document.createElement('div');
+    p.id = 'k-seller-line';
+    p.className = 'mt-2 text-sm text-gray-500';
+    const a = document.createElement('a');
+    if (sellerId) { a.href = `/seller/${sellerId}`; }
+    a.textContent = pdata.sellerName || pdata.seller || 'Satıcı';
+    a.className = 'underline underline-offset-4 hover:text-gray-700 transition';
+    p.textContent = 'Satıcı: ';
+    p.appendChild(a);
+    title.parentNode.insertBefore(p, title.nextSibling);
+  }
+
+  // Seller story
+  let seller = null;
+  if (sellerId) {
+    try {
+      const sref = window.doc(window.firebaseFirestore, 'users', sellerId);
+      const ssnap = await window.getDoc(sref);
+      seller = ssnap.exists() ? ssnap.data() : null;
+    } catch(e){}
+  }
+  if (!document.getElementById('k-seller-story')) {
+    const story = document.createElement('div'); story.id='k-seller-story';
+    story.innerHTML = `<h3 class="text-lg font-semibold mb-2">Satıcının Hikayesi</h3>
+    <p class="text-sm text-gray-600">${(seller?.story || seller?.bio || 'Satıcının hikayesi yakında eklenecek.')}</p>`;
+    host.appendChild(story);
+  }
+
+  // Fetch all products
+  const allRef = window.collection(window.firebaseFirestore, 'products');
+  const qs = await window.getDocs(allRef);
+  const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Seller other products
+  if (!document.getElementById('k-seller-more')) {
+    const others = sellerId ? all.filter(p => p.sellerId === sellerId && p.id !== pid).slice(0,8) : [];
+    const wrap = document.createElement('div'); wrap.id='k-seller-more';
+    wrap.innerHTML = `<h3 class="text-lg font-semibold mb-2">Satıcının Diğer Ürünleri</h3>`;
+    const grid = document.createElement('div'); grid.className='grid grid-cols-2 md:grid-cols-4 gap-4';
+    others.forEach(p => {
+      const card = document.createElement('a'); card.href=`/products/${p.id}`; card.className='block border rounded-lg overflow-hidden hover:shadow-sm transition';
+      card.innerHTML = `<img src="${(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}" class="w-full h-40 object-cover">
+        <div class="p-2"><p class="text-sm font-medium line-clamp-2">${p.productName||p.id}</p><p class="text-xs text-gray-500">${p.price? (p.price+' ₺') : ''}</p></div>`;
+      grid.appendChild(card);
+    });
+    if (others.length) { wrap.appendChild(grid); host.appendChild(wrap); }
+  }
+
+  // Recommended from others (same category else random)
+  if (!document.getElementById('k-recommended')) {
+    let recs = all.filter(p => p.id !== pid);
+    if (pdata.category) {
+      recs = recs.filter(p => (p.category||'') === pdata.category);
+    }
+    recs = recs.slice(0,8);
+    const wrap = document.createElement('div'); wrap.id='k-recommended';
+    wrap.innerHTML = `<h3 class="text-lg font-semibold mb-2">Önerilen Ürünler</h3>`;
+    const grid = document.createElement('div'); grid.className='grid grid-cols-2 md:grid-cols-4 gap-4';
+    recs.forEach(p => {
+      const card = document.createElement('a'); card.href=`/products/${p.id}`; card.className='block border rounded-lg overflow-hidden hover:shadow-sm transition';
+      card.innerHTML = `<img src="${(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'}" class="w-full h-40 object-cover">
+        <div class="p-2"><p class="text-sm font-medium line-clamp-2">${p.productName||p.id}</p><p class="text-xs text-gray-500">${p.price? (p.price+' ₺') : ''}</p></div>`;
+      grid.appendChild(card);
+    });
+    if (recs.length) { wrap.appendChild(grid); host.appendChild(wrap); }
+  }
+})();
+</script>
+
+
+<script type="text/babel">
+/** ------- SPA Seller Page (/seller/<id>) ------- */
+(function(){
+  const mountId = 'kadraj-seller-spa';
+  const ensureRoot = () => {
+    let el = document.getElementById(mountId);
+    if (!el) { el = document.createElement('div'); el.id = mountId; el.style.position='fixed'; el.style.inset='0'; el.style.background='white'; el.style.zIndex='998'; el.style.display='none'; document.body.appendChild(el); }
+    return el;
+  };
+  const parseSellerId = () => {
+    const path = location.pathname;
+    if (!path.startsWith('/seller/')) return null;
+    return decodeURIComponent(path.split('/seller/')[1] || '');
+  };
+  const showPage = (node) => { const el = ensureRoot(); el.style.display='block'; ReactDOM.createRoot(el).render(node); window.scrollTo(0,0); };
+  const hidePage = () => { const el = ensureRoot(); el.style.display='none'; ReactDOM.createRoot(el).render(null); };
+
+  const SellerPage = ({ sellerId }) => {
+    const [seller, setSeller] = React.useState(null);
+    const [items, setItems] = React.useState([]);
+    React.useEffect(()=>{
+      (async()=>{
+        try{
+          const sref = window.doc(window.firebaseFirestore, 'users', sellerId);
+          const ssnap = await window.getDoc(sref);
+          setSeller(ssnap.exists()? ssnap.data() : { displayName: 'Satıcı', story: '' });
+        }catch(e){ setSeller({ displayName: 'Satıcı' }); }
+        try{
+          const pref = window.collection(window.firebaseFirestore, 'products');
+          const qs = await window.getDocs(pref);
+          const all = qs.docs.map(d=>({ id:d.id, ...d.data() }));
+          setItems(all.filter(p => (p.sellerId||p.ownerId||p.userId) === sellerId));
+        }catch(e){ setItems([]); }
+      })();
+    }, [sellerId]);
+    return (
+      <div className="w-full h-full overflow-y-auto">
+        <div className="max-w-6xl mx-auto p-4 md:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl md:text-2xl font-bold">{seller?.displayName || seller?.companyName || 'Satıcı'}</h1>
+            <button onClick={()=>history.back()} className="px-3 py-2 border rounded hover:bg-gray-50">Geri</button>
+          </div>
+          {seller?.story && <p className="text-gray-600 mb-6">{seller.story}</p>}
+          <h3 className="text-lg font-semibold mb-2">Ürünleri</h3>
+          {items.length ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {items.map(p => (
+                <a key={p.id} href={`/products/${p.id}`} className="block border rounded-lg overflow-hidden hover:shadow-sm transition">
+                  <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
+                  <div className="p-2">
+                    <p className="text-sm font-medium line-clamp-2">{p.productName||p.id}</p>
+                    <p className="text-xs text-gray-500">{p.price ? (p.price + ' ₺') : ''}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : <p className="text-sm text-gray-500">Bu satıcıya ait ürün bulunamadı.</p>}
+        </div>
+      </div>
+    );
+  };
+
+  const handleRoute = () => {
+    const sid = parseSellerId();
+    if (sid) { showPage(<SellerPage sellerId={sid} />); }
+    else { hidePage(); }
+  };
+
+  // Hijack seller links to SPA (non-destructive: just pushState)
+  document.addEventListener('click', (e)=>{
+    const a = e.target.closest('a[href^="/seller/"]');
+    if (!a) return;
+    e.preventDefault();
+    const href = a.getAttribute('href');
+    if (location.pathname !== href) history.pushState({}, '', href);
+    handleRoute();
+  });
+
+  window.addEventListener('popstate', handleRoute);
+  window.addEventListener('load', handleRoute);
+})();
+</script>
+
 </body>
 </html>
