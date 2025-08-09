@@ -2890,6 +2890,28 @@ const mo = new MutationObserver(()=>{ ensureIconBadges(); });
 mo.observe(document.documentElement,{childList:true,subtree:true});
 </script>
 
+
+<script type="text/babel">
+async function syncFavIndicator(){
+  try{
+    const uid = window.firebaseAuth?.currentUser?.uid || null;
+    const btn = document.querySelector('[data-toggle-favorite]');
+    if(!btn) return;
+    if(!uid){ btn.classList.remove('fav-indicator-on'); return; }
+    const pidEl = document.querySelector('[data-product-id]');
+    let pid = pidEl ? pidEl.getAttribute('data-product-id') : null;
+    if(!pid && typeof resolveProductFromPage==='function'){ pid = await resolveProductFromPage(); }
+    if(!pid && typeof resolveProductFromPageX==='function'){ pid = await resolveProductFromPageX(); }
+    if(!pid) return;
+    const ref = window.doc(window.firebaseFirestore, 'favorites', uid);
+    const snap = await window.getDoc(ref);
+    const items = snap.exists() ? (snap.data().items||[]) : [];
+    const on = items.some(i => i.productId === pid);
+    btn.classList.toggle('fav-indicator-on', !!on);
+  }catch(e){}
+}
+</script>
+
 </body>
 </html>
 <!-- === Kadraj Enhancements Pack v11 (hash router + guaranteed video thumb + cart icon/badge fix) === -->
