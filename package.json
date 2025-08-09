@@ -1,0 +1,28 @@
+diff --git a//dev/null b/package.json
+index 0000000000000000000000000000000000000000..81d0cae25b0bd55fe864f56fc2de119934b2017a 100644
+--- a//dev/null
++++ b/package.json
+@@ -0,0 +1,23 @@
++{
++  "name": "kadrajc2c",
++  "version": "1.0.0",
++  "description": "Kadraj C2C project",
++  "main": "index.js",
++  "scripts": {
++    "start": "echo \"Starting app...\"",
++    "test": "echo \"No tests yet\""
++  },
++  "keywords": [],
++  "author": "",
++  "license": "ISC",
++  "type": "commonjs",
++  "dependencies": {
++    "react": "^18.2.0",
++    "react-dom": "^18.2.0",
++    "firebase": "^9.22.2"
++  },
++  "devDependencies": {
++    "jest": "^29.7.0",
++    "serve": "^14.2.0"
++  }
++}
