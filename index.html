@@ -2913,37 +2913,52 @@ async function syncFavIndicator(){
 </script>
 
 
-<!-- === Kadraj Enhancements Pack v14 (product-only changes) === -->
+
+
+
+<!-- === Kadraj Enhancements Pack v15 === -->
 <style>
-/* square media stage */
+/* Square media stage */
 .k-stage { position: relative; width: 100%; aspect-ratio: 1 / 1; background:#f6f6f6; border-radius: 14px; overflow: hidden; }
 .k-stage img, .k-stage video { position:absolute; inset:0; width:100%; height:100%; object-fit: contain; }
+/* Thumbs */
 .k-thumbs { display:grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap:.5rem; }
 .k-thumbs button { border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#fff; }
 .k-thumbs button.active { outline:2px solid #111; }
 .k-thumbs img { width:100%; height:64px; object-fit:cover; }
 .k-thumbs .vid { height:64px; background:#111; color:#fff; display:grid; place-items:center; font-size:10px; }
+/* Stage navigation hint */
+.k-stage .hint { position:absolute; right:.5rem; bottom:.5rem; background:rgba(0,0,0,.5); color:#fff; padding:.15rem .4rem; border-radius:8px; font-size:10px; }
 
-/* cart + badge */
-.k-cart-badge,.k-cart-icon-badge{position:absolute;right:-6px;top:-8px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;font-size:11px;line-height:18px;text-align:center;background:#ef4444;color:#fff;font-weight:700;display:none}
-.k-mobile-cart{position:relative;width:28px;height:28px;display:inline-block}
-.k-mobile-cart svg{width:100%;height:100%;display:block}
-
-/* wishlist visuals + animation */
+/* Wishlist visuals */
 .is-favorited svg{fill:currentColor !important;color:#ef4444}
 @keyframes fav-pop { 0%{ transform:scale(.9);} 70%{ transform:scale(1.12);} 100%{ transform:scale(1);} }
 .fav-anim { animation:fav-pop .25s ease; }
 
-/* overlay cart drawer */
+/* Cart drawer overlay */
 .k-cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9999}
-.k-cart-drawer{position:absolute;top:0;right:0;width:min(420px,100%);height:100%;background:#fff;box-shadow:-16px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.k-cart-drawer{position:absolute;top:0;right:0;width:min(420px,100%);height:100%;background:#fff;box-shadow:-16px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s ease;}
+.k-cart-overlay.open .k-cart-drawer{transform:translateX(0)}
 
-/* add-to-cart animated qty pill */
-.k-qty { display:inline-flex; align-items:center; gap:.5rem; padding:.5rem .75rem; border:1px solid #111; border-radius:9999px; }
-.k-qty button { width:26px; height:26px; border-radius:9999px; border:1px solid #111; line-height:24px; }
-.k-qty .count { min-width:22px; text-align:center; font-weight:600; }
+/* Header / mobile cart badges */
+.k-cart-badge,.k-cart-icon-badge{position:absolute;right:-6px;top:-8px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;font-size:11px;line-height:18px;text-align:center;background:#ef4444;color:#fff;font-weight:700;display:none}
+.k-mobile-cart{position:relative;width:28px;height:28px;display:inline-block}
+.k-mobile-cart svg{width:100%;height:100%;display:block}
+
+/* Add-to-cart qty inline controls (button stays; controls appear at right) */
+.k-qty-inline{display:inline-flex;align-items:center;gap:.5rem;margin-left:.75rem;vertical-align:middle}
+.k-qty-inline .pill{display:inline-flex;align-items:center;gap:.4rem;border:1px solid #111;border-radius:9999px;padding:.25rem .5rem}
+.k-qty-inline .pill button{width:24px;height:24px;border:1px solid #111;border-radius:9999px;line-height:22px}
+.k-qty-inline .count{min-width:22px;text-align:center;font-weight:600}
 @keyframes btn-pulse { 0%{box-shadow:0 0 0 0 rgba(0,0,0,.2);} 100%{box-shadow:0 0 0 12px rgba(0,0,0,0);} }
 .k-pulse { animation: btn-pulse .6s ease; }
+
+/* Cart line qty controls */
+.k-line{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.k-line .title{flex:1}
+.k-line .qty{display:inline-flex;align-items:center;gap:.3rem}
+.k-line .qty button{width:24px;height:24px;border:1px solid #111;border-radius:9999px;line-height:22px}
+.k-line .qty .c{min-width:22px;text-align:center;font-weight:600}
 </style>
 
 <div id="k-cart-overlay" class="k-cart-overlay" aria-hidden="true">
@@ -2963,55 +2978,31 @@ async function syncFavIndicator(){
       </div>
       <div class="flex gap-2">
         <a href="#/cart" id="k-go-cart" class="flex-1 px-4 py-2 border rounded-lg text-center">Sepete Git</a>
-        <a href="#/checkout" id="k-go-checkout" class="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center">Ödeme Yap</a>
+        <a href="#/checkout" id="k-go-checkout" className="flex-1 px-4 py-2 bg-black text-white rounded-lg text-center">Ödeme Yap</a>
       </div>
     </div>
   </div>
 </div>
 
 <script type="text/babel">
-// helpers
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
-
-// router
 function navTo(rel){ const clean="#"+(rel.startsWith("/")?rel.slice(1):rel); if(location.hash!==clean) location.hash=clean; window.dispatchEvent(new HashChangeEvent("hashchange")); }
 function hashPath(){ return location.hash.replace(/^#/, ""); }
-
-// firebase aliases
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-// data helpers
 async function fetchAllProducts(){ try{ if(!db||!collection||!getDocs) return []; const qs = await getDocs(collection(db,"products")); return qs.docs.map(d=>({ id:d.id, ...(d.data?d.data():{}) })); }catch(_){ return []; } }
 async function fetchProduct(id){ try{ if(!db||!doc||!getDoc) return null; const d = await getDoc(doc(db,"products",id)); return d.exists && d.exists() ? { id:d.id, ...(d.data?d.data():{}) } : null; }catch(_){ return null; } }
-async function resolveProductId(){
-  const host = document.querySelector("[data-product-id]"); if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
-  const m = location.pathname.match(/\/products?\/([^\/?#]+)/i); if (m) return decodeURIComponent(m[1]);
-  return null; // ürün sayfası değilse denemeyelim
-}
+async function resolveProductId(){ const host = document.querySelector("[data-product-id]"); if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id"); const m = location.pathname.match(/\/products?\/([^\/?#]+)/i); if (m) return decodeURIComponent(m[1]); return null; }
 async function fetchUserByIdOrName(sellerId, sellerName){
-  try{
-    if (!db) return null;
-    if (sellerId && doc && getDoc){
-      const ds = await getDoc(doc(db,"users",sellerId));
-      if (ds.exists && ds.exists()) return { id:ds.id, ...(ds.data?ds.data():{}) };
-    }
-    if (collection && getDocs){
-      const qs = await getDocs(collection(db,"users"));
-      for(const snap of qs.docs){
-        const u = snap.data ? snap.data() : {};
-        const name = (u.displayName||u.name||"").toLowerCase();
-        if (sellerName && name && name === (sellerName||"").toLowerCase()) return { id:snap.id, ...u };
-        if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u };
-      }
-    }
-  }catch(_){}
+  try{ if (!db) return null; if (sellerId && doc && getDoc){ const ds = await getDoc(doc(db,"users",sellerId)); if (ds.exists && ds.exists()) return { id:ds.id, ...(ds.data?ds.data():{}) }; }
+    if (collection && getDocs){ const qs = await getDocs(collection(db,"users")); for(const snap of qs.docs){ const u = snap.data ? snap.data() : {}; const name = (u.displayName||u.name||"").toLowerCase(); if (sellerName && name && name === (sellerName||"").toLowerCase()) return { id:snap.id, ...u }; if (u.sellerId===sellerId || u.uid===sellerId) return { id:snap.id, ...u }; } } }catch(_){}
   return null;
 }
 
-// wishlist paint/sync (+ header heart)
+/* --- Wishlist visuals & header heart --- */
 function paintFavorite(on){
   const btn = document.querySelector("[data-toggle-favorite]"); if(btn){ btn.classList.toggle("is-favorited", !!on); btn.setAttribute("aria-pressed", on ? "true" : "false"); if(on){ btn.classList.add("fav-anim"); setTimeout(()=>btn.classList.remove("fav-anim"), 260);} }
   const headerHeart = document.querySelector('button[aria-label="Favoriler"], [data-open-favorites="true"]');
@@ -3019,7 +3010,7 @@ function paintFavorite(on){
 }
 async function syncFavoriteUI(){
   try{
-    const pid = await resolveProductId(); // ürün sayfasında çalışsın
+    const pid = await resolveProductId();
     const user = window.firebaseAuth?.currentUser || null;
     if(!user){ paintFavorite(false); return; }
     const w = await getDoc(doc(db,"wishlists",user.uid));
@@ -3039,37 +3030,79 @@ document.addEventListener("click",(e)=>{
 }, true);
 window.addEventListener("wishlist:changed", syncFavoriteUI);
 
-// seller page
+/* --- Simple in-memory cart keyed by product id --- */
+const CART = new Map(); // id -> {name, price, qty}
+function cartAdd(id, name, unit){ const entry = CART.get(id)||{name, price:unit, qty:0}; entry.qty += 1; CART.set(id, entry); renderCart(); }
+function cartDec(id){ const e=CART.get(id); if(!e) return; e.qty=Math.max(0,e.qty-1); if(e.qty===0) CART.delete(id); renderCart(); }
+function cartSet(id, qty){ const e=CART.get(id); if(!e) return; e.qty = Math.max(0, qty); if(e.qty===0) CART.delete(id); renderCart(); }
+function cartQty(id){ return CART.get(id)?.qty||0; }
+function cartTotal(){ let s=0; CART.forEach(e=>{ s+= e.qty*Number(e.price||0); }); return s; }
+
+/* --- Cart overlay --- */
+const $overlay = document.getElementById("k-cart-overlay");
+const $items   = document.getElementById("k-cart-items");
+const $total   = document.getElementById("k-total");
+$("#k-cart-close")?.addEventListener("click", ()=> closeCartOverlay());
+$overlay?.addEventListener("click",(e)=>{ if(e.target===$overlay) closeCartOverlay(); });
+function openCartOverlay(){ if(!$overlay) return; $overlay.style.display="block"; $overlay.classList.add("open"); syncCartBadges(); }
+function closeCartOverlay(){ if(!$overlay) return; $overlay.classList.remove("open"); $overlay.style.display="none"; }
+function syncCartBadges(){
+  const c = Array.from(CART.values()).reduce((a,b)=>a+b.qty,0);
+  const d=$("#k-cart-badge"); if(d){ d.style.display = c>0 ? "inline-block" : "none"; d.textContent=String(c); }
+  const m=$("#k-cart-badge-mobile"); if(m){ m.style.display = c>0 ? "inline-block" : "none"; m.textContent=String(c); }
+}
+function renderCart(){
+  if(!$items) return; $items.innerHTML = "";
+  CART.forEach((e,id)=>{
+    const row = document.createElement("div"); row.className = "k-line";
+    row.innerHTML = `<div class="title">${e.name||"Ürün"}</div>
+      <div class="qty" data-id="${id}"><button class="dec">-</button><span class="c">${e.qty}</span><button class="inc">+</button></div>
+      <div class="price">${(e.qty*Number(e.price||0))} ₺</div>`;
+    $items.appendChild(row);
+  });
+  $total.textContent = cartTotal() + " ₺";
+  syncCartBadges();
+}
+// cart qty buttons in drawer
+document.addEventListener("click",(e)=>{
+  const q = e.target.closest(".k-line .qty"); if(!q) return;
+  const id = q.getAttribute("data-id");
+  if (e.target.classList.contains("dec")) cartDec(id);
+  if (e.target.classList.contains("inc")) cartAdd(id, CART.get(id)?.name, CART.get(id)?.price);
+});
+
+// header icon -> cart
 (function(){
-  const main = document.querySelector("main") || document.getElementById("root") || document.body;
-  const hostId = "k-route-host"; let host = document.getElementById(hostId);
-  if (!host){ host = document.createElement("div"); host.id = hostId; main.appendChild(host); }
-  const root = ReactDOM.createRoot(host); let showing=false;
-  function mask(on){ Array.from(main.children).forEach(ch=>{ if(ch===host) return; if(on){ ch.setAttribute("data-k-hide","1"); ch.style.display="none"; } else if(ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); } }); }
-  function SellerPage({ sellerId }){
-    const [seller,setSeller] = React.useState(null); const [items,setItems]   = React.useState([]);
-    React.useEffect(()=>{ (async()=>{ const s = await fetchUserByIdOrName(sellerId); setSeller(s); const all = await fetchAllProducts(); setItems(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId)); })(); }, [sellerId]);
-    const avatar = seller?.photoURL || seller?.avatar || "https://via.placeholder.com/96";
-    return (<div className="max-w-6xl mx-auto p-4 md:p-8">
-      <div className="flex items-center gap-4 md:gap-6 mb-6"><img src={avatar} className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border"/><div><h1 className="text-2xl md:text-3xl font-bold">{seller?.displayName||seller?.name||"Satıcı"}</h1>{seller?.location && <p className="text-gray-600">{seller.location}</p>}</div></div>
-      {seller?.story && <section className="border rounded-2xl p-4 md:p-6 mb-8"><h2 className="text-xl font-semibold mb-2">Satıcının Hikayesi</h2><p className="text-gray-700 whitespace-pre-line">{seller.story}</p></section>}
-      <section><h2 className="text-xl font-semibold mb-3">Ürünleri</h2><div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{items.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden hover:shadow-sm"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-48 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>
-    </div>); }
-  function onHash(){ const h = hashPath(); if (h.startsWith("/seller/")){ const id = decodeURIComponent(h.slice(8)); mask(true); root.render(<SellerPage sellerId={id} />); showing=true; window.scrollTo(0,0); return; } if (showing){ root.render(null); mask(false); showing=false; } }
-  window.addEventListener("hashchange", onHash); window.addEventListener("load", onHash);
+  const header = document.querySelector("header") || document;
+  const iconCandidates = $$("a,button", header).filter(n => /favori|sepet|cart|basket|wishlist|login|account|hesap/i.test(n.textContent||"") || n.querySelector("svg"));
+  if (iconCandidates.length){
+    const rightmost = iconCandidates[iconCandidates.length-1];
+    rightmost.style.position = "relative";
+    rightmost.innerHTML = '<span class="relative inline-block"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span id="k-cart-badge" class="k-cart-badge">0</span></span>';
+    rightmost.addEventListener("click", (e)=>{ e.preventDefault(); openCartOverlay(); });
+  }
+})();
+// mobile last icon -> cart
+(function(){
+  const bar = document.querySelector(".mobile-tabbar, .bottom-nav, nav[role='tablist'], footer");
+  if (!bar) return;
+  const lastBtn = $$("a,button", bar).slice(-1)[0]; if(!lastBtn) return;
+  lastBtn.innerHTML = '<span class="k-mobile-cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span class="k-cart-icon-badge" id="k-cart-badge-mobile">0</span></span><div class="text-xs mt-1">Sepetim</div>';
+  lastBtn.addEventListener("click",(e)=>{ e.preventDefault(); openCartOverlay(); });
+  syncCartBadges();
 })();
 
-// product page enhancements (only if product id resolves)
+
+/* --- Product page mount --- */
 function mountProduct(){
   (async()=>{
-    const pid = await resolveProductId();
-    if(!pid) return; // sadece ürün sayfasında
-    const prod = await fetchProduct(pid);
+    const pid = await resolveProductId(); if(!pid) return;
+    const prod = await fetchProduct(pid); window.__k_current_product = { id: pid, name: prod?.productName||"Ürün", price: Number(prod?.price||0) };
     const sellerId = prod?.sellerId || prod?.seller || prod?.ownerId || null;
     const sellerName = prod?.sellerName || null;
     const seller = await fetchUserByIdOrName(sellerId, sellerName);
 
-    // seller line
+    // Seller line
     const titleEl = document.querySelector("h1, .product-title");
     if (titleEl && !document.getElementById("k-seller-line")){
       const line = document.createElement("div"); line.id="k-seller-line"; line.className="flex items-center gap-2 text-sm text-gray-600 mt-2";
@@ -3080,7 +3113,7 @@ function mountProduct(){
       titleEl.parentElement.insertBefore(line, titleEl.nextSibling);
     }
 
-    // unified media (square, video autoplay muted loop)
+    // Unified media (square) + click/drag/swipe to navigate + autoplay video
     const candidates = $$("img, video").map(el=>{ const r=el.getBoundingClientRect(); return {el,area:r.width*r.height}; }).filter(x=>x.area>5000);
     if (candidates.length){
       candidates.sort((a,b)=>b.area-a.area);
@@ -3114,11 +3147,18 @@ function mountProduct(){
       function Media(){
         const [i,setI] = React.useState(0);
         const item = list[i];
+        const next = ()=> setI((i+1)%list.length);
+        const prev = ()=> setI((i-1+list.length)%list.length);
         const Thumb = ({m,active,onClick}) => m.type==="image"
           ? <button onClick={onClick} className={""+(active?"active ":"")}><img src={m.src}/></button>
           : <button onClick={onClick} className={"vid "+(active?"active ":"")}>VIDEO ▷</button>;
+        // swipe
+        const startXRef = React.useRef(0);
+        const onTouchStart = (e)=>{ startXRef.current = e.touches[0].clientX; };
+        const onTouchEnd = (e)=>{ const dx = e.changedTouches[0].clientX - startXRef.current; if (Math.abs(dx) > 40){ if (dx<0) next(); else prev(); }};
         return (<div>
-          <div className="k-stage">
+          <div className="k-stage" onClick={next} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+            <div className="hint">dokun / tıkla</div>
             {item.type==="image" ? <img src={item.src}/> : <video key={item.src} src={item.src} autoplay muted loop playsInline disablePictureInPicture controlsList="nodownload noplaybackrate"></video>}
           </div>
           {list.length>1 && (<div className="k-thumbs mt-3">{list.map((m,idx)=>(<Thumb key={idx} m={m} active={idx===i} onClick={()=>setI(idx)} />))}</div>)}
@@ -3127,7 +3167,7 @@ function mountProduct(){
       R.render(<Media />);
     }
 
-    // bottom sections (seller's others first, then similar) — already under product
+    // Bottom sections under product
     const main = document.querySelector("main") || document.body;
     if (!document.getElementById("k-product-bottom")){
       const bottom = document.createElement("div"); bottom.id="k-product-bottom"; bottom.className="max-w-6xl mx-auto px-4 md:px-6";
@@ -3139,105 +3179,56 @@ function mountProduct(){
         React.useEffect(()=>{ (async()=>{
           const all = await fetchAllProducts();
           if (sellerId) setFromSeller(all.filter(p => (p.sellerId||p.seller||p.ownerId)===sellerId && p.id!==pid).slice(0,8));
-          if (prod?.category){
-            setSimilar(all.filter(p => (p.category||"") === (prod.category||"") && p.id!==pid).slice(0,8));
-          } else {
-            setSimilar(all.filter(p => p.id!==pid).slice(0,8));
-          }
+          if (prod?.category){ setSimilar(all.filter(p => (p.category||"") === (prod.category||"") && p.id!==pid).slice(0,8)); }
+          else { setSimilar(all.filter(p => p.id!==pid).slice(0,8)); }
         })(); }, []);
         return (<div className="mt-10 space-y-10">
           {(seller?.story || prod?.productStory) && (<section className="border rounded-2xl p-4 md:p-6"><h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3><p className="text-gray-700 whitespace-pre-line">{seller?.story || prod?.productStory}</p></section>)}
           {fromSeller.length>0 && (<section><div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3><a className="text-sm underline" href={"#/seller/"+(seller?.id||sellerId||"unknown")} onClick={(e)=>{e.preventDefault(); navTo("/seller/"+(seller?.id||sellerId||"unknown"));}}>Tümünü Gör</a></div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{fromSeller.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
-          {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div></section>)}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{fromSeller.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div>
+          </section>)}
+          {similar.length>0 && (<section><h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{similar.map(p=>(<a key={p.id} href={"#/products/"+p.id} onClick={(e)=>{e.preventDefault(); navTo("/products/"+p.id);}} className="border rounded-lg overflow-hidden"><img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/><div className="p-2"><p className="font-medium line-clamp-2">{p.productName||p.id}</p><p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p></div></a>))}</div>
+          </section>)}
         </div>);
       }
       RB.render(<Bottom />);
     }
 
-    // wishlist sync for product + header
+    // Wishlist sync
     syncFavoriteUI();
+
+    // Add-to-cart inline controls next to button
+    const addBtn = document.querySelector(".add-to-cart, [data-add-to-cart]");
+    if (addBtn){
+      function ensureInline(){
+        if (addBtn.__inline) return;
+        const wrap = document.createElement("span"); wrap.className="k-qty-inline";
+        wrap.innerHTML = '<span class="pill k-pulse"><button class="dec">-</button><span class="count">0</span><button class="inc">+</button></span>';
+        addBtn.after(wrap);
+        addBtn.__inline = { wrap, countEl: wrap.querySelector(".count"), pill: wrap.querySelector(".pill") };
+        setTimeout(()=> addBtn.__inline.pill.classList.remove("k-pulse"), 650);
+      }
+      ensureInline();
+      const upd = ()=>{ const q = cartQty(pid); addBtn.__inline.countEl.textContent = String(q); };
+      upd();
+      addBtn.addEventListener("click",(e)=>{
+        e.preventDefault();
+        cartAdd(pid, window.__k_current_product.name, window.__k_current_product.price||7999);
+        addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650);
+        upd();
+      });
+      addBtn.__inline.wrap.addEventListener("click",(e)=>{
+        if (e.target.classList.contains("dec")){ cartDec(pid); addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650); }
+        if (e.target.classList.contains("inc")){ cartAdd(pid, window.__k_current_product.name, window.__k_current_product.price||7999); addBtn.__inline.pill.classList.add("k-pulse"); setTimeout(()=>addBtn.__inline.pill.classList.remove("k-pulse"), 650); }
+        addBtn.__inline.countEl.textContent = String(cartQty(pid));
+      });
+    }
   })();
 }
 window.addEventListener("load", mountProduct);
 window.addEventListener("hashchange", ()=> setTimeout(mountProduct,0));
-
-/* CART OVERLAY
-   - Açılması yalnızca sepet ikonuna tıklayınca
-   - 'Sepete Ekle' tıklandığında overlay açma, sadece butonda qty animasyonu
-*/
-const $overlay = document.getElementById("k-cart-overlay");
-const $items   = document.getElementById("k-cart-items");
-const $total   = document.getElementById("k-total");
-$("#k-cart-close")?.addEventListener("click", ()=> closeCartOverlay());
-$overlay?.addEventListener("click",(e)=>{ if(e.target===$overlay) closeCartOverlay(); });
-function openCartOverlay(){ if(!$overlay) return; $overlay.style.display="block"; syncCartBadges(); }
-function closeCartOverlay(){ if(!$overlay) return; $overlay.style.display="none"; }
-function addLine(title, price){
-  const row = document.createElement("div"); row.className="flex items-center justify-between gap-3";
-  row.innerHTML = '<div class="flex-1">'+(title||"Ürün")+'</div><div>'+ (price||"0") +' ₺</div>';
-  $items.appendChild(row); recalcTotal(); syncCartBadges();
-}
-function recalcTotal(){ let sum=0; Array.from($items.children).forEach(r=>{ const t=r.lastChild.textContent.replace(/[^\d]/g,""); sum += Number(t||0); }); $total.textContent = sum + " ₺"; }
-function syncCartBadges(){ const c=($items?.children?.length||0); const d=$("#k-cart-badge"); if(d){ d.style.display = c>0 ? "inline-block" : "none"; d.textContent=String(c); } const m=$("#k-cart-badge-mobile"); if(m){ m.style.display = c>0 ? "inline-block" : "none"; m.textContent=String(c);} }
-
-// header desktop: rightmost -> cart (and click opens overlay)
-(function(){
-  const header = document.querySelector("header") || document;
-  const iconCandidates = $$("a,button", header).filter(n => /favori|sepet|cart|basket|wishlist|login|account|hesap/i.test(n.textContent||"") || n.querySelector("svg"));
-  if (iconCandidates.length){
-    const rightmost = iconCandidates[iconCandidates.length-1];
-    rightmost.style.position = "relative";
-    rightmost.innerHTML = '<span class="relative inline-block"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span id="k-cart-badge" class="k-cart-badge">0</span></span>';
-    rightmost.addEventListener("click", (e)=>{ e.preventDefault(); openCartOverlay(); });
-  }
-})();
-
-// mobile bottom bar last icon -> cart + badge
-(function(){
-  const bar = document.querySelector(".mobile-tabbar, .bottom-nav, nav[role='tablist'], footer");
-  if (!bar) return;
-  const lastBtn = $$("a,button", bar).slice(-1)[0]; if(!lastBtn) return;
-  lastBtn.innerHTML = '<span class="k-mobile-cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6L5 3H2"/></svg><span class="k-cart-icon-badge" id="k-cart-badge-mobile">0</span></span><div class="text-xs mt-1">Sepetim</div>';
-  lastBtn.addEventListener("click",(e)=>{ e.preventDefault(); openCartOverlay(); });
-  syncCartBadges();
-})();
-
-// Add-to-cart button -> only qty animation (no overlay)
-document.addEventListener("click",(e)=>{
-  const el = e.target.closest(".add-to-cart, [data-add-to-cart]");
-  if (!el) return;
-  e.preventDefault();
-  // create qty pill if not exists
-  if (!el.__qty){
-    const pill = document.createElement("span");
-    pill.className = "k-qty k-pulse";
-    pill.innerHTML = '<button aria-label="Azalt">-</button><span class="count">1</span><button aria-label="Arttır">+</button>';
-    el.__qty = { pill, count: 1 };
-    el.innerHTML = ""; el.appendChild(pill);
-    setTimeout(()=> pill.classList.remove("k-pulse"), 650);
-  } else {
-    // increment
-    el.__qty.count += 1;
-    el.__qty.pill.querySelector(".count").textContent = String(el.__qty.count);
-    el.__qty.pill.classList.add("k-pulse"); setTimeout(()=>el.__qty.pill.classList.remove("k-pulse"), 650);
-  }
-  addLine((document.querySelector("h1, .product-title")||{}).textContent||"Ürün", 7999);
-});
-// handle +/-
-document.addEventListener("click",(e)=>{
-  const dec = e.target.closest(".k-qty button:first-child");
-  const inc = e.target.closest(".k-qty button:last-child");
-  if (!dec && !inc) return;
-  const pill = e.target.closest(".k-qty"); const rootBtn = pill?.parentElement;
-  if (!pill || !rootBtn || !rootBtn.__qty) return;
-  if (dec){ rootBtn.__qty.count = Math.max(0, rootBtn.__qty.count - 1); }
-  if (inc){ rootBtn.__qty.count += 1; }
-  pill.querySelector(".count").textContent = String(rootBtn.__qty.count);
-  pill.classList.add("k-pulse"); setTimeout(()=>pill.classList.remove("k-pulse"), 650);
-});
 </script>
-<!-- === /Kadraj Enhancements Pack v14 === -->
+<!-- === /Kadraj Enhancements Pack v15 === -->
 
 </body>
 </html>
