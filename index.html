@@ -2892,18 +2892,18 @@ mo.observe(document.documentElement,{childList:true,subtree:true});
 
 </body>
 </html>
-<!-- === Kadraj Enhancements Pack v4 (video gallery + header-preserving seller page + wishlist state) === -->
+<!-- === Kadraj Enhancements Pack v5 (single-frame media) === -->
 <script type="text/babel">
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
-const navigateTo = (path)=>{ if(location.pathname!==path){ history.pushState({}, "", path);} window.dispatchEvent(new Event("popstate")); };
+const navigateTo = (p)=>{ if(location.pathname!==p){ history.pushState({}, "", p);} window.dispatchEvent(new Event("popstate")); };
 
-// Firebase shortcuts if your app exposes them
+// Firebase aliases
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-// Resolve product id robustly
+// Robust product resolver
 async function resolveProductFromPageX(){
   const host = document.querySelector("[data-product-id]");
   if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
@@ -2922,7 +2922,6 @@ async function resolveProductFromPageX(){
   }catch(e){}
   return null;
 }
-
 async function fetchProductX(id){
   try{
     if (!db || !doc || !getDoc) return null;
@@ -2959,7 +2958,7 @@ async function fetchProductsByX(filter){
   }catch(e){ return []; }
 }
 
-// FAVORITE GUARD + STATE
+// Wishlist paint (same as v4)
 async function checkFavorited(productId){
   try{
     if (window.WishlistService?.isFavorited) return await window.WishlistService.isFavorited(productId);
@@ -2985,7 +2984,7 @@ document.addEventListener("click",(e)=>{
   if(!user || user.isAnonymous){ e.preventDefault(); navigateTo("/login"); }
 }, true);
 
-// HEADER-PRESERVING ROUTER for /seller/*
+// Seller page inside main (preserve header/footer)
 (function(){
   const main = document.querySelector("main") || document.getElementById("root") || document.body;
   const hostId = "kadraj-route-main";
@@ -2993,7 +2992,6 @@ document.addEventListener("click",(e)=>{
   if (!host){ host = document.createElement("div"); host.id = hostId; main.appendChild(host); }
   const root = ReactDOM.createRoot(host);
   let showingSeller = false;
-
   function SellerPage({ sellerId }){
     const [seller, setSeller] = React.useState(null);
     const [products, setProducts] = React.useState([]);
@@ -3035,32 +3033,25 @@ document.addEventListener("click",(e)=>{
       </div>
     );
   }
-
   function onRoute(){
     const p = location.pathname;
     if (p.startsWith("/seller/")){
       const id = decodeURIComponent(p.split("/seller/")[1]||"");
       root.render(<SellerPage sellerId={id} />);
-      showingSeller = true;
-      window.scrollTo(0,0);
-      return;
+      showingSeller = true; window.scrollTo(0,0); return;
     }
-    if (showingSeller){
-      // leave seller: clear our mount and let the app render its own page
-      root.render(null);
-      showingSeller = false;
-    }
+    if (showingSeller){ root.render(null); showingSeller=false; }
   }
   window.addEventListener("popstate", onRoute);
   window.addEventListener("load", onRoute);
 })();
 
-// PRODUCT PAGE ENHANCEMENTS: media (image+video) gallery, bottom sections, seller name link, wishlist state
+// PRODUCT PAGE: single-frame media replacement
 function mountProductEnhancements(){
   const productRoot = document.querySelector("[data-product-id]") || document.querySelector('[data-role="product-detail"]');
   if (!productRoot) return;
-  if (productRoot.__kadrajEnhancedV4) return;
-  productRoot.__kadrajEnhancedV4 = true;
+  if (productRoot.__kadrajEnhancedV5) return;
+  productRoot.__kadrajEnhancedV5 = true;
 
   (async()=>{
     const pid = await resolveProductFromPageX();
@@ -3068,143 +3059,157 @@ function mountProductEnhancements(){
     const sellerId = product?.sellerId || product?.seller || product?.ownerId || null;
     const seller = sellerId ? await fetchSellerX(sellerId) : null;
 
-    // 0) Heart state
+    // 0) wishlist paint
     checkFavorited(pid).then(on => paintFavoriteUI(productRoot, on));
 
-    // 1) Seller line with name+link
+    // 1) seller name link
     const titleEl = productRoot.querySelector("h1, .product-title") || $("h1");
     if (titleEl){
-      const bar = document.createElement("div");
-      bar.className = "flex items-center gap-2 text-sm text-gray-600 mt-2";
-      const link = document.createElement("a");
-      link.href = "/seller/" + (seller?.id || sellerId || "unknown");
-      link.className = "underline hover:text-black";
-      link.textContent = seller?.displayName || seller?.name || product?.sellerName || "Satıcı";
-      link.addEventListener("click", (e)=>{ e.preventDefault(); navigateTo(link.href); });
-      bar.appendChild(document.createTextNode("Satıcı: "));
-      bar.appendChild(link);
-      titleEl.parentElement.insertBefore(bar, titleEl.nextSibling);
+      const existing = titleEl.parentElement.querySelector("#k-seller-line");
+      if (!existing){
+        const bar = document.createElement("div");
+        bar.id = "k-seller-line";
+        bar.className = "flex items-center gap-2 text-sm text-gray-600 mt-2";
+        const link = document.createElement("a");
+        link.href = "/seller/" + (seller?.id || sellerId || "unknown");
+        link.className = "underline hover:text-black";
+        link.textContent = seller?.displayName || seller?.name || product?.sellerName || "Satıcı";
+        link.addEventListener("click",(e)=>{ e.preventDefault(); navigateTo(link.href); });
+        bar.appendChild(document.createTextNode("Satıcı: "));
+        bar.appendChild(link);
+        titleEl.parentElement.insertBefore(bar, titleEl.nextSibling);
+      }
     }
 
-    // 2) Media gallery (images + videos)
-    // Build media list: priority product.imageUrls / product.videoUrls then DOM fallbacks
+    // 2) locate the **existing** main media container (left column) and replace its content only
+    let mediaEl = productRoot.querySelector("video, img");
+    if (!mediaEl){
+      mediaEl = document.querySelector("main video, main img") || document.querySelector("video, img");
+    }
+    if (!mediaEl) return;
+    let container = mediaEl.closest(".media, .product-gallery, figure, .swiper, .splide, .relative, .rounded-xl, .w-full, .content") || mediaEl.parentElement;
+    if (!container) container = mediaEl.parentElement;
+    // Remove any previous gallery mounts to avoid duplication
+    const prev = container.querySelector("#k-media-gallery");
+    if (prev) prev.remove();
+
+    // Build media list from product or DOM
     let media = [];
-    if (Array.isArray(product?.imageUrls)) media = media.concat(product.imageUrls.map(src => ({type:"image", src})));
-    if (Array.isArray(product?.videoUrls)) media = media.concat(product.videoUrls.map(src => ({type:"video", src})));
-    if (media.length === 0){
-      // fallback from DOM
-      const bigImgs = $$("img", productRoot).filter(i=> (i.width>200 || i.height>200)).map(i=>({type:"image", src:i.src}));
-      const vids = $$("video", productRoot).map(v=>{
-        const source = v.querySelector("source"); const src = source?.src || v.currentSrc || v.src;
+    if (Array.isArray(product?.imageUrls)) media = media.concat(product.imageUrls.map(src=>({type:"image", src})));
+    if (Array.isArray(product?.videoUrls)) media = media.concat(product.videoUrls.map(src=>({type:"video", src})));
+    if (media.length===0){
+      const imgs = $$("img", container).map(i=>({type:"image", src:i.src}));
+      const vids = $$("video", container).map(v=>{
+        const src = v.querySelector("source")?.src || v.currentSrc || v.src;
         return src ? {type:"video", src} : null;
       }).filter(Boolean);
-      media = bigImgs.concat(vids);
+      media = imgs.concat(vids);
     }
-    // If still empty, skip
-    if (media.length > 0){
-      const mainMedia = productRoot.querySelector("img, video");
-      const holder = mainMedia ? mainMedia.parentElement : productRoot;
-      holder.style.position = "relative";
-      // React renderer for safe switching
-      const mount = document.createElement("div");
-      holder.innerHTML = ""; // replace current media area only
-      holder.appendChild(mount);
-      const R = ReactDOM.createRoot(mount);
-      function MediaGallery(){
-        const [i, setI] = React.useState(0);
-        React.useEffect(()=>{ /* no-op */ }, [i]);
-        const item = media[i];
-        return (
-          <div>
-            <div className="relative rounded-xl overflow-hidden bg-gray-50">
-              {item.type==="image"
-                ? <img src={item.src} className="w-full h-auto object-contain"/>
-                : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
-              {media.length>1 && (
-                <>
-                  <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i-1+media.length)%media.length)}>‹</button>
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i+1)%media.length)}>›</button>
-                </>
-              )}
-            </div>
+    if (media.length===0) return;
+
+    // Replace container's **only** inner media nodes with our React gallery (keep container box/calc widths from site)
+    const mount = document.createElement("div");
+    mount.id = "k-media-gallery";
+    // Clear children safely
+    while (container.firstChild) container.removeChild(container.firstChild);
+    container.appendChild(mount);
+
+    const R = ReactDOM.createRoot(mount);
+    function MediaGallery(){
+      const [i, setI] = React.useState(0);
+      const item = media[i];
+      return (
+        <div>
+          <div className="relative bg-gray-50 rounded-xl overflow-hidden">
+            {item.type==="image"
+              ? <img src={item.src} className="w-full h-auto object-contain" />
+              : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
             {media.length>1 && (
-              <div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">
-                {media.map((m, idx)=>(
-                  <button key={idx} onClick={()=>setI(idx)} className={"border rounded overflow-hidden " + (idx===i?"ring-2 ring-black":"")}>
-                    {m.type==="image"
-                      ? <img src={m.src} className="w-full h-16 object-cover"/>
-                      : <div className="w-full h-16 bg-black grid place-items-center text-white text-xs">VIDEO</div>}
-                  </button>
-                ))}
-              </div>
+              <>
+                <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i-1+media.length)%media.length)}>‹</button>
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i+1)%media.length)}>›</button>
+              </>
             )}
           </div>
-        );
-      }
-      R.render(<MediaGallery />);
-    }
-
-    // 3) Bottom sections under main
-    const main = document.querySelector("main") || productRoot.closest("main") || document.body;
-    const mountBottom = document.createElement("div");
-    mountBottom.id = "k-product-extras-bottom-v4";
-    mountBottom.className = "max-w-6xl mx-auto px-4 md:px-6";
-    main.appendChild(mountBottom);
-    const RB = ReactDOM.createRoot(mountBottom);
-    function BottomSections(){
-      const [fromSeller, setFromSeller] = React.useState([]);
-      const [similar, setSimilar] = React.useState([]);
-      React.useEffect(()=>{ (async()=>{
-        if (sellerId) setFromSeller(await fetchProductsByX({ sellerId, exceptId: pid }));
-        if (product?.category) setSimilar(await fetchProductsByX({ category: product.category, exceptId: pid }));
-      })(); }, [pid]);
-      return (
-        <div className="mt-10 space-y-10">
-          {(seller?.story || product?.productStory) && (
-            <section className="border rounded-2xl p-4 md:p-6">
-              <h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3>
-              <p className="text-gray-700 whitespace-pre-line">{seller?.story || product?.productStory}</p>
-            </section>
-          )}
-          {fromSeller.length>0 && (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3>
-                <a className="text-sm underline" href={"/seller/"+(seller?.id || sellerId || "unknown")} onClick={(e)=>{ e.preventDefault(); navigateTo(e.currentTarget.getAttribute("href")); }}>Tümünü Gör</a>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {fromSeller.slice(0,8).map(p=>(
-                  <a key={p.id} href={"/products/"+p.id} className="border rounded-lg overflow-hidden" onClick={(e)=>{e.preventDefault(); navigateTo("/products/"+p.id);}}>
-                    <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
-                    <div className="p-2">
-                      <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
-                      <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
-          {similar.length>0 && (
-            <section>
-              <h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {similar.slice(0,8).map(p=>(
-                  <a key={p.id} href={"/products/"+p.id} className="border rounded-lg overflow-hidden" onClick={(e)=>{e.preventDefault(); navigateTo("/products/"+p.id);}}>
-                    <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
-                    <div className="p-2">
-                      <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
-                      <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
+          {media.length>1 && (
+            <div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">
+              {media.map((m, idx)=>(
+                <button key={idx} onClick={()=>setI(idx)} className={"border rounded overflow-hidden " + (idx===i?"ring-2 ring-black":"")}>
+                  {m.type==="image"
+                    ? <img src={m.src} className="w-full h-16 object-cover"/>
+                    : <div className="w-full h-16 bg-black grid place-items-center text-white text-xs">VIDEO</div>}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       );
     }
-    RB.render(<BottomSections />);
+    R.render(<MediaGallery />);
+
+    // 3) bottom sections (unchanged, minimal)
+    const main = document.querySelector("main") || productRoot.closest("main") || document.body;
+    if (!document.getElementById("k-product-extras-bottom-v5")){
+      const bottom = document.createElement("div");
+      bottom.id = "k-product-extras-bottom-v5";
+      bottom.className = "max-w-6xl mx-auto px-4 md:px-6";
+      main.appendChild(bottom);
+      const RB = ReactDOM.createRoot(bottom);
+      function Bottom({ product, pid, seller, sellerId }){
+        const [fromSeller, setFromSeller] = React.useState([]);
+        const [similar, setSimilar] = React.useState([]);
+        React.useEffect(()=>{ (async()=>{
+          if (sellerId) setFromSeller(await fetchProductsByX({ sellerId, exceptId: pid }));
+          if (product?.category) setSimilar(await fetchProductsByX({ category: product.category, exceptId: pid }));
+        })(); }, [pid]);
+        return (
+          <div className="mt-10 space-y-10">
+            {(seller?.story || product?.productStory) && (
+              <section className="border rounded-2xl p-4 md:p-6">
+                <h3 className="text-lg font-semibold mb-2">Satıcının Hikayesi</h3>
+                <p className="text-gray-700 whitespace-pre-line">{seller?.story || product?.productStory}</p>
+              </section>
+            )}
+            {fromSeller.length>0 && (
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold">Satıcının Diğer Ürünleri</h3>
+                  <a className="text-sm underline" href={"/seller/"+(seller?.id || sellerId || "unknown")} onClick={(e)=>{ e.preventDefault(); navigateTo(e.currentTarget.getAttribute("href")); }}>Tümünü Gör</a>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {fromSeller.slice(0,8).map(p=>(
+                    <a key={p.id} href={"/products/"+p.id} className="border rounded-lg overflow-hidden" onClick={(e)=>{e.preventDefault(); navigateTo("/products/"+p.id);}}>
+                      <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
+                      <div className="p-2">
+                        <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
+                        <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+            {similar.length>0 && (
+              <section>
+                <h3 className="text-lg font-semibold mb-3">Benzer Ürünler</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {similar.slice(0,8).map(p=>(
+                    <a key={p.id} href={"/products/"+p.id} className="border rounded-lg overflow-hidden" onClick={(e)=>{e.preventDefault(); navigateTo("/products/"+p.id);}}>
+                      <img src={(p.imageUrls&&p.imageUrls[0])||'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
+                      <div className="p-2">
+                        <p className="font-medium line-clamp-2">{p.productName||p.id}</p>
+                        <p className="text-sm text-gray-500">{p.price ? (p.price+" ₺") : ""}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        );
+      }
+      RB.render(<Bottom product={product} pid={pid} seller={seller} sellerId={sellerId} />);
+    }
   })();
 }
 
@@ -3213,4 +3218,4 @@ mo.observe(document.documentElement, { childList:true, subtree:true });
 window.addEventListener("load", mountProductEnhancements);
 window.addEventListener("popstate", ()=> setTimeout(mountProductEnhancements,0));
 </script>
-<!-- === /Kadraj Enhancements Pack v4 === -->
+<!-- === /Kadraj Enhancements Pack v5 === -->
