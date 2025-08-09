@@ -12,8 +12,8 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCqrcT7QY6tsYJidztDDu2BZhU7hLZF-ZE",
@@ -35,23 +35,11 @@
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.signOut = signOut;
         window.onAuthStateChanged = onAuthStateChanged;
-        window.signInAnonymously = signInAnonymously;
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
         window.collection = collection;
         window.getDocs = getDocs;
-        window.updateDoc = updateDoc;
-        window.arrayUnion = arrayUnion;
-        window.arrayRemove = arrayRemove;
-        window.query = query;
-        window.where = where;
-        window.updateDoc = updateDoc;
-        window.arrayUnion = arrayUnion;
-        window.arrayRemove = arrayRemove;
-        window.query = query;
-        window.where = where;
-
     </script>
 
     <style>
@@ -115,22 +103,6 @@
             }
         }
     </style>
-
-<style>
-/* Soft filled heart when user has favorites */
-.fav-indicator-on svg { fill: rgba(239,68,68,0.15); stroke: #ef4444; }
-
-/* Added animations */
-@keyframes pop-in { 0%{ transform: scale(0.9); opacity: .6;} 60%{ transform: scale(1.04); opacity: 1;} 100%{ transform: scale(1); } }
-@keyframes pulse-ring { 0%{ box-shadow: 0 0 0 0 rgba(0,0,0,0.08);} 70% { box-shadow: 0 0 0 8px rgba(0,0,0,0);} 100%{ box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
-.btn-added { animation: pop-in .35s ease; }
-.btn-ring { animation: pulse-ring .6s ease; }
-
-/* Floating dot to fly towards target icon */
-.fly-dot { position: fixed; width: 12px; height: 12px; border-radius: 9999px; background: #111; pointer-events: none; z-index: 1100; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
-.fly-dot.fav { background: #ef4444; }
-</style>
-
 </head>
 
 <body>
@@ -1996,17 +1968,19 @@
                         </div>
 
                         {/* SAĞ TARAF: ÜRÜN BİLGİLERİ (TÜM ALANLAR GÜNCELLENDİ) */}
-                        <div className="w-full md:w-1/2" data-product-id={product.id}>
-                            <a href={`\/category\/${(product.categorySlug || product.category || "").toLowerCase()}`} data-category={(product.categorySlug || product.category)} className="text-sm font-semibold text-gray-500 uppercase underline underline-offset-4 hover:text-gray-700 transition">{product.category}</a>
+                        <div className="w-full md:w-1/2">
+                            <p className="text-sm font-semibold text-gray-500 uppercase">{product.category}</p>
                             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 my-3">{product.productName}</h1>
                             <p className="text-3xl text-gray-800 mb-6">{product.price} {currency}</p>
                             
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                                <button data-add-to-cart="true" className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 font-bold">
+                                <button className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 font-bold">
                                     <ShoppingBagIcon size={20} />
                                     Sepete Ekle
                                 </button>
-                                <button data-toggle-favorite="true" className="w-full sm:w-auto border border-gray-300 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-100 transition"><HeartIcon size={20} /></button>
+                                <button className="w-full sm:w-auto border border-gray-300 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-100 transition">
+                                    <HeartIcon size={20} />
+                                </button>
                             </div>
 
                             {/* Detay Sekmeleri */}
@@ -2154,528 +2128,66 @@
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 
-<!-- Injected: Cart & Favorites & Category Listing logic -->
+<!-- KADRAJ C2C PATCH v8 CSS -->
+<style>
+.k-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:rgba(239,68,68,.15);color:#ef4444;font-size:11px;line-height:18px;text-align:center;font-weight:700;pointer-events:none}
+.k-icon-wrap{position:relative;display:inline-flex}
+.fav-indicator-on svg{fill:rgba(239,68,68,.15);stroke:#ef4444}
+@keyframes pop-in{0%{transform:scale(.9);opacity:.6}60%{transform:scale(1.04);opacity:1}100%{transform:scale(1)}}
+@keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(0,0,0,.08)}70%{box-shadow:0 0 0 8px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+.btn-added{animation:pop-in .35s ease}.btn-ring{animation:pulse-ring .6s ease}
+.fly-dot{position:fixed;width:12px;height:12px;border-radius:9999px;background:#111;pointer-events:none;z-index:1100;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+.fly-dot.fav{background:#ef4444}
+button.in-cart{background-color:#111827}
+button.in-cart .k-subtext{font-size:12px;color:#d1d5db;margin-left:8px}
+</style>
+
+<!-- KADRAJ C2C PATCH v8 JS -->
 <script type="text/babel">
-/** UTIL **/
+// Utils
+const flyTo=(srcEl,targetSelector,isFav=false)=>{try{const t=document.querySelector(targetSelector);if(!srcEl||!t)return;const a=srcEl.getBoundingClientRect();const b=t.getBoundingClientRect();const d=document.createElement('div');d.className='fly-dot'+(isFav?' fav':'');d.style.transform=`translate(${a.left+a.width/2}px, ${a.top+a.height/2}px)`;document.body.appendChild(d);requestAnimationFrame(()=>{d.style.transform=`translate(${b.left+b.width/2}px, ${b.top+b.height/2}px)`});setTimeout(()=>{d.remove()},700)}catch(e){}};
 
-// Create a small flying dot animation from srcEl to target (CSS selector)
-const flyTo = (srcEl, targetSelector, isFav=false) => {
-  try {
-    const tgt = document.querySelector(targetSelector);
-    if (!srcEl || !tgt) return;
-    const a = srcEl.getBoundingClientRect();
-    const b = tgt.getBoundingClientRect();
-    const dot = document.createElement('div');
-    dot.className = 'fly-dot' + (isFav ? ' fav' : '');
-    dot.style.transform = `translate(${a.left + a.width/2}px, ${a.top + a.height/2}px)`;
-    document.body.appendChild(dot);
-    requestAnimationFrame(()=>{
-      dot.style.transform = `translate(${b.left + b.width/2}px, ${b.top + b.height/2}px)`;
-    });
-    setTimeout(()=>{ dot.remove(); }, 700);
-  } catch(e){}
+const ensureIconWrappers=()=>{document.querySelectorAll('[data-open-cart],[data-open-favorites]').forEach(a=>{a.classList.add('k-icon-wrap');if(!a.querySelector('.k-badge')){const b=document.createElement('span');b.className='k-badge';b.style.display='none';a.appendChild(b);}})};
+
+const applyDesktopIconFix=()=>{
+  const c=[...document.querySelectorAll('header a, header button')].filter(el=>el.querySelector('svg'));
+  if(c.length){const r=c[c.length-1];r.setAttribute('data-open-cart','true');r.setAttribute('aria-label','Sepet');r.setAttribute('title','Sepet');}
+  const h=[...document.querySelectorAll('header a, header button')].find(el=>/heart|favori|wishlist/i.test((el.getAttribute('title')||'')+' '+(el.getAttribute('aria-label')||'')));
+  if(h){h.setAttribute('data-open-favorites','true');h.setAttribute('aria-label','Favoriler');h.setAttribute('title','Favoriler');}
+  ensureIconWrappers();
 };
 
-const getActiveUid = () => {
-  const user = window.firebaseAuth?.currentUser;
-  return user?.uid || null;
+// State helpers (reuse services if defined)
+const getUid=()=>window.firebaseAuth?.currentUser?.uid||null;
+
+const CartSvc={async get(){try{const uid=getUid();if(!uid)return[];const ref=window.doc(window.firebaseFirestore,'carts',uid);const s=await window.getDoc(ref);return s.exists()?(s.data().items||[]):[]}catch(e){return[]}}};
+
+const FavoriteSvc={async get(){try{const uid=getUid();if(!uid)return[];const ref=window.doc(window.firebaseFirestore,'favorites',uid);const s=await window.getDoc(ref);return s.exists()?(s.data().items||[]):[]}catch(e){return[]}}};
+
+const updateCartBadges=async()=>{ensureIconWrappers();const items=await (window.CartService?.get?.()||CartSvc.get());const count=items.reduce((s,i)=>s+(i.qty||1),0);document.querySelectorAll('[data-open-cart] .k-badge').forEach(b=>{b.textContent=count;b.style.display=count>0?'inline-block':'none'})};
+
+const applyFavIndicator=async()=>{const items=await (window.FavoriteService?.get?.()||FavoriteSvc.get());const has=items.length>0;document.querySelectorAll('[data-open-favorites]').forEach(el=>{el.classList.toggle('fav-indicator-on',has)})};
+
+// Product page "Sepette (adet)" göstergesi
+const getProductIdFromUrl=()=>{try{const parts=location.pathname.toLowerCase().split('/').filter(Boolean);const i=Math.max(parts.indexOf('product'),parts.indexOf('products'));if(i>=0&&parts[i+1])return parts[i+1];const u=new URL(location.href);return u.searchParams.get('id')}catch(e){return null}};
+const resolveProductFromPage=async()=>{let pid=getProductIdFromUrl();if(pid)return pid;try{const name=(document.querySelector('h1')?.textContent||'').trim().toLowerCase();const priceText=(document.querySelector('[class*="price"],[data-price]')?.textContent||'').replace(/\./g,'');const productsRef=window.collection(window.firebaseFirestore,'products');const qs=await window.getDocs(productsRef);const all=qs.docs.map(d=>({id:d.id,...d.data()}));if(name){const ex=all.find(p=>(p.productName||'').toLowerCase()===name);if(ex)return ex.id;const inc=all.find(p=>(p.productName||'').toLowerCase().includes(name));if(inc)return inc.id}if(priceText){const m=(priceText.match(/(\d[\d\s]*)/)||[])[1];if(m){const val=parseInt(m.replace(/\s/g,''),10);const list=all.filter(p=>(p.price|0)===val);if(list.length===1)return list[0].id}}}catch(e){}return null};
+
+const updateProductButtonState=async()=>{
+  const btn=document.querySelector('[data-add-to-cart]')||[...document.querySelectorAll('button')].find(b=>(b.textContent||'').toLowerCase().includes('sepete ekle'));
+  if(!btn)return;
+  let pid=document.querySelector('[data-product-id]')?.getAttribute('data-product-id');
+  if(!pid) pid=await resolveProductFromPage();
+  if(!pid) return;
+  const items=await (window.CartService?.get?.()||CartSvc.get());
+  const it=items.find(x=>x.productId===pid);
+  if(it){btn.classList.add('in-cart');btn.querySelectorAll('.k-subtext').forEach(n=>n.remove());const sub=document.createElement('span');sub.className='k-subtext';sub.textContent=`Sepette (${it.qty||1})`;btn.appendChild(sub);} else {btn.classList.remove('in-cart');btn.querySelectorAll('.k-subtext').forEach(n=>n.remove());}
 };
 
-/** SERVICES **/
-const CartService = {
-  async getDocRef() {
-    let uid = getActiveUid();
-    if (!uid && window.firebaseAuth) {
-      try { await window.signInAnonymously(window.firebaseAuth); uid = getActiveUid(); } catch(e){}
-    }
-    if (!uid) throw new Error('No auth uid');
-    return window.doc(window.firebaseFirestore, 'carts', uid);
-  },
-  async get() {
-    try {
-      const ref = await this.getDocRef();
-      const snap = await window.getDoc(ref);
-      return snap.exists() ? (snap.data().items || []) : [];
-    } catch(e){ console.error('get cart error', e); return []; }
-  },
-  async add(item) {
-    const ref = await this.getDocRef();
-    const base = { productId: item.productId, qty: item.qty || 1, price: item.price || 0, title: item.title || '', image: item.image || '' };
-    try {
-      const snap = await window.getDoc(ref);
-      if (!snap.exists()) {
-        await window.setDoc(ref, { items: [base], updatedAt: Date.now() });
-      } else {
-        const items = snap.data().items || [];
-        const idx = items.findIndex(i => i.productId === base.productId);
-        if (idx >= 0) { items[idx].qty += base.qty; } else { items.push(base); }
-        await window.updateDoc(ref, { items, updatedAt: Date.now() });
-      }
-    } catch(e){
-      console.error('add to cart error', e);
-      // fallback create
-      await window.setDoc(ref, { items: [base], updatedAt: Date.now() }, { merge: true });
-    }
-  },
-  async remove(productId) {
-    const ref = await this.getDocRef();
-    try {
-      const snap = await window.getDoc(ref);
-      if (!snap.exists()) return;
-      const items = (snap.data().items || []).filter(i => i.productId !== productId);
-      await window.updateDoc(ref, { items, updatedAt: Date.now() });
-    } catch(e){ console.error('remove from cart error', e); }
-  },
-  async clear() {
-    const ref = await this.getDocRef();
-    try { await window.updateDoc(ref, { items: [], updatedAt: Date.now() }); } catch(e){ await window.setDoc(ref, { items: [], updatedAt: Date.now() }); }
-  }
-};
-
-const FavoriteService = {
-  async getDocRef() {
-    let uid = getActiveUid();
-    if (!uid && window.firebaseAuth) {
-      try { await window.signInAnonymously(window.firebaseAuth); uid = getActiveUid(); } catch(e){}
-    }
-    if (!uid) throw new Error('No auth uid');
-    return window.doc(window.firebaseFirestore, 'favorites', uid);
-  },
-  async get() {
-    const ref = await this.getDocRef();
-    const snap = await window.getDoc(ref);
-    return snap.exists() ? (snap.data().items || []) : [];
-  },
-  async toggle(item) {
-    const ref = await this.getDocRef();
-    const snap = await window.getDoc(ref);
-    let items = [];
-    if (!snap.exists()) {
-      items = [item];
-      await window.setDoc(ref, { items, updatedAt: Date.now() });
-      return true;
-    } else {
-      items = snap.data().items || [];
-      const exists = items.find(i => i.productId === item.productId);
-      if (exists) {
-        items = items.filter(i => i.productId !== item.productId);
-        await window.updateDoc(ref, { items, updatedAt: Date.now() });
-        return false;
-      } else {
-        items.push(item);
-        await window.updateDoc(ref, { items, updatedAt: Date.now() });
-        return true;
-      }
-    }
-  }
-};
-
-/** AUTH MIGRATION (anon -> user) **/
-if (window.firebaseAuth) {
-  window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-    try {
-      if (user) {
-        const anonUid = localStorage.getItem('anonUid');
-        if (!anonUid || anonUid === user.uid) return;
-        // merge favorites
-        const favAnonRef = window.doc(window.firebaseFirestore, 'favorites', anonUid);
-        const favUserRef = window.doc(window.firebaseFirestore, 'favorites', user.uid);
-        const favAnonSnap = await window.getDoc(favAnonRef);
-        const favUserSnap = await window.getDoc(favUserRef);
-        const a = favAnonSnap.exists() ? (favAnonSnap.data().items || []) : [];
-        const b = favUserSnap.exists() ? (favUserSnap.data().items || []) : [];
-        const merged = [...b];
-        a.forEach(x => { if (!merged.find(y => y.productId === x.productId)) merged.push(x); });
-        if (merged.length) await window.setDoc(favUserRef, { items: merged, updatedAt: Date.now() }, { merge: true });
-        try { await window.setDoc(favAnonRef, { items: [] }, { merge: true }); } catch(e){}
-        // merge cart
-        const cartAnonRef = window.doc(window.firebaseFirestore, 'carts', anonUid);
-        const cartUserRef = window.doc(window.firebaseFirestore, 'carts', user.uid);
-        const cartAnonSnap = await window.getDoc(cartAnonRef);
-        const cartUserSnap = await window.getDoc(cartUserRef);
-        const ca = cartAnonSnap.exists() ? (cartAnonSnap.data().items || []) : [];
-        const cb = cartUserSnap.exists() ? (cartUserSnap.data().items || []) : [];
-        const cmerged = [...cb];
-        ca.forEach(x => {
-          const i = cmerged.findIndex(y => y.productId === x.productId);
-          if (i>=0) cmerged[i].qty += x.qty||1; else cmerged.push(x);
-        });
-        if (cmerged.length) await window.setDoc(cartUserRef, { items: cmerged, updatedAt: Date.now() }, { merge: true });
-        try { await window.setDoc(cartAnonRef, { items: [] }, { merge: true }); } catch(e){}
-      }
-    } catch(err){ console.error('auth migration error', err); }
-  });
-}
-
-
-/** OVERLAYS **/
-const OverlayRoot = (() => {
-  const hostId = 'kadraj-overlays-host';
-  let root = document.getElementById(hostId);
-  if (!root) {
-    root = document.createElement('div');
-    root.id = hostId;
-    document.body.appendChild(root);
-  }
-  const reactRoot = ReactDOM.createRoot(root);
-  return { render: (node) => reactRoot.render(node) };
-})();
-
-const Modal = ({ title, onClose, children }) => (
-  <div className="fixed inset-0 z-[1000] flex items-center justify-center">
-    <div className="absolute inset-0 bg-black/40" onClick={onClose}></div>
-    <div className="relative bg-white w-[92%] md:w-[800px] max-h-[80vh] overflow-auto rounded-2xl shadow-xl p-4 md:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">{title}</h3>
-        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      {children}
-    </div>
-  </div>
-);
-
-const CartOverlay = ({ onClose }) => {
-  const [items, setItems] = React.useState([]);
-  React.useEffect(() => { CartService.get().then(setItems); }, []);
-  const total = items.reduce((s, it) => s + (it.price||0) * (it.qty||1), 0);
-  return (
-    <Modal title="Sepetim" onClose={onClose}>
-      <div className="space-y-3">
-        {items.length === 0 && <p className="text-sm text-gray-500">Sepetiniz boş.</p>}
-        {items.map(it => (
-          <div key={it.productId} className="flex items-center gap-3 border rounded-lg p-2">
-            <img src={it.image || 'https://via.placeholder.com/80'} className="w-16 h-16 object-cover rounded" />
-            <div className="flex-1">
-              <p className="font-medium">{it.title || it.productId}</p>
-              <p className="text-sm text-gray-500">Adet: {it.qty} • Fiyat: {it.price}</p>
-            </div>
-            <button onClick={async ()=>{ await CartService.remove(it.productId); setItems(await CartService.get()); }} className="text-sm px-3 py-1 border rounded hover:bg-gray-50">Kaldır</button>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 flex items-center justify-between">
-        <span className="font-semibold">Toplam: {total.toFixed(2)}</span>
-        <div className="flex gap-2">
-          <button onClick={async()=>{ await CartService.clear(); setItems([]); }} className="px-3 py-2 border rounded hover:bg-gray-50">Temizle</button>
-          <button className="px-4 py-2 bg-black text-white rounded">Ödeme Adımına Geç</button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
-const FavoritesOverlay = ({ onClose }) => {
-  const [items, setItems] = React.useState([]);
-  React.useEffect(() => { FavoriteService.get().then(setItems); }, []);
-  return (
-    <Modal title="Favorilerim" onClose={onClose}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {items.length === 0 && <p className="text-sm text-gray-500">Henüz favori eklenmedi.</p>}
-        {items.map(it => (
-          <div key={it.productId} className="flex items-center gap-3 border rounded-lg p-2">
-            <img src={it.image || 'https://via.placeholder.com/80'} className="w-16 h-16 object-cover rounded" />
-            <div className="flex-1">
-              <p className="font-medium">{it.title || it.productId}</p>
-              <p className="text-sm text-gray-500">{it.price ? (it.price + ' ₺') : ''}</p>
-            </div>
-            <button onClick={async ()=>{ await FavoriteService.toggle({productId: it.productId}); setItems(await FavoriteService.get()); }} className="text-sm px-3 py-1 border rounded hover:bg-gray-50">Kaldır</button>
-          </div>
-        ))}
-      </div>
-    </Modal>
-  );
-};
-
-const CategoryOverlay = ({ slug, onClose }) => {
-  const [items, setItems] = React.useState([]);
-  React.useEffect(() => {
-    (async ()=>{
-      try {
-        const productsRef = window.collection(window.firebaseFirestore, 'products');
-        const qs = await window.getDocs(productsRef);
-        const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-        const lower = slug.toLowerCase();
-        const filtered = all.filter(p => (p.category||'').toLowerCase().includes(lower));
-        setItems(filtered);
-      } catch(e){ console.error(e); }
-    })();
-  }, [slug]);
-  return (
-    <Modal title={"Kategori: " + slug} onClose={onClose}>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {items.map(p => (
-          <div key={p.id} className="border rounded-lg overflow-hidden">
-            <img src={(p.imageUrls && p.imageUrls[0]) || 'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
-            <div className="p-2">
-              <p className="font-medium line-clamp-2">{p.productName || p.id}</p>
-              <p className="text-sm text-gray-500">{p.price ? (p.price + ' ₺') : ''}</p>
-              <div className="mt-2 flex gap-2">
-                <button className="flex-1 px-2 py-1 border rounded text-sm hover:bg-gray-50" data-quick-add data-product-id={p.id}>Sepete Ekle</button>
-                <button className="px-2 py-1 border rounded text-sm hover:bg-gray-50" data-quick-fav data-product-id={p.id}>❤</button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Modal>
-  );
-};
-
-/** GLOBAL HELPERS **/
-window.openCart = () => OverlayRoot.render(<CartOverlay onClose={()=>OverlayRoot.render(null)} />);
-window.openFavorites = () => OverlayRoot.render(<FavoritesOverlay onClose={()=>OverlayRoot.render(null)} />);
-window.openCategory = (slug) => navigateTo(`/category/${slug}`);
-
-
-/** ROUTER: Category full page (not overlay) **/
-const RouterRoot = (() => {
-  const id = 'kadraj-router-root';
-  let el = document.getElementById(id);
-  if (!el) {
-    el = document.createElement('div');
-    el.id = id;
-    el.style.position = 'fixed';
-    el.style.inset = '0';
-    el.style.zIndex = '999'; /* below overlays (1000), above app */
-    el.style.display = 'none';
-    document.body.appendChild(el);
-  }
-  const root = ReactDOM.createRoot(el);
-  return {
-    show(node) { el.style.display = 'block'; root.render(node); window.scrollTo(0,0); },
-    hide() { el.style.display = 'none'; root.render(null); }
-  };
-})();
-
-const CategoryPage = ({ slug }) => {
-  const [items, setItems] = React.useState([]);
-  React.useEffect(() => {
-    (async ()=>{
-      try{
-        const productsRef = window.collection(window.firebaseFirestore, 'products');
-        const qs = await window.getDocs(productsRef);
-        const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-        const s = (slug||'').toLowerCase();
-        const filtered = all.filter(p => (p.category||'').toLowerCase().includes(s));
-        setItems(filtered);
-      }catch(e){ console.error(e); }
-    })();
-  }, [slug]);
-  return (
-    <div className="bg-white w-full h-full overflow-y-auto">
-      <div className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl md:text-2xl font-bold capitalize">{slug}</h1>
-          <button onClick={()=>{ history.back(); }} className="px-3 py-2 border rounded hover:bg-gray-50">Geri</button>
-        </div>
-        {items.length === 0 ? (
-          <p className="text-sm text-gray-500">Bu kategoride ürün bulunamadı.</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {items.map(p => (
-              <div key={p.id} className="border rounded-lg overflow-hidden">
-                <img src={(p.imageUrls && p.imageUrls[0]) || 'https://via.placeholder.com/400'} className="w-full h-40 object-cover"/>
-                <div className="p-2">
-                  <p className="font-medium line-clamp-2">{p.productName || p.id}</p>
-                  <p className="text-sm text-gray-500">{p.price ? (p.price + ' ₺') : ''}</p>
-                  <div className="mt-2 flex gap-2">
-                    <button className="flex-1 px-2 py-1 border rounded text-sm hover:bg-gray-50" data-quick-add data-product-id={p.id}>Sepete Ekle</button>
-                    <button className="px-2 py-1 border rounded text-sm hover:bg-gray-50" data-quick-fav data-product-id={p.id}>❤</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const navigateTo = (path) => {
-  if (window.location.pathname !== path) history.pushState({}, '', path);
-  handleRoute();
-};
-
-const handleRoute = () => {
-  const path = window.location.pathname;
-  if (path.startsWith('/category/')) {
-    const slug = decodeURIComponent(path.split('/category/')[1] || '');
-    RouterRoot.show(<CategoryPage slug={slug} />);
-  } else {
-    RouterRoot.hide();
-  }
-};
-
-window.addEventListener('popstate', handleRoute);
-window.addEventListener('load', handleRoute);
-
-/** EVENT DELEGATION **/
-const getProductIdFromUrl = () => {
-  try {
-    const path = window.location.pathname.toLowerCase();
-    const parts = path.split('/').filter(Boolean);
-    const idx = Math.max(parts.indexOf('product'), parts.indexOf('products'));
-    if (idx >= 0 && parts[idx+1]) return parts[idx+1];
-    // also try ?id=
-    const url = new URL(window.location.href);
-    const idParam = url.searchParams.get('id');
-    if (idParam) return idParam;
-  } catch(e){}
-  return null;
-};
-
-const innerTextTrim = (el) => (el && (el.textContent||'').trim()) || '';
-const parsePrice = (s) => {
-  if (!s) return null;
-  const m = (s.replace(/\./g,'').match(/(\d+[\d\s]*)/)||[])[1];
-  if (!m) return null;
-  return parseInt(m.replace(/\s/g,''),10);
-};
-
-const resolveProductFromPage = async () => {
-  // Try URL-based first
-  let pid = getProductIdFromUrl();
-  if (pid) return pid;
-  try {
-    // Try to read product name and price from DOM
-    const name = innerTextTrim(document.querySelector('h1, .product-title, [data-product-name]'));
-    const priceText = innerTextTrim(document.querySelector('[class*="price"], [data-price]'));
-    const priceVal = parsePrice(priceText);
-    const productsRef = window.collection(window.firebaseFirestore, 'products');
-    const qs = await window.getDocs(productsRef);
-    const all = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    // Prefer exact name match (case-insensitive)
-    if (name) {
-      const byName = all.find(p => (p.productName||'').toLowerCase() === name.toLowerCase());
-      if (byName) return byName.id;
-      // try includes
-      const byInc = all.find(p => (p.productName||'').toLowerCase().includes(name.toLowerCase()));
-      if (byInc) return byInc.id;
-    }
-    // Try price-only (if unique)
-    if (priceVal != null) {
-      const byPrice = all.filter(p => (p.price|0) === priceVal);
-      if (byPrice.length === 1) return byPrice[0].id;
-    }
-  } catch(e){ console.warn('resolveProductFromPage failed', e); }
-  return null;
-};
-
-
-document.addEventListener('click', async (e) => {
-  const el = e.target.closest('[data-add-to-cart],[data-toggle-favorite],[data-open-cart],[data-open-favorites],[data-category],[data-quick-add],[data-quick-fav],a[href^="/category/"]');
-  if (!el) return;
-
-  // Openers
-  if (el.hasAttribute('data-open-cart')) { e.preventDefault(); window.openCart(); return; }
-  if (el.hasAttribute('data-open-favorites')) { e.preventDefault(); window.openFavorites(); return; }
-
-  // Category open
-  if (el.matches && el.matches('a[href^="/category/"]')) {
-    e.preventDefault();
-    const href = el.getAttribute('href');
-    const slug = href.split('/category/')[1] || '';
-    if (slug) { navigateTo(`/category/${slug}`); }
-    return;
-  }
-
-  if (el.hasAttribute('data-category')) {
-    e.preventDefault();
-    const slug = el.getAttribute('data-category');
-    navigateTo(`/category/${slug}`);
-    return;
-  }
-
-  // Quick actions from category grid
-  if (el.hasAttribute('data-quick-add') || el.hasAttribute('data-quick-fav')) {
-    e.preventDefault();
-    const productId = el.getAttribute('data-product-id');
-    // fetch product
-    try {
-      const ref = window.doc(window.firebaseFirestore, 'products', productId);
-      const snap = await window.getDoc(ref);
-      const data = snap.exists() ? snap.data() : {};
-      const payload = { productId, qty: 1, price: data.price || 0, title: data.productName || '', image: (data.imageUrls && data.imageUrls[0]) || '' };
-      if (el.hasAttribute('data-quick-add')) { await CartService.add(payload); window.dispatchEvent(new CustomEvent('cart:changed')); el.classList.add('btn-added','btn-ring'); setTimeout(()=>{ el.classList.remove('btn-added','btn-ring'); }, 650); flyTo(el, '[data-open-cart]'); }
-      if (el.hasAttribute('data-quick-fav')) { await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image }); window.dispatchEvent(new CustomEvent('favorites:changed')); el.classList.add('btn-added'); setTimeout(()=>{ el.classList.remove('btn-added'); }, 550); flyTo(el, '[data-open-favorites]', true); }
-    } catch(err){ console.error(err); }
-    return;
-  }
-
-  // Product detail buttons
-  if (el.hasAttribute('data-add-to-cart') || el.hasAttribute('data-toggle-favorite')) {
-    e.preventDefault();
-    // try to get productId from nearest container
-    const container = el.closest('[data-product-id]');
-    let productId = container ? container.getAttribute('data-product-id') : null;
-    if (!productId) { productId = await resolveProductFromPage(); }
-    if (!productId) { console.warn('productId not found in DOM'); return; }
-    try {
-      const ref = window.doc(window.firebaseFirestore, 'products', productId);
-      const snap = await window.getDoc(ref);
-      const data = snap.exists() ? snap.data() : {};
-      const payload = { productId, qty: 1, price: data.price || 0, title: data.productName || '', image: (data.imageUrls && data.imageUrls[0]) || '' };
-      if (el.hasAttribute('data-add-to-cart')) await CartService.add(payload);
-      if (el.hasAttribute('data-toggle-favorite')) { const added = await FavoriteService.toggle({ productId, title: payload.title, price: payload.price, image: payload.image }); window.dispatchEvent(new CustomEvent('favorites:changed')); el.classList.add('btn-added'); setTimeout(()=>{ el.classList.remove('btn-added'); }, 550); flyTo(el, '[data-open-favorites]', true); }
-    } catch(err){ console.error(err); }
-    return;
-  }
-});
-
-/** NAVBAR / BOTTOM BAR HOOKS **/
-const tryAttachBarButtons = () => {
-  // Also match by aria-label on links or buttons
-  document.querySelectorAll('a[aria-label],button[aria-label]').forEach(el => {
-    const t = (el.getAttribute('aria-label')||'').trim().toLowerCase();
-    if (t === 'sepet' || t === 'sepetim' || t === 'cart' || t === 'my cart') el.setAttribute('data-open-cart','true');
-    if (t === 'favoriler' || t === 'favorites') el.setAttribute('data-open-favorites','true');
-  });
-  // If there are plain icon-only anchors with ShoppingBag/Heart, add data-open-*
-  document.querySelectorAll('a,button').forEach(el => {
-    const title = (el.getAttribute('title')||'').toLowerCase();
-    if (title.includes('sepet') || title.includes('cart')) el.setAttribute('data-open-cart','true');
-    if (title.includes('favori') || title.includes('favorite')) el.setAttribute('data-open-favorites','true');
-  });
-
-  // Auto-tag product detail buttons if data-* not present (enhanced)
-  document.querySelectorAll('button').forEach(btn => {
-    const t = (btn.textContent || '').trim().toLowerCase();
-    if (!btn.hasAttribute('data-add-to-cart') && (t === 'sepete ekle' || t === 'add to cart')) {
-      btn.setAttribute('data-add-to-cart','true');
-    }
-    // heart-only button heuristic: contains an SVG with stroke set and no text
-    if (!btn.hasAttribute('data-toggle-favorite')) {
-      const hasHeart = btn.querySelector('svg') && (btn.innerText.trim() === '' || btn.innerText.trim() === '❤');
-      if (hasHeart) btn.setAttribute('data-toggle-favorite','true');
-    }
-  });
-
-  // Add data-open attributes to ShoppingBag and Heart icons in bottom bar if exist
-  document.querySelectorAll('span').forEach(sp => {
-    const t = sp.textContent.trim().toLowerCase();
-    if (t === 'sepet' || t === 'sepetim' || t === 'my cart') {
-      const a = sp.closest('a'); if (a) a.setAttribute('data-open-cart','true');
-    }
-    const f = sp.textContent.trim().toLowerCase();
-    if (f === 'favoriler' || f === 'favorites') {
-      const a = sp.closest('a'); if (a) a.setAttribute('data-open-favorites','true');
-    }
-  });
-
-  // Header menu items: intercept /category/<slug>
-  document.querySelectorAll('nav a[href^="/category/"], a[data-category]').forEach(a => {
-    const href = a.getAttribute('href');
-    const slug = href.split('/category/')[1];
-    if (slug) a.setAttribute('data-category', slug);
-  });
-};
-const mo = new MutationObserver(() => tryAttachBarButtons());
-mo.observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener('load', tryAttachBarButtons);
+// Hook events
+window.addEventListener('favorites:changed', ()=>{applyFavIndicator()});
+window.addEventListener('cart:changed', ()=>{updateCartBadges();updateProductButtonState()});
+window.addEventListener('load', ()=>{applyDesktopIconFix();updateCartBadges();applyFavIndicator();updateProductButtonState();});
+const mo=new MutationObserver(()=>{applyDesktopIconFix();ensureIconWrappers()});mo.observe(document.documentElement,{childList:true,subtree:true});
 </script>
 
 </body>
