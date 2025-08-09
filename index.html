@@ -3084,5 +3084,74 @@ const mountSellerSections = async () => {
 window.addEventListener('load', mountSellerSections);
 </script>
 
+
+<script type="text/babel">
+/** ---------- Account Favorites page mount (grid with links) ---------- */
+const mountAccountFavorites = () => {
+  const nodes = Array.from(document.querySelectorAll('div,section,main,p'));
+  const host = nodes.find(n => /Favori tasar(ı|i)mlar(ı)n(ı)z burada listelenecek\./i.test(n.textContent||''));
+  if (!host) return;
+  const mount = document.createElement('div');
+  host.replaceChildren(mount);
+  const Grid = () => {
+    const [items, setItems] = React.useState([]);
+    React.useEffect(()=>{ (window.FavoriteService?.get?.() || (async()=>[]))().then(setItems); },[]);
+    React.useEffect(()=>{
+      const h = () => (window.FavoriteService?.get?.() || (async()=>[]))().then(setItems);
+      window.addEventListener('favorites:changed', h);
+      return ()=>window.removeEventListener('favorites:changed', h);
+    },[]);
+    if (!items || !items.length) return React.createElement('p', {className:'text-sm text-gray-500'}, 'Henüz favori eklenmemiş.');
+    return (
+      React.createElement('div', {className:'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'},
+        items.map(it => (
+          React.createElement('a', {key: it.productId, href:`/products/${it.productId}`, className:'border rounded-lg overflow-hidden block hover:shadow-sm transition'},
+            React.createElement('img', {src: it.image || 'https://via.placeholder.com/400', className:'w-full h-40 object-cover'}),
+            React.createElement('div', {className:'p-2'},
+              React.createElement('p', {className:'font-medium line-clamp-2'}, it.title || it.productId),
+              React.createElement('p', {className:'text-sm text-gray-500'}, it.price ? (it.price + ' ₺') : '')
+            )
+          )
+        ))
+    );
+  };
+  ReactDOM.createRoot(mount).render(React.createElement(Grid));
+};
+const moFavAcc = new MutationObserver(()=>mountAccountFavorites());
+moFavAcc.observe(document.documentElement,{childList:true,subtree:true});
+window.addEventListener('load', mountAccountFavorites);
+
+/** ---------- Overlays: click item -> navigate to product page ---------- */
+const resolveProductIdByTitle = async (title) => {
+  try{
+    const ref = window.collection(window.firebaseFirestore, 'products');
+    const qs = await window.getDocs(ref);
+    const all = qs.docs.map(d=>({id:d.id, ...d.data()}));
+    const t = (title||'').trim().toLowerCase();
+    const exact = all.find(p => (p.productName||'').toLowerCase() === t);
+    if (exact) return exact.id;
+    const inc = all.find(p => (p.productName||'').toLowerCase().includes(t));
+    if (inc) return inc.id;
+  }catch(e){}
+  return null;
+};
+
+const attachOverlayNavigation = () => {
+  const host = document.getElementById('kadraj-overlays-host');
+  if (!host) return;
+  host.addEventListener('click', async (e) => {
+    const img = e.target.closest('#kadraj-overlays-host img');
+    const titleEl = e.target.closest('#kadraj-overlays-host p.font-medium');
+    const container = img?.closest('div.flex.items-center.gap-3.border.rounded-lg.p-2') || titleEl?.closest('div.flex.items-center.gap-3.border.rounded-lg.p-2');
+    if (!container) return;
+    const title = (container.querySelector('p.font-medium')?.textContent || '').trim();
+    if (!title) return;
+    const pid = await resolveProductIdByTitle(title);
+    if (pid) { window.location.href = `/products/${pid}`; }
+  });
+};
+window.addEventListener('load', attachOverlayNavigation);
+</script>
+
 </body>
 </html>
