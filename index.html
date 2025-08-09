@@ -2892,46 +2892,31 @@ mo.observe(document.documentElement,{childList:true,subtree:true});
 
 </body>
 </html>
-<!-- === Kadraj Enhancements Pack v8 (base path hardening + precise seller link + correct initial media + working thumbs) === -->
+<!-- === Kadraj Enhancements Pack v9 (seller route fix + unified media + video thumb + sections + no auto-filled heart) === -->
 <script type="text/babel">
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
-/* ---------- Base path helpers (GitHub Pages project sites) ---------- */
+// ---------- BASE PATH (GitHub Pages project) ----------
 function detectBase(){
-  // "/kadrajc2c/..." -> "/kadrajc2c"
   const segs = location.pathname.split("/").filter(Boolean);
   if (segs.length >= 1) return "/" + segs[0];
   return "";
 }
 const BASE = detectBase();
-function joinPath(...parts){
-  return ("/" + parts.join("/").replace(/(^\/+|\/+$)/g,"")).replace(/\/+/g,"/");
-}
-function onlyPath(hrefLike){
-  try{
-    const u = new URL(hrefLike, location.origin);
-    return u.pathname + u.search + u.hash;
-  }catch{
-    return (hrefLike || "").toString();
-  }
-}
-function go(relativePath){
-  // relativePath can be "/seller/ID" or "seller/ID" or full URL
-  let path = onlyPath(relativePath);
-  if (!path.startsWith(BASE)) path = joinPath(BASE, path);
-  if (location.pathname !== path){
-    history.pushState({}, "", path);
-  }
+function joinPath(...parts){ return ("/" + parts.join("/").replace(/(^\/+|\/+$)/g,"")).replace(/\/+/g,"/"); }
+function go(rel){
+  const target = rel.startsWith(BASE) ? rel : joinPath(BASE, rel);
+  if (location.pathname !== target) history.pushState({}, "", target);
   window.dispatchEvent(new Event("popstate"));
 }
 
-/* ---------- Firebase aliases if available ---------- */
+// ---------- Firebase shortcuts if available ----------
 const db = window.firebaseFirestore;
 const doc = window.doc, getDoc = window.getDoc;
 const collection = window.collection, getDocs = window.getDocs;
 
-/* ---------- Data helpers ---------- */
+// ---------- Data helpers ----------
 async function resolveProductFromPageX(){
   const host = document.querySelector("[data-product-id]");
   if (host?.getAttribute("data-product-id")) return host.getAttribute("data-product-id");
@@ -2990,25 +2975,7 @@ async function fetchProductsByX(filter){
   }catch(e){ return []; }
 }
 
-/* ---------- Wishlist paint ---------- */
-async function checkFavorited(productId){
-  try{
-    if (window.WishlistService?.isFavorited) return await window.WishlistService.isFavorited(productId);
-    const user = window.firebaseAuth?.currentUser; if(!user) return false;
-    const w = await getDoc(doc(db, "wishlists", user.uid));
-    if (!w.exists()) return false;
-    const items = w.data().items || [];
-    return !!items.find(it => it.productId === productId || it === productId);
-  }catch(e){ return false; }
-}
-function paintFavoriteUI(root, on){
-  const favBtn = root.querySelector("[data-toggle-favorite]") || document.querySelector("[data-toggle-favorite]");
-  if (!favBtn) return;
-  favBtn.setAttribute("aria-pressed", on ? "true" : "false");
-  favBtn.classList.toggle("is-favorited", !!on);
-  const svg = favBtn.querySelector("svg");
-  if (svg){ if(on){ svg.setAttribute("fill","currentColor"); } else { svg.removeAttribute("fill"); } }
-}
+// ---------- Favorites: require login, but DO NOT auto-paint as filled ----------
 document.addEventListener("click",(e)=>{
   const el = e.target.closest("[data-toggle-favorite]");
   if (!el) return;
@@ -3016,7 +2983,7 @@ document.addEventListener("click",(e)=>{
   if(!user || user.isAnonymous){ e.preventDefault(); go("/login"); }
 }, true);
 
-/* ---------- Seller page inside <main> (keeps header/footer) ---------- */
+// ---------- Seller page router (hides underlying home content) ----------
 (function(){
   const main = document.querySelector("main") || document.getElementById("root") || document.body;
   const hostId = "kadraj-route-main";
@@ -3024,6 +2991,16 @@ document.addEventListener("click",(e)=>{
   if (!host){ host = document.createElement("div"); host.id = hostId; main.appendChild(host); }
   const root = ReactDOM.createRoot(host);
   let showing = false;
+
+  // hide all siblings of host inside main when showing seller page
+  function setMainMask(on){
+    const kids = Array.from(main.children);
+    kids.forEach(ch => {
+      if (ch === host) return;
+      if (on){ ch.setAttribute("data-k-hide","1"); ch.style.display="none"; }
+      else if (ch.getAttribute("data-k-hide")==="1"){ ch.style.display=""; ch.removeAttribute("data-k-hide"); }
+    });
+  }
 
   function SellerPage({ sellerId }){
     const [seller, setSeller] = React.useState(null);
@@ -3072,21 +3049,26 @@ document.addEventListener("click",(e)=>{
     const basePrefix = joinPath(BASE,"/seller/");
     if (location.pathname.startsWith(basePrefix)){
       const id = decodeURIComponent(location.pathname.slice(basePrefix.length));
+      setMainMask(true);
       root.render(<SellerPage sellerId={id}/>);
       showing = true; window.scrollTo(0,0); return;
     }
-    if (showing){ root.render(null); showing=false; }
+    if (showing){
+      root.render(null);
+      setMainMask(false);
+      showing=false;
+    }
   }
   window.addEventListener("popstate", onRoute);
   window.addEventListener("load", onRoute);
 })();
 
-/* ---------- Product page: unified media with correct initial index ---------- */
+// ---------- Product page enhancer (unified media + working thumbs + sections) ----------
 function mountProductEnhancements(){
   const root = document.querySelector("[data-product-id]") || document.querySelector('[data-role="product-detail"]');
   if (!root) return;
-  if (root.__kadrajEnhancedV8) return;
-  root.__kadrajEnhancedV8 = true;
+  if (root.__kadrajEnhancedV9) return;
+  root.__kadrajEnhancedV9 = true;
 
   (async()=>{
     const pid = await resolveProductFromPageX();
@@ -3096,10 +3078,7 @@ function mountProductEnhancements(){
     const seller = await fetchSellerX(sellerIdRaw, sellerName);
     const sellerId = seller?.id || sellerIdRaw;
 
-    // Favori kalbi
-    checkFavorited(pid).then(on => paintFavoriteUI(root, on));
-
-    // Satıcı adı + link
+    // 1) Seller line with correct link (base aware)
     const titleEl = root.querySelector("h1, .product-title") || $("h1");
     if (titleEl && !$("#k-seller-line")){
       const bar = document.createElement("div");
@@ -3115,85 +3094,86 @@ function mountProductEnhancements(){
       titleEl.parentElement.insertBefore(bar, titleEl.nextSibling);
     }
 
-    // En büyük medya kapsayıcısını bul
+    // 2) Unified media in the main left container (with VIDEO thumbnail)
     const candidates = $$("img, video", root).map(el=>{
       const r = el.getBoundingClientRect(); return { el, area: r.width*r.height };
     }).filter(x=> x.area>5000);
-    if (!candidates.length) return;
-    candidates.sort((a,b)=> b.area - a.area);
-    let container = candidates[0].el.parentElement;
-    if (container && container.children.length===1) container = container.parentElement || container;
+    if (candidates.length){
+      candidates.sort((a,b)=> b.area - a.area);
+      let container = candidates[0].el.parentElement;
+      if (container && container.children.length===1) container = container.parentElement || container;
 
-    // Orijinal ilk medyanın kaynağı (başlangıç indexini doğru seçmek için)
-    let originalType = candidates[0].el.tagName.toLowerCase();
-    let originalSrc = "";
-    if (originalType === "video"){
-      const v = candidates[0].el;
-      originalSrc = v.querySelector("source")?.src || v.currentSrc || v.src || "";
-    } else {
-      originalSrc = candidates[0].el.src || "";
-    }
+      // capture the originally visible media to set initial index
+      const origEl = candidates[0].el;
+      const origType = origEl.tagName.toLowerCase()==="video" ? "video" : "image";
+      const origSrc = origType==="video" ? (origEl.querySelector("source")?.src || origEl.currentSrc || origEl.src || "") : (origEl.src || "");
 
-    // Medya listesi (resim + video)
-    let list = [];
-    if (Array.isArray(product?.imageUrls)) list = list.concat(product.imageUrls.map(src=>({type:"image", src})));
-    if (Array.isArray(product?.videoUrls)) list = list.concat(product.videoUrls.map(src=>({type:"video", src})));
-    if (list.length===0){
-      const imgs = $$("img", root).filter(i=> i.width>120 && i.height>120).map(i=>({type:"image", src:i.src}));
-      const vids = $$("video", root).map(v=>{
-        const s = v.querySelector("source")?.src || v.currentSrc || v.src; return s ? {type:"video", src:s} : null;
-      }).filter(Boolean);
-      list = imgs.concat(vids);
-    }
-    // benzersiz yap
-    const seen = new Set(); list = list.filter(m=> m.src && !seen.has(m.src) && seen.add(m.src));
-    if (!list.length) return;
+      // build list
+      let list = [];
+      if (Array.isArray(product?.imageUrls)) list = list.concat(product.imageUrls.map(src=>({type:"image", src})));
+      if (Array.isArray(product?.videoUrls)) list = list.concat(product.videoUrls.map(src=>({type:"video", src})));
+      if (list.length===0){
+        const imgs = $$("img", root).filter(i=> i.width>120 && i.height>120).map(i=>({type:"image", src:i.src}));
+        const vids = $$("video", root).map(v=>{
+          const s = v.getAttribute("poster") || v.querySelector("source")?.src || v.currentSrc || v.src;
+          const src = v.querySelector("source")?.src || v.currentSrc || v.src;
+          return src ? {type:"video", src, poster: s && s!==src ? s : null} : null;
+        }).filter(Boolean);
+        list = imgs.concat(vids);
+      }
+      // uniq by src
+      const seen = new Set(); list = list.filter(m=> m.src && !seen.has(m.src) && seen.add(m.src));
 
-    // Başlangıç indexi: sayfada halihazırda görünen medya
-    let startIndex = list.findIndex(m => m.src === originalSrc && m.type === (originalType==="video"?"video":"image"));
-    if (startIndex < 0) startIndex = 0;
+      // initial index
+      let startIndex = list.findIndex(m => m.src === origSrc && m.type === origType);
+      if (startIndex < 0) startIndex = 0;
 
-    // Kapsayıcının içini sadece biz yönetelim
-    const mount = document.createElement("div"); mount.id="k-media-gallery";
-    while (container.firstChild) container.removeChild(container.firstChild);
-    container.appendChild(mount);
-
-    const R = ReactDOM.createRoot(mount);
-    function MediaGallery(){
-      const [i, setI] = React.useState(startIndex);
-      const item = list[i];
-      return (
-        <div>
-          <div className="relative bg-gray-50 rounded-xl overflow-hidden">
-            {item.type==="image"
-              ? <img src={item.src} className="w-full h-auto object-contain" />
-              : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
-            {list.length>1 && (<>
-              <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i-1+list.length)%list.length)}>‹</button>
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i+1)%list.length)}>›</button>
-            </>)}
-          </div>
-          {list.length>1 && (
-            <div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">
-              {list.map((m, idx)=>(
-                <button key={idx} onClick={()=>setI(idx)} className={"border rounded overflow-hidden " + (idx===i?"ring-2 ring-black":"")}>
-                  {m.type==="image"
-                    ? <img src={m.src} className="w-full h-16 object-cover"/>
-                    : <video src={m.src} className="w-full h-16 object-cover" muted playsInline preload="metadata"></video>}
-                </button>
-              ))}
+      // mount
+      const mount = document.createElement("div"); mount.id="k-media-gallery";
+      while (container.firstChild) container.removeChild(container.firstChild);
+      container.appendChild(mount);
+      const R = ReactDOM.createRoot(mount);
+      function MediaGallery(){
+        const [i, setI] = React.useState(startIndex);
+        const item = list[i];
+        const Thumb = ({m, active, onClick}) => (
+          m.type==="image"
+            ? <button onClick={onClick} className={"border rounded overflow-hidden "+(active?"ring-2 ring-black":"")}>
+                <img src={m.src} className="w-full h-16 object-cover"/>
+              </button>
+            : <button onClick={onClick} className={"border rounded overflow-hidden grid place-items-center "+(active?"ring-2 ring-black":"")} style={{width:"100%", height:"64px", background:"#111", color:"#fff"}}>
+                <span style={{fontSize:"10px",opacity:0.9}}>VIDEO ▷</span>
+              </button>
+        );
+        return (
+          <div>
+            <div className="relative bg-gray-50 rounded-xl overflow-hidden">
+              {item.type==="image"
+                ? <img src={item.src} className="w-full h-auto object-contain" />
+                : <video key={item.src} src={item.src} className="w-full h-auto" controls playsInline />}
+              {list.length>1 && (<>
+                <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i-1+list.length)%list.length)}>‹</button>
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full border" onClick={()=> setI((i+1)%list.length)}>›</button>
+              </>)}
             </div>
-          )}
-        </div>
-      );
+            {list.length>1 && (
+              <div className="mt-3 grid grid-cols-5 md:grid-cols-8 gap-2">
+                {list.map((m, idx)=>(
+                  <Thumb key={idx} m={m} active={idx===i} onClick={()=>setI(idx)} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+      R.render(<MediaGallery />);
     }
-    R.render(<MediaGallery />);
 
-    // Alt bölümler (satıcının diğer ürünleri / benzer ürünler)
+    // 3) Bottom sections (seller story, other items, similar) — show when data exists
     const main = document.querySelector("main") || root.closest("main") || document.body;
-    if (!document.getElementById("k-product-extras-bottom-v8")){
+    if (!document.getElementById("k-product-extras-bottom-v9")){
       const bottom = document.createElement("div");
-      bottom.id = "k-product-extras-bottom-v8";
+      bottom.id = "k-product-extras-bottom-v9";
       bottom.className = "max-w-6xl mx-auto px-4 md:px-6";
       main.appendChild(bottom);
       const RB = ReactDOM.createRoot(bottom);
@@ -3201,12 +3181,10 @@ function mountProductEnhancements(){
         const [fromSeller, setFromSeller] = React.useState([]);
         const [similar, setSimilar] = React.useState([]);
         React.useEffect(()=>{ (async()=>{
-          if (sellerId) setFromSeller(await fetchProductsByX({ sellerId, exceptId: pid }));
-          if (product?.category) setSimilar(await fetchProductsByX({ category: product.category, exceptId: pid }));
-          if ((!sellerId || fromSeller.length===0) && (!product?.category || similar.length===0)){
-            const all = await fetchProductsByX({});
-            setSimilar(all.filter(p=>p.id!==pid).slice(0,8));
-          }
+          try{
+            if (sellerId) setFromSeller(await fetchProductsByX({ sellerId, exceptId: pid }));
+            if (product?.category) setSimilar(await fetchProductsByX({ category: product.category, exceptId: pid }));
+          }catch(e){}
         })(); }, []);
         return (
           <div className="mt-10 space-y-10">
@@ -3267,4 +3245,4 @@ mo.observe(document.documentElement, { childList:true, subtree:true });
 window.addEventListener("load", mountProductEnhancements);
 window.addEventListener("popstate", ()=> setTimeout(mountProductEnhancements,0));
 </script>
-<!-- === /Kadraj Enhancements Pack v8 === -->
+<!-- === /Kadraj Enhancements Pack v9 === -->
